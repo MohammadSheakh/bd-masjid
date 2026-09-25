@@ -305,7 +305,7 @@ export async function toggleAttendance(
 
 export async function submitScheduleSuggestion(
   mosqueId: string,
-  data: { suggestedTimes: Record<string, string>; description?: string },
+  data: { suggestedTimes: Record<string, string | undefined>; description?: string },
 ) {
   const res = await fetch(`${API_BASE}/mosques/${mosqueId}/suggestions`, {
     method: 'POST',
@@ -447,26 +447,85 @@ export async function createMosqueDonation(
   }
 }
 
-export async function toggleMosqueBookmark(mosqueId: string) {
+export function getLocalBookmarks(): string[] {
+  if (typeof window === 'undefined') return [];
   try {
-    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/bookmark`, {
-      method: 'POST',
-    });
-    const json = await res.json();
-    return json.data || json || { isBookmarked: false };
-  } catch {
-    return { isBookmarked: false };
-  }
-}
-
-export async function fetchUserBookmarks() {
-  try {
-    const res = await fetch(`${API_BASE}/users/me/bookmarks`);
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data || json || [];
+    const raw = localStorage.getItem('bd_masjid_bookmarks');
+    return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
+}
+
+export async function toggleMosqueBookmark(mosqueId: string): Promise<{ isBookmarked: boolean }> {
+  let isBookmarked = false;
+  if (typeof window !== 'undefined') {
+    try {
+      const current = getLocalBookmarks();
+      if (current.includes(mosqueId)) {
+        const next = current.filter((id) => id !== mosqueId);
+        localStorage.setItem('bd_masjid_bookmarks', JSON.stringify(next));
+        isBookmarked = false;
+      } else {
+        const next = [...current, mosqueId];
+        localStorage.setItem('bd_masjid_bookmarks', JSON.stringify(next));
+        isBookmarked = true;
+      }
+    } catch {
+      // ignore local storage errors
+    }
+  }
+
+  // Also attempt backend sync if token exists
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (token) {
+      const res = await fetch(`${API_BASE}/mosques/${mosqueId}/bookmark`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const serverState = json.data?.isBookmarked ?? json.isBookmarked;
+        if (typeof serverState === 'boolean') {
+          isBookmarked = serverState;
+        }
+      }
+    }
+  } catch {
+    // Return optimistic local state if network or backend fails
+  }
+
+  return { isBookmarked };
+}
+
+export async function fetchUserBookmarks(): Promise<string[]> {
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (token) {
+      const res = await fetch(`${API_BASE}/users/me/bookmarks`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const mosques = json.data || json || [];
+        if (Array.isArray(mosques)) {
+          const ids = mosques.map((m: any) => m.id);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('bd_masjid_bookmarks', JSON.stringify(ids));
+          }
+          return ids;
+        }
+      }
+    }
+  } catch {
+    // Fall back to local
+  }
+  return getLocalBookmarks();
 }
 

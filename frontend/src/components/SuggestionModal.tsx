@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Check, Edit3, ArrowRight } from 'lucide-react';
+import { X, Check, Edit3, ArrowRight, Moon } from 'lucide-react';
 import { Mosque } from '@/types/mosque';
 import { submitScheduleSuggestion } from '@/lib/api';
 
@@ -22,6 +22,15 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
   const [maghrib, setMaghrib] = useState(schedule?.maghribJamaat || '');
   const [isha, setIsha] = useState(schedule?.ishaJamaat || '');
   const [jumuah, setJumuah] = useState(schedule?.jumuahJamaat || '');
+
+  // Ramadan timings
+  const [taraweeh, setTaraweeh] = useState(schedule?.taraweehJamaat || '');
+  const [sahri, setSahri] = useState(schedule?.sahriEnd || '');
+  const [iftar, setIftar] = useState(schedule?.iftarStart || '');
+  const [showRamadan, setShowRamadan] = useState(
+    Boolean(schedule?.taraweehJamaat || schedule?.sahriEnd || schedule?.iftarStart),
+  );
+
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -38,6 +47,9 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
           maghribJamaat: maghrib,
           ishaJamaat: isha,
           jumuahJamaat: jumuah,
+          taraweehJamaat: taraweeh.trim() || undefined,
+          sahriEnd: sahri.trim() || undefined,
+          iftarStart: iftar.trim() || undefined,
         },
         description: description.trim() || undefined,
       });
@@ -152,6 +164,58 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
                   className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
                 />
               </div>
+            </div>
+
+            {/* Ramadan Schedule (Taraweeh, Sahri, Iftar) */}
+            <div className="pt-2 border-t border-[#f0f0f2]">
+              <button
+                type="button"
+                onClick={() => setShowRamadan(!showRamadan)}
+                className="flex items-center justify-between w-full text-xs font-semibold text-emerald-800 hover:text-emerald-900 bg-emerald-50/60 hover:bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100 transition-colors"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Moon className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Ramadan Timetable (Taraweeh, Sahri, Iftar)</span>
+                </span>
+                <span className="text-[10px] text-emerald-600">
+                  {showRamadan ? 'Hide' : 'Add / Edit'}
+                </span>
+              </button>
+
+              {showRamadan && (
+                <div className="grid grid-cols-3 gap-2 text-xs mt-2.5 p-2.5 bg-emerald-50/30 rounded-xl border border-emerald-100/60 animate-in fade-in duration-150">
+                  <div>
+                    <span className="text-[10px] text-[#6e6e73]">Taraweeh</span>
+                    <input
+                      type="text"
+                      value={taraweeh}
+                      onChange={(e) => setTaraweeh(e.target.value)}
+                      placeholder="20:45"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea] bg-white"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#6e6e73]">Sahri End</span>
+                    <input
+                      type="text"
+                      value={sahri}
+                      onChange={(e) => setSahri(e.target.value)}
+                      placeholder="04:40"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea] bg-white"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-[#6e6e73]">Iftar Start</span>
+                    <input
+                      type="text"
+                      value={iftar}
+                      onChange={(e) => setIftar(e.target.value)}
+                      placeholder="18:25"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea] bg-white"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>

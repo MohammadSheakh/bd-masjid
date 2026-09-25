@@ -18,8 +18,9 @@ import {
   CreditCard,
   Bookmark,
   BookmarkCheck,
+  Moon,
 } from 'lucide-react';
-import { toggleAttendance, toggleMosqueBookmark } from '@/lib/api';
+import { toggleAttendance, toggleMosqueBookmark, getLocalBookmarks } from '@/lib/api';
 
 interface MosqueDetailModalProps {
   mosque: Mosque | null;
@@ -30,6 +31,7 @@ interface MosqueDetailModalProps {
   onOpenAnnouncements?: (mosque: Mosque) => void;
   onOpenDonations?: (mosque: Mosque) => void;
   onAttendanceChanged?: (mosqueId: string, status: AttendanceStatus) => void;
+  onBookmarkChange?: (mosqueId: string, isBookmarked: boolean) => void;
 }
 
 export function MosqueDetailModal({
@@ -41,10 +43,14 @@ export function MosqueDetailModal({
   onOpenAnnouncements,
   onOpenDonations,
   onAttendanceChanged,
+  onBookmarkChange,
 }: MosqueDetailModalProps) {
   if (!mosque) return null;
 
-  const [isBookmarked, setIsBookmarked] = useState(mosque.isBookmarked || false);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(() => {
+    if (mosque.isBookmarked !== undefined) return mosque.isBookmarked;
+    return typeof window !== 'undefined' ? getLocalBookmarks().includes(mosque.id) : false;
+  });
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
 
   const [currentAttendance, setCurrentAttendance] = useState<AttendanceStatus>(
@@ -145,6 +151,7 @@ export function MosqueDetailModal({
                 setIsTogglingBookmark(true);
                 const res = await toggleMosqueBookmark(mosque.id);
                 setIsBookmarked(res.isBookmarked);
+                onBookmarkChange?.(mosque.id, res.isBookmarked);
                 setIsTogglingBookmark(false);
               }}
               disabled={isTogglingBookmark}
@@ -219,6 +226,36 @@ export function MosqueDetailModal({
                 ))}
               </div>
             </div>
+
+            {/* Holy Month of Ramadan Timings */}
+            {(schedule?.taraweehJamaat || schedule?.sahriEnd || schedule?.iftarStart) && (
+              <div className="mt-3 p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 animate-in fade-in duration-200">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950 mb-2">
+                  <Moon className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Holy Month of Ramadan Timings</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
+                    <span className="block text-[10px] text-[#6e6e73]">Sahri End</span>
+                    <span className="font-bold text-sm text-[#111114]">
+                      {schedule.sahriEnd || '—'}
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
+                    <span className="block text-[10px] text-[#6e6e73]">Iftar Start</span>
+                    <span className="font-bold text-sm text-[#111114]">
+                      {schedule.iftarStart || '—'}
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
+                    <span className="block text-[10px] text-[#6e6e73]">Taraweeh</span>
+                    <span className="font-bold text-sm text-emerald-700">
+                      {schedule.taraweehJamaat || '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Facilities Available */}
