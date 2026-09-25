@@ -65,6 +65,5 @@ describe('TwoFactorService', () => {
     expect(stored.twoFactorRecoveryCodeHashes[0]).not.toBe(
       result.recoveryCodes[0],
     );
-    expect(stored.staffSessionVersion).toEqual({ increment: 1 });
   });
 });

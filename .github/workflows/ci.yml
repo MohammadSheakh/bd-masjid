@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
   backend:
@@ -11,70 +12,49 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ferio-nest-prisma
+        working-directory: backend-nest-prisma
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
-          cache-dependency-path: ferio-nest-prisma/pnpm-lock.yaml
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Generate Prisma client
-        run: pnpm prisma:generate
-      - name: Production build
-        run: pnpm build
-      - name: Unit tests
-        run: pnpm test
+          cache: npm
+          cache-dependency-path: backend-nest-prisma/package-lock.json
 
-  customer-web:
-    name: Customer Web — typecheck & build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ferio-customer-web
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-          cache-dependency-path: ferio-customer-web/pnpm-lock.yaml
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: TypeScript check
-        run: pnpm exec tsc --noEmit
-      - name: Production build
-        run: pnpm build
+        run: npm ci
+
+      - name: Build Prisma schema & generate client
+        run: |
+          npm run prisma:schema:build
+          npx prisma generate
         env:
-          NEXT_PUBLIC_FERIO_API_URL: http://localhost:6733/api/v1
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/bd_masjid_test"
 
-  admin-web:
-    name: Admin Web — typecheck & build
+      - name: Production build
+        run: npm run build
+
+      - name: Unit tests
+        run: npm test
+
+  frontend:
+    name: Frontend — build & static optimization
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ferio-admin-dashboard/ferio-admin
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
-          cache-dependency-path: ferio-admin-dashboard/ferio-admin/pnpm-lock.yaml
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: TypeScript check
-        run: pnpm exec tsc --noEmit
+        run: npm ci
+
       - name: Production build
-        run: pnpm build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:6733/api/v1
