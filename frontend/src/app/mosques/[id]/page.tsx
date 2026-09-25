@@ -17,7 +17,9 @@ import {
   ShieldCheck,
   Smartphone,
   Building,
+  Moon,
 } from 'lucide-react';
+import { PrayerCountdownBanner } from '@/components/PrayerCountdownBanner';
 
 interface MosquePageProps {
   params: Promise<{ id: string }>;
@@ -62,7 +64,12 @@ export default async function MosquePage({ params }: MosquePageProps) {
     { name: 'Asr', start: schedule?.asrStart, jamaat: schedule?.asrJamaat },
     { name: 'Maghrib', start: schedule?.maghribStart, jamaat: schedule?.maghribJamaat },
     { name: 'Isha', start: schedule?.ishaStart, jamaat: schedule?.ishaJamaat },
-    { name: 'Jumu\'ah (Friday)', start: null, jamaat: schedule?.jumuahJamaat || '13:30', isFriday: true },
+    {
+      name: 'Jumu\'ah (Friday)',
+      start: schedule?.jumuahSecondJamaat ? `2nd: ${schedule.jumuahSecondJamaat}` : null,
+      jamaat: schedule?.jumuahJamaat || '13:30',
+      isFriday: true,
+    },
   ];
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${mosque.latitude},${mosque.longitude}`;
@@ -111,6 +118,9 @@ export default async function MosquePage({ params }: MosquePageProps) {
             </div>
           </div>
 
+          {/* Live Next Prayer Countdown & Reminder */}
+          <PrayerCountdownBanner schedule={schedule} mosqueName={mosque.name} />
+
           {/* Freshness Banner */}
           <div className="flex items-center justify-between text-xs px-3.5 py-2.5 rounded-xl bg-zinc-50 border border-zinc-200">
             <span className="flex items-center gap-1.5 text-zinc-700 font-medium">
@@ -157,6 +167,36 @@ export default async function MosquePage({ params }: MosquePageProps) {
                 ))}
               </div>
             </div>
+
+            {/* Holy Month of Ramadan Timings */}
+            {(schedule?.taraweehJamaat || schedule?.sahriEnd || schedule?.iftarStart) && (
+              <div className="mt-3 p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950 mb-2">
+                  <Moon className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Holy Month of Ramadan Timings</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
+                    <span className="block text-[10px] text-[#6e6e73]">Sahri End</span>
+                    <span className="font-bold text-sm text-[#111114]">
+                      {schedule.sahriEnd || '—'}
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
+                    <span className="block text-[10px] text-[#6e6e73]">Iftar Start</span>
+                    <span className="font-bold text-sm text-[#111114]">
+                      {schedule.iftarStart || '—'}
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
+                    <span className="block text-[10px] text-[#6e6e73]">Taraweeh</span>
+                    <span className="font-bold text-sm text-emerald-700">
+                      {schedule.taraweehJamaat || '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Facilities Available */}
