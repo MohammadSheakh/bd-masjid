@@ -13,6 +13,8 @@ import {
   Flag,
   Share2,
   Check,
+  Megaphone,
+  Pin,
 } from 'lucide-react';
 import { toggleAttendance } from '@/lib/api';
 
@@ -22,6 +24,7 @@ interface MosqueDetailModalProps {
   onOpenSuggestion: (mosque: Mosque) => void;
   onOpenReport: (mosque: Mosque) => void;
   onOpenRoleClaim?: (mosque: Mosque) => void;
+  onOpenAnnouncements?: (mosque: Mosque) => void;
   onAttendanceChanged?: (mosqueId: string, status: AttendanceStatus) => void;
 }
 
@@ -31,6 +34,7 @@ export function MosqueDetailModal({
   onOpenSuggestion,
   onOpenReport,
   onOpenRoleClaim,
+  onOpenAnnouncements,
   onAttendanceChanged,
 }: MosqueDetailModalProps) {
   if (!mosque) return null;
@@ -276,6 +280,49 @@ export function MosqueDetailModal({
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Community Notices & Announcements */}
+          <div className="p-3.5 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <Megaphone className="w-3.5 h-3.5 text-amber-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73]">
+                  Community Notices
+                </h3>
+              </div>
+              {onOpenAnnouncements && (
+                <button
+                  onClick={() => onOpenAnnouncements(mosque)}
+                  className="text-[11px] font-semibold text-emerald-700 hover:underline"
+                >
+                  View / Post Notice
+                </button>
+              )}
+            </div>
+
+            {mosque.announcements && mosque.announcements.length > 0 ? (
+              <div className="space-y-2">
+                {mosque.announcements.slice(0, 2).map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-2.5 bg-white border border-[#e8e8ea] rounded-xl text-xs"
+                  >
+                    <div className="flex items-center gap-1.5 font-semibold text-[#111114]">
+                      {item.isPinned && <Pin className="w-3 h-3 text-amber-600 shrink-0" />}
+                      <span className="truncate">{item.title}</span>
+                    </div>
+                    <p className="text-[11px] text-[#6e6e73] mt-0.5 line-clamp-2">
+                      {item.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[#6e6e73]">
+                No urgent notices published. Check regular Jammat times above.
+              </p>
+            )}
           </div>
 
           {/* Community Attendance Tracking */}

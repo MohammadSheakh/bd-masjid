@@ -178,11 +178,20 @@ export async function fetchNearbyMosques(
 export async function searchMosques(
   search?: string,
   city?: string,
+  filters?: {
+    hasSeparateWomenSpace?: boolean;
+    hasAirConditioning?: boolean;
+    hasParking?: boolean;
+  },
 ): Promise<Mosque[]> {
   try {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
-    if (city) params.append('city', city);
+    if (city && city !== 'All') params.append('city', city);
+    if (filters?.hasSeparateWomenSpace) params.append('hasSeparateWomenSpace', 'true');
+    if (filters?.hasAirConditioning) params.append('hasAirConditioning', 'true');
+    if (filters?.hasParking) params.append('hasParking', 'true');
+
     const res = await fetch(`${API_BASE}/mosques?${params.toString()}`);
     if (!res.ok) throw new Error('Failed to search mosques');
     const json = await res.json();
@@ -201,6 +210,15 @@ export async function searchMosques(
     }
     if (city && city !== 'All') {
       list = list.filter((m) => m.city?.toLowerCase() === city.toLowerCase());
+    }
+    if (filters?.hasSeparateWomenSpace) {
+      list = list.filter((m) => m.hasSeparateWomenSpace);
+    }
+    if (filters?.hasAirConditioning) {
+      list = list.filter((m) => m.hasAirConditioning);
+    }
+    if (filters?.hasParking) {
+      list = list.filter((m) => m.hasParking);
     }
     return list;
   }
@@ -348,6 +366,41 @@ export async function fetchMosqueAnnouncements(mosqueId: string) {
     return json.data || json || [];
   } catch {
     return [];
+  }
+}
+
+export async function createMosqueAnnouncement(
+  mosqueId: string,
+  data: { title: string; content: string; isPinned?: boolean },
+) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/announcements`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to post announcement' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+export async function deleteMosqueAnnouncement(
+  mosqueId: string,
+  announcementId: string,
+) {
+  try {
+    const res = await fetch(
+      `${API_BASE}/mosques/${mosqueId}/announcements/${announcementId}`,
+      { method: 'DELETE' },
+    );
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 

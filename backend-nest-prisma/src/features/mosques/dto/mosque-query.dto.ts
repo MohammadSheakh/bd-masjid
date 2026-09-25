@@ -48,6 +48,34 @@ export class MosqueQueryDto {
   city?: string;
 
   @ApiPropertyOptional({
+    description: 'Filter by women prayer space availability',
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  hasSeparateWomenSpace?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Filter by air conditioning availability',
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  hasAirConditioning?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Filter by parking availability',
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  hasParking?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Filter by wheelchair accessibility',
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  hasWheelchairAccess?: boolean;
+
+  @ApiPropertyOptional({
     description: 'Page number',
     default: 1,
     minimum: 1,

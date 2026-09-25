@@ -11,7 +11,8 @@ import { AddMosqueModal } from '@/components/AddMosqueModal';
 import { SuggestionModal } from '@/components/SuggestionModal';
 import { ReportModal } from '@/components/ReportModal';
 import { RoleClaimModal } from '@/components/RoleClaimModal';
-import { Search, Map as MapIcon, List, Compass, Filter, RefreshCw } from 'lucide-react';
+import { AnnouncementModal } from '@/components/AnnouncementModal';
+import { Search, Map as MapIcon, List, Compass, Filter, RefreshCw, Check } from 'lucide-react';
 
 // Dynamically import Leaflet map (client-side only to prevent SSR window issues)
 const MosqueMap = dynamic(
@@ -34,6 +35,9 @@ export default function HomePage() {
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState('All');
+  const [filterWomen, setFilterWomen] = useState(false);
+  const [filterAC, setFilterAC] = useState(false);
+  const [filterParking, setFilterParking] = useState(false);
   const [mobileTab, setMobileTab] = useState<'map' | 'list'>('list');
 
   // GPS user location
@@ -48,6 +52,7 @@ export default function HomePage() {
   const [suggestionMosque, setSuggestionMosque] = useState<Mosque | null>(null);
   const [reportMosque, setReportMosque] = useState<Mosque | null>(null);
   const [roleClaimMosque, setRoleClaimMosque] = useState<Mosque | null>(null);
+  const [announcementMosque, setAnnouncementMosque] = useState<Mosque | null>(null);
 
   // Available cities for filtering
   const cities = ['All', 'Dhaka', 'Chattogram', 'Sylhet'];
@@ -72,12 +77,23 @@ export default function HomePage() {
   // Search filter
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (searchQuery.trim() || selectedCity !== 'All') {
+      if (
+        searchQuery.trim() ||
+        selectedCity !== 'All' ||
+        filterWomen ||
+        filterAC ||
+        filterParking
+      ) {
         setIsLoading(true);
         try {
           const results = await searchMosques(
             searchQuery.trim() || undefined,
             selectedCity !== 'All' ? selectedCity : undefined,
+            {
+              hasSeparateWomenSpace: filterWomen || undefined,
+              hasAirConditioning: filterAC || undefined,
+              hasParking: filterParking || undefined,
+            },
           );
           setMosques(results);
         } finally {
@@ -89,7 +105,7 @@ export default function HomePage() {
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCity]);
+  }, [searchQuery, selectedCity, filterWomen, filterAC, filterParking]);
 
   // Handle GPS Locate Me
   const handleLocateMe = () => {
@@ -171,6 +187,46 @@ export default function HomePage() {
                   {city}
                 </button>
               ))}
+            </div>
+
+            {/* Facility Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-0.5 border-t border-[#f0f0f2]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#6e6e73] pr-1">
+                Facilities:
+              </span>
+              <button
+                onClick={() => setFilterWomen(!filterWomen)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
+                  filterWomen
+                    ? 'bg-emerald-700 text-white shadow-sm'
+                    : 'bg-[#fafafa] text-[#6e6e73] hover:bg-zinc-100 border border-[#e8e8ea]'
+                }`}
+              >
+                {filterWomen && <Check className="w-3 h-3" />}
+                Women's Area
+              </button>
+              <button
+                onClick={() => setFilterAC(!filterAC)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
+                  filterAC
+                    ? 'bg-emerald-700 text-white shadow-sm'
+                    : 'bg-[#fafafa] text-[#6e6e73] hover:bg-zinc-100 border border-[#e8e8ea]'
+                }`}
+              >
+                {filterAC && <Check className="w-3 h-3" />}
+                AC
+              </button>
+              <button
+                onClick={() => setFilterParking(!filterParking)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
+                  filterParking
+                    ? 'bg-emerald-700 text-white shadow-sm'
+                    : 'bg-[#fafafa] text-[#6e6e73] hover:bg-zinc-100 border border-[#e8e8ea]'
+                }`}
+              >
+                {filterParking && <Check className="w-3 h-3" />}
+                Parking
+              </button>
             </div>
           </div>
 
@@ -268,6 +324,7 @@ export default function HomePage() {
           onOpenSuggestion={(m) => setSuggestionMosque(m)}
           onOpenReport={(m) => setReportMosque(m)}
           onOpenRoleClaim={(m) => setRoleClaimMosque(m)}
+          onOpenAnnouncements={(m) => setAnnouncementMosque(m)}
         />
       )}
 
@@ -306,6 +363,23 @@ export default function HomePage() {
         <RoleClaimModal
           mosque={roleClaimMosque}
           onClose={() => setRoleClaimMosque(null)}
+        />
+      )}
+
+      {/* Announcement & Notices Modal */}
+      {announcementMosque && (
+        <AnnouncementModal
+          isOpen={!!announcementMosque}
+          mosque={announcementMosque}
+          onClose={() => setAnnouncementMosque(null)}
+          onAnnouncementCreated={(newNotice) => {
+            if (selectedMosque && selectedMosque.id === announcementMosque.id) {
+              setSelectedMosque({
+                ...selectedMosque,
+                announcements: [newNotice, ...(selectedMosque.announcements || [])],
+              });
+            }
+          }}
         />
       )}
     </div>

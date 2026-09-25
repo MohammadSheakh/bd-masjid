@@ -249,6 +249,13 @@ export class MosquesService {
         country: string;
         operationalStatus: MosqueOperationalStatus;
         verificationStatus: MosqueVerificationStatus;
+        hasWuduArea: boolean;
+        hasSeparateWomenSpace: boolean;
+        hasAirConditioning: boolean;
+        hasParking: boolean;
+        hasWheelchairAccess: boolean;
+        hasJanazaFacility: boolean;
+        capacity: number | null;
         createdAt: Date;
         updatedAt: Date;
         distanceMeters: number;
@@ -265,6 +272,13 @@ export class MosquesService {
         m.country,
         m."operationalStatus",
         m."verificationStatus",
+        m."hasWuduArea",
+        m."hasSeparateWomenSpace",
+        m."hasAirConditioning",
+        m."hasParking",
+        m."hasWheelchairAccess",
+        m."hasJanazaFacility",
+        m.capacity,
         m."createdAt",
         m."updatedAt",
         ROUND(
@@ -318,6 +332,27 @@ export class MosquesService {
       where: { id, isDeleted: false },
       include: {
         prayerSchedule: true,
+        staffMembers: {
+          where: { isVerified: true },
+          select: {
+            id: true,
+            role: true,
+            name: true,
+            contactNumber: true,
+            isVerified: true,
+          },
+        },
+        announcements: {
+          orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+          take: 10,
+          select: {
+            id: true,
+            title: true,
+            content: true,
+            isPinned: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -386,6 +421,22 @@ export class MosquesService {
 
     if (query.city) {
       where.city = { equals: query.city.trim(), mode: 'insensitive' };
+    }
+
+    if (query.hasSeparateWomenSpace !== undefined) {
+      where.hasSeparateWomenSpace = query.hasSeparateWomenSpace;
+    }
+
+    if (query.hasAirConditioning !== undefined) {
+      where.hasAirConditioning = query.hasAirConditioning;
+    }
+
+    if (query.hasParking !== undefined) {
+      where.hasParking = query.hasParking;
+    }
+
+    if (query.hasWheelchairAccess !== undefined) {
+      where.hasWheelchairAccess = query.hasWheelchairAccess;
     }
 
     const [items, total] = await Promise.all([

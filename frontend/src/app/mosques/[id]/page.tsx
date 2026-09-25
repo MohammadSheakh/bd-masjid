@@ -11,6 +11,8 @@ import {
   Navigation,
   ArrowLeft,
   Share2,
+  Megaphone,
+  Pin,
 } from 'lucide-react';
 
 interface MosquePageProps {
@@ -214,26 +216,88 @@ export default async function MosquePage({ params }: MosquePageProps) {
               Imams & Managing Committee
             </h3>
             <div className="p-3.5 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl divide-y divide-[#ececed] text-xs">
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <span className="font-semibold text-[#111114] block">Pesh Imam</span>
-                  <span className="text-[11px] text-[#6e6e73]">Appointed Religious Scholar</span>
-                </div>
-                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                  Verified
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <span className="font-semibold text-[#111114] block">Muazzin</span>
-                  <span className="text-[11px] text-[#6e6e73]">Regular Caller to Prayer</span>
-                </div>
-                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                  Verified
-                </span>
-              </div>
+              {mosque.staffMembers && mosque.staffMembers.length > 0 ? (
+                mosque.staffMembers.map((staff) => (
+                  <div key={staff.id} className="flex items-center justify-between py-2">
+                    <div>
+                      <span className="font-semibold text-[#111114] block">
+                        {staff.name}
+                      </span>
+                      <span className="text-[11px] text-[#6e6e73]">
+                        {staff.role.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      Verified
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <span className="font-semibold text-[#111114] block">Pesh Imam</span>
+                      <span className="text-[11px] text-[#6e6e73]">Appointed Religious Scholar</span>
+                    </div>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      Verified
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <span className="font-semibold text-[#111114] block">Muazzin</span>
+                      <span className="text-[11px] text-[#6e6e73]">Regular Caller to Prayer</span>
+                    </div>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      Verified
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
+
+          {/* Community Notices & Announcements */}
+          {mosque.announcements && mosque.announcements.length > 0 && (
+            <div>
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <Megaphone className="w-3.5 h-3.5 text-amber-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73]">
+                  Community Notices
+                </h3>
+              </div>
+              <div className="space-y-2.5">
+                {mosque.announcements.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`p-3.5 rounded-2xl border ${
+                      item.isPinned
+                        ? 'bg-amber-50/40 border-amber-200'
+                        : 'bg-[#fafafa] border-[#e8e8ea]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-1.5">
+                        {item.isPinned && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded-full">
+                            <Pin className="w-2.5 h-2.5" />
+                            Pinned
+                          </span>
+                        )}
+                        <h4 className="text-xs font-bold text-[#111114]">{item.title}</h4>
+                      </div>
+                      <span className="text-[10px] text-[#6e6e73] font-mono">
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-700 leading-relaxed whitespace-pre-line">
+                      {item.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Attendance Overview */}
           {mosque.attendanceSummary && (
