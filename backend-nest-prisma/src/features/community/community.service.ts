@@ -388,6 +388,17 @@ export class CommunityService {
   // Verified Mosque Donation Information (Release 3 / PRD Section 14)
   // ──────────────────────────────────────────────────────────────────────────
 
+  async getAllDonationMethods() {
+    return this.prisma.mosqueDonationMethod.findMany({
+      orderBy: [{ isVerified: 'asc' }, { createdAt: 'desc' }],
+      include: {
+        mosque: {
+          select: { id: true, name: true, city: true },
+        },
+      },
+    });
+  }
+
   async getDonationMethods(mosqueId: string, actor?: UserPayload) {
     const mosque = await this.prisma.mosque.findUnique({
       where: { id: mosqueId, isDeleted: false },

@@ -225,6 +225,18 @@ export class CommunityController {
   // Verified Mosque Donations (Release 3 / PRD Section 14)
   // ──────────────────────────────────────────────────────────────────────────
 
+  @Get('admin/donations')
+  @Roles('admin', 'moderator')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 60 })
+  @ApiOperation({
+    summary: 'List all donation methods for moderation',
+    description: 'Returns all donation methods across mosques for admin review',
+  })
+  async getAllDonationMethods() {
+    return this.communityService.getAllDonationMethods();
+  }
+
   @Get('mosques/:id/donations')
   @Public()
   @RateLimit({ windowMs: 60 * 1000, max: 60 })

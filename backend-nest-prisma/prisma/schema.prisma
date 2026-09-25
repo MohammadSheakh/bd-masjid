@@ -426,6 +426,9 @@ model PrayerSchedule {
   ishaJamaat    String?
 
   jumuahJamaat  String?
+  taraweehJamaat String?
+  sahriEnd      String?
+  iftarStart    String?
 
   timezone      String   @default("Asia/Dhaka")
 

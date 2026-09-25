@@ -58,8 +58,24 @@ interface RoleClaimItem {
   createdAt: string;
 }
 
+interface DonationChannelItem {
+  id: string;
+  mosqueId: string;
+  mosque?: { name: string; city: string | null };
+  methodType: string;
+  accountType: string;
+  accountNumber: string;
+  accountTitle: string | null;
+  bankName: string | null;
+  branchName: string | null;
+  routingNumber: string | null;
+  instructions: string | null;
+  isVerified: boolean;
+  createdAt: string;
+}
+
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'verifications' | 'suggestions' | 'reports' | 'claims'>('verifications');
+  const [activeTab, setActiveTab] = useState<'verifications' | 'suggestions' | 'reports' | 'claims' | 'donations'>('verifications');
   const [isLoading, setIsLoading] = useState(false);
 
   // Data states
@@ -67,6 +83,7 @@ export default function AdminPage() {
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [roleClaims, setRoleClaims] = useState<RoleClaimItem[]>([]);
+  const [donations, setDonations] = useState<DonationChannelItem[]>([]);
 
   // Action modal / feedback states
   const [rejectId, setRejectId] = useState<string | null>(null);
@@ -165,11 +182,73 @@ export default function AdminPage() {
             },
           ]);
         }
+      } else if (activeTab === 'donations') {
+        const res = await fetch(`${API_BASE}/admin/donations`);
+        if (res.ok) {
+          const json = await res.json();
+          setDonations(json.data || json || []);
+        } else {
+          setDonations([
+            {
+              id: 'don-1',
+              mosqueId: 'mosque-1',
+              mosque: { name: 'Baitul Mukarram National Mosque', city: 'Dhaka' },
+              methodType: 'BKASH',
+              accountType: 'MERCHANT',
+              accountNumber: '01711223344',
+              accountTitle: 'National Mosque Welfare Fund',
+              bankName: null,
+              branchName: null,
+              routingNumber: null,
+              instructions: 'Counter: 01',
+              isVerified: false,
+              createdAt: new Date().toISOString(),
+            },
+          ]);
+        }
       }
     } catch {
       // Fallback preview
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleVerifyDonation = async (id: string) => {
+    try {
+      await fetch(`${API_BASE}/admin/donations/${id}/review`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isVerified: true }),
+      });
+      setDonations((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, isVerified: true } : d)),
+      );
+      setStatusMessage('Donation destination verified successfully.');
+    } catch {
+      setDonations((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, isVerified: true } : d)),
+      );
+      setStatusMessage('Mock: Donation destination verified.');
+    }
+  };
+
+  const handleRevokeDonation = async (id: string) => {
+    try {
+      await fetch(`${API_BASE}/admin/donations/${id}/review`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isVerified: false }),
+      });
+      setDonations((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, isVerified: false } : d)),
+      );
+      setStatusMessage('Donation destination un-verified / revoked.');
+    } catch {
+      setDonations((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, isVerified: false } : d)),
+      );
+      setStatusMessage('Mock: Donation destination un-verified.');
     }
   };
 
@@ -342,6 +421,17 @@ export default function AdminPage() {
             }`}
           >
             Role Claims ({roleClaims.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('donations')}
+            className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+              activeTab === 'donations'
+                ? 'bg-[#111114] text-white shadow-sm'
+                : 'bg-white text-[#6e6e73] hover:text-black border border-[#e8e8ea]'
+            }`}
+          >
+            Donations ({donations.length})
           </button>
         </div>
 
@@ -615,6 +705,101 @@ export default function AdminPage() {
                     >
                       Approve & Verify Staff
                     </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Tab 5: Donations Moderation */}
+        {activeTab === 'donations' && (
+          <div className="space-y-4">
+            {donations.length === 0 ? (
+              <div className="p-12 text-center rounded-3xl bg-white border border-[#e8e8ea] text-xs text-[#6e6e73]">
+                No registered donation channels.
+              </div>
+            ) : (
+              donations.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-5 rounded-3xl bg-white border border-[#e8e8ea] shadow-sm space-y-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-zinc-100 text-zinc-700">
+                          {item.methodType.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-[10px] font-medium text-zinc-500">
+                          ({item.accountType.replace(/_/g, ' ')})
+                        </span>
+                        {item.isVerified ? (
+                          <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                            Verified
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                            Pending Review
+                          </span>
+                        )}
+                      </div>
+                      <h2 className="text-sm font-bold text-[#111114] mt-1.5">
+                        {item.mosque?.name || 'Mosque'}
+                      </h2>
+                      <div className="text-xs text-[#6e6e73] font-mono mt-0.5">
+                        Account No: <strong className="text-zinc-900 font-bold">{item.accountNumber}</strong>
+                      </div>
+                      {item.accountTitle && (
+                        <div className="text-xs text-[#6e6e73] mt-0.5">
+                          Beneficiary: <strong className="text-zinc-800">{item.accountTitle}</strong>
+                        </div>
+                      )}
+                      {item.bankName && (
+                        <div className="text-xs text-[#6e6e73] mt-0.5">
+                          Bank: {item.bankName} {item.branchName && `(${item.branchName})`}{' '}
+                          {item.routingNumber && `| Routing: ${item.routingNumber}`}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-zinc-400 font-mono">
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  {item.instructions && (
+                    <div className="bg-[#fafafa] p-3 rounded-2xl border border-[#e8e8ea] text-xs text-zinc-800">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#6e6e73] block mb-1">
+                        Instructions / Notes
+                      </span>
+                      <p className="leading-relaxed">{item.instructions}</p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-[#f0f0f2]">
+                    {item.isVerified ? (
+                      <button
+                        onClick={() => handleRevokeDonation(item.id)}
+                        className="px-4 py-1.5 rounded-full border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-50 transition-colors"
+                      >
+                        Revoke Verification
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleRevokeDonation(item.id)}
+                          className="px-4 py-1.5 rounded-full border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-50 transition-colors"
+                        >
+                          Reject
+                        </button>
+                        <button
+                          onClick={() => handleVerifyDonation(item.id)}
+                          className="px-4 py-1.5 rounded-full bg-emerald-700 text-white text-xs font-semibold hover:bg-emerald-800 transition-colors"
+                        >
+                          Approve & Verify Account
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))

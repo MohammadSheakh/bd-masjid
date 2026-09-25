@@ -34,6 +34,9 @@ export interface PrayerSchedule {
   ishaStart?: string | null;
   ishaJamaat?: string | null;
   jumuahJamaat?: string | null;
+  taraweehJamaat?: string | null;
+  sahriEnd?: string | null;
+  iftarStart?: string | null;
   timezone?: string;
   updatedAt?: string;
 }

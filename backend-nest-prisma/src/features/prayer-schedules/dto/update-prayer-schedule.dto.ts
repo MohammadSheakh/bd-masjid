@@ -114,6 +114,33 @@ export class UpdatePrayerScheduleDto {
   @Matches(TIME_REGEX, { message: TIME_MESSAGE })
   jumuahJamaat?: string;
 
+  @ApiPropertyOptional({
+    example: '20:45',
+    description: 'Taraweeh prayer Jamaat time during Ramadan (HH:mm)',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(TIME_REGEX, { message: TIME_MESSAGE })
+  taraweehJamaat?: string;
+
+  @ApiPropertyOptional({
+    example: '04:55',
+    description: 'Sahri end time (HH:mm)',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(TIME_REGEX, { message: TIME_MESSAGE })
+  sahriEnd?: string;
+
+  @ApiPropertyOptional({
+    example: '18:15',
+    description: 'Iftar start time (HH:mm)',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(TIME_REGEX, { message: TIME_MESSAGE })
+  iftarStart?: string;
+
   @ApiPropertyOptional({ example: 'Asia/Dhaka', default: 'Asia/Dhaka' })
   @IsOptional()
   @IsString()
