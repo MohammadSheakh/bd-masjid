@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, UserRole, MosqueOperationalStatus, MosqueVerificationStatus, AttendanceStatus } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
@@ -14,250 +14,315 @@ const adapter = new PrismaPg({ connectionString: databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const email = (process.env.ADMIN_EMAIL?.trim() || 'mohammad.sheakh01@gmail.com').toLowerCase();
-  const password = process.env.ADMIN_PASSWORD || 'asdfasdf';
-  const name = process.env.ADMIN_NAME?.trim() || 'Ferio Admin';
+  console.log('🌱 Starting BD Masjid database seed...');
 
-  // if (password.length < 12) {
-  //   throw new Error('ADMIN_PASSWORD must contain at least 12 characters');
-  // }
+  // 1. Seed Admin User
+  const adminEmail = (process.env.ADMIN_EMAIL?.trim() || 'mohammad.sheakh01@gmail.com').toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPass123!';
+  const adminName = process.env.ADMIN_NAME?.trim() || 'Mohammad Sheakh (Admin)';
+  const hashedAdminPassword = await bcrypt.hash(adminPassword, 12);
 
-  const hashedPassword = await bcrypt.hash(password, 12);
-
-  await prisma.user.upsert({
-    where: { email },
+  const adminUser = await prisma.user.upsert({
+    where: { email: adminEmail },
     update: {
-      name,
-      password: hashedPassword,
+      name: adminName,
+      password: hashedAdminPassword,
       role: UserRole.admin,
       isDeleted: false,
-      deletedAt: null,
     },
     create: {
-      name,
-      email,
-      password: hashedPassword,
+      name: adminName,
+      email: adminEmail,
+      password: hashedAdminPassword,
       role: UserRole.admin,
       isEmailVerified: true,
     },
   });
+  console.log(`✅ Admin user seeded: ${adminUser.email}`);
 
-  /*
-  const deliveryZones = [
+  // 2. Seed Community User
+  const userEmail = 'community@bdmasjid.com';
+  const hashedUserPassword = await bcrypt.hash('UserPass123!', 12);
+  const communityUser = await prisma.user.upsert({
+    where: { email: userEmail },
+    update: { role: UserRole.user },
+    create: {
+      name: 'Tanvir Ahmed',
+      email: userEmail,
+      password: hashedUserPassword,
+      role: UserRole.user,
+      isEmailVerified: true,
+    },
+  });
+  console.log(`✅ Community test user seeded: ${communityUser.email}`);
+
+  // 3. Seed Realistic Mosques across Bangladesh
+  const mosquesData = [
     {
-      name: 'Dhaka metro',
-      deliveryFee: 7000,
-      freeDeliveryThreshold: 300000,
-      sortOrder: 0,
-      districts: ['Dhaka'],
+      name: 'Baitul Mukarram National Mosque',
+      latitude: 23.7289,
+      longitude: 90.4125,
+      address: 'Topkhana Road, Paltan',
+      landmark: 'Opposite to Stadium Gate',
+      city: 'Dhaka',
+      country: 'Bangladesh',
+      operationalStatus: MosqueOperationalStatus.OPEN,
+      verificationStatus: MosqueVerificationStatus.VERIFIED,
+      schedule: {
+        fajrStart: '04:45',
+        fajrJamaat: '05:15',
+        sunrise: '06:02',
+        zuhrStart: '12:05',
+        zuhrJamaat: '13:30',
+        asrStart: '16:15',
+        asrJamaat: '16:45',
+        maghribStart: '18:10',
+        maghribJamaat: '18:15',
+        ishaStart: '19:25',
+        ishaJamaat: '20:00',
+        jumuahJamaat: '13:30',
+      },
     },
     {
-      name: 'Major cities',
-      deliveryFee: 12000,
-      freeDeliveryThreshold: 500000,
-      sortOrder: 10,
-      districts: [
-        'Chattogram',
-        'Gazipur',
-        'Narayanganj',
-        'Rajshahi',
-        'Khulna',
-        'Sylhet',
-      ],
+      name: 'Star Mosque (Tara Masjid)',
+      latitude: 23.7153,
+      longitude: 90.4017,
+      address: 'Armanitola, Old Dhaka',
+      landmark: 'Near Armanitola School',
+      city: 'Dhaka',
+      country: 'Bangladesh',
+      operationalStatus: MosqueOperationalStatus.OPEN,
+      verificationStatus: MosqueVerificationStatus.VERIFIED,
+      schedule: {
+        fajrStart: '04:45',
+        fajrJamaat: '05:15',
+        sunrise: '06:03',
+        zuhrStart: '12:05',
+        zuhrJamaat: '13:15',
+        asrStart: '16:15',
+        asrJamaat: '16:40',
+        maghribStart: '18:10',
+        maghribJamaat: '18:15',
+        ishaStart: '19:25',
+        ishaJamaat: '19:50',
+        jumuahJamaat: '13:30',
+      },
     },
     {
-      name: 'Nationwide',
-      deliveryFee: 15000,
-      freeDeliveryThreshold: 700000,
-      sortOrder: 20,
-      districts: [
-        'Barishal',
-        'Rangpur',
-        'Mymensingh',
-        'Cumilla',
-        'Bogura',
-        'Dinajpur',
-        'Jashore',
-        'Cox’s Bazar',
-      ],
+      name: 'Gulshan Society Jame Masjid',
+      latitude: 23.7925,
+      longitude: 90.4172,
+      address: 'Road 63, Gulshan-2',
+      landmark: 'Beside Gulshan Central Park',
+      city: 'Dhaka',
+      country: 'Bangladesh',
+      operationalStatus: MosqueOperationalStatus.OPEN,
+      verificationStatus: MosqueVerificationStatus.VERIFIED,
+      schedule: {
+        fajrStart: '04:45',
+        fajrJamaat: '05:20',
+        sunrise: '06:02',
+        zuhrStart: '12:05',
+        zuhrJamaat: '13:30',
+        asrStart: '16:15',
+        asrJamaat: '16:45',
+        maghribStart: '18:10',
+        maghribJamaat: '18:16',
+        ishaStart: '19:25',
+        ishaJamaat: '20:15',
+        jumuahJamaat: '13:30',
+      },
+    },
+    {
+      name: 'Dhanmondi Shahi Eidgah & Jame Masjid',
+      latitude: 23.7461,
+      longitude: 90.3742,
+      address: 'Road 7, Dhanmondi',
+      landmark: 'Near Dhanmondi Lake & Rabindra Sarobar',
+      city: 'Dhaka',
+      country: 'Bangladesh',
+      operationalStatus: MosqueOperationalStatus.OPEN,
+      verificationStatus: MosqueVerificationStatus.VERIFIED,
+      schedule: {
+        fajrStart: '04:45',
+        fajrJamaat: '05:15',
+        sunrise: '06:03',
+        zuhrStart: '12:05',
+        zuhrJamaat: '13:20',
+        asrStart: '16:15',
+        asrJamaat: '16:45',
+        maghribStart: '18:10',
+        maghribJamaat: '18:15',
+        ishaStart: '19:25',
+        ishaJamaat: '20:00',
+        jumuahJamaat: '13:30',
+      },
+    },
+    {
+      name: 'Lalbagh Fort Mosque',
+      latitude: 23.7188,
+      longitude: 90.3881,
+      address: 'Lalbagh Road, Old Dhaka',
+      landmark: 'Inside Lalbagh Fort Complex',
+      city: 'Dhaka',
+      country: 'Bangladesh',
+      operationalStatus: MosqueOperationalStatus.OPEN,
+      verificationStatus: MosqueVerificationStatus.VERIFIED,
+      schedule: {
+        fajrStart: '04:45',
+        fajrJamaat: '05:15',
+        sunrise: '06:03',
+        zuhrStart: '12:05',
+        zuhrJamaat: '13:15',
+        asrStart: '16:15',
+        asrJamaat: '16:35',
+        maghribStart: '18:10',
+        maghribJamaat: '18:15',
+        ishaStart: '19:25',
+        ishaJamaat: '19:50',
+        jumuahJamaat: '13:30',
+      },
+    },
+    {
+      name: 'Hazrat Shah Jalal Dargah Jame Masjid',
+      latitude: 24.8998,
+      longitude: 91.8687,
+      address: 'Dargah Gate, Chowhatta',
+      landmark: 'Shah Jalal Mazar Sharif',
+      city: 'Sylhet',
+      country: 'Bangladesh',
+      operationalStatus: MosqueOperationalStatus.OPEN,
+      verificationStatus: MosqueVerificationStatus.VERIFIED,
+      schedule: {
+        fajrStart: '04:40',
+        fajrJamaat: '05:10',
+        sunrise: '05:58',
+        zuhrStart: '12:00',
+        zuhrJamaat: '13:30',
+        asrStart: '16:10',
+        asrJamaat: '16:40',
+        maghribStart: '18:05',
+        maghribJamaat: '18:10',
+        ishaStart: '19:20',
+        ishaJamaat: '20:00',
+        jumuahJamaat: '13:30',
+      },
+    },
+    {
+      name: 'Andar Killa Shahi Jame Masjid',
+      latitude: 22.3382,
+      longitude: 91.8375,
+      address: 'Andarkilla, Kotwali',
+      landmark: 'Top of Andarkilla Hill',
+      city: 'Chattogram',
+      country: 'Bangladesh',
+      operationalStatus: MosqueOperationalStatus.OPEN,
+      verificationStatus: MosqueVerificationStatus.VERIFIED,
+      schedule: {
+        fajrStart: '04:42',
+        fajrJamaat: '05:15',
+        sunrise: '06:00',
+        zuhrStart: '12:02',
+        zuhrJamaat: '13:15',
+        asrStart: '16:12',
+        asrJamaat: '16:45',
+        maghribStart: '18:08',
+        maghribJamaat: '18:12',
+        ishaStart: '19:22',
+        ishaJamaat: '20:00',
+        jumuahJamaat: '13:30',
+      },
+    },
+    {
+      name: 'Baitul Aman Central Mosque',
+      latitude: 23.7554,
+      longitude: 90.3621,
+      address: 'Ring Road, Mohammadpur',
+      landmark: 'Near Adabor Police Station',
+      city: 'Dhaka',
+      country: 'Bangladesh',
+      operationalStatus: MosqueOperationalStatus.OPEN,
+      verificationStatus: MosqueVerificationStatus.PENDING_VERIFICATION,
+      schedule: {
+        fajrStart: '04:45',
+        fajrJamaat: '05:15',
+        sunrise: '06:03',
+        zuhrStart: '12:05',
+        zuhrJamaat: '13:30',
+        asrStart: '16:15',
+        asrJamaat: '16:45',
+        maghribStart: '18:10',
+        maghribJamaat: '18:15',
+        ishaStart: '19:25',
+        ishaJamaat: '20:00',
+        jumuahJamaat: '13:30',
+      },
     },
   ];
 
-  for (const zoneSeed of deliveryZones) {
-    const existingZone = await prisma.deliveryZone.findFirst({
-      where: { name: zoneSeed.name },
+  for (const m of mosquesData) {
+    const { schedule, ...mosqueFields } = m;
+
+    // Check if mosque already exists by name
+    const existing = await prisma.mosque.findFirst({
+      where: { name: mosqueFields.name },
     });
-    const zone = existingZone
-      ? await prisma.deliveryZone.update({
-        where: { id: existingZone.id },
+
+    let mosqueId = existing?.id;
+    if (!existing) {
+      const created = await prisma.mosque.create({
         data: {
-          deliveryFee: zoneSeed.deliveryFee,
-          freeDeliveryThreshold: zoneSeed.freeDeliveryThreshold,
-          sortOrder: zoneSeed.sortOrder,
-          isActive: true,
-        },
-      })
-      : await prisma.deliveryZone.create({
-        data: {
-          name: zoneSeed.name,
-          deliveryFee: zoneSeed.deliveryFee,
-          freeDeliveryThreshold: zoneSeed.freeDeliveryThreshold,
-          sortOrder: zoneSeed.sortOrder,
+          ...mosqueFields,
+          createdById: adminUser.id,
         },
       });
+      mosqueId = created.id;
+      console.log(`  🕌 Created mosque: ${created.name}`);
+    } else {
+      console.log(`  🕌 Exists: ${existing.name}`);
+    }
 
-    for (const districtName of zoneSeed.districts) {
-      const normalizedName = districtName
-        .normalize('NFKC')
-        .trim()
-        .replace(/\s+/g, ' ')
-        .toLowerCase();
-      await prisma.deliveryZoneDistrict.upsert({
-        where: { normalizedName },
-        update: { name: districtName, zoneId: zone.id },
-        create: { name: districtName, normalizedName, zoneId: zone.id },
+    if (mosqueId && schedule) {
+      await prisma.prayerSchedule.upsert({
+        where: { mosqueId },
+        update: {
+          ...schedule,
+          updatedById: adminUser.id,
+        },
+        create: {
+          mosqueId,
+          ...schedule,
+          timezone: 'Asia/Dhaka',
+          updatedById: adminUser.id,
+        },
+      });
+    }
+
+    // Seed test attendance
+    if (mosqueId) {
+      await prisma.userMosqueAttendance.upsert({
+        where: {
+          userId_mosqueId: {
+            userId: adminUser.id,
+            mosqueId,
+          },
+        },
+        update: { status: AttendanceStatus.REGULAR },
+        create: {
+          userId: adminUser.id,
+          mosqueId,
+          status: AttendanceStatus.REGULAR,
+        },
       });
     }
   }
-  */
 
-  const shipmentProviders = [
-    {
-      code: 'STEADFAST' as const,
-      name: 'Steadfast Courier',
-      baseUrl: process.env.STEADFAST_BASE_URL || 'https://portal.steadfast.com.bd/api/v1',
-      isActive: Boolean(process.env.STEADFAST_API_KEY && process.env.STEADFAST_SECRET_KEY),
-    },
-    {
-      code: 'PATHAO' as const,
-      name: 'Pathao Courier',
-      baseUrl: process.env.PATHAO_BASE_URL || 'https://api-hermes.pathao.com',
-      isActive: Boolean(
-        process.env.PATHAO_CLIENT_ID &&
-        process.env.PATHAO_CLIENT_SECRET &&
-        process.env.PATHAO_USERNAME &&
-        process.env.PATHAO_PASSWORD &&
-        process.env.PATHAO_STORE_ID,
-      ),
-    },
-    {
-      code: 'REDX' as const,
-      name: 'REDX Logistics',
-      baseUrl: process.env.REDX_BASE_URL || 'https://openapi.redx.com.bd',
-      isActive: Boolean(process.env.REDX_API_TOKEN),
-    },
-    {
-      code: 'ECOURIER' as const,
-      name: 'eCourier',
-      baseUrl: process.env.ECOURIER_BASE_URL || 'https://backoffice.ecourier.com.bd/api',
-      isActive: Boolean(
-        process.env.ECOURIER_API_KEY &&
-        process.env.ECOURIER_API_SECRET &&
-        process.env.ECOURIER_USER_ID,
-      ),
-    },
-    {
-      code: 'PAPERFLY' as const,
-      name: 'Paperfly Courier',
-      baseUrl: process.env.PAPERFLY_BASE_URL || 'https://paperfly.com.bd/api',
-      isActive: Boolean(
-        process.env.PAPERFLY_USERNAME &&
-        process.env.PAPERFLY_PASSWORD &&
-        process.env.PAPERFLY_KEY,
-      ),
-    },
-    {
-      code: 'CARRYBEE' as const,
-      name: 'CarryBee Courier',
-      baseUrl: process.env.CARRYBEE_BASE_URL || 'https://developers.carrybee.com',
-      isActive: Boolean(
-        process.env.CARRYBEE_CLIENT_ID &&
-        process.env.CARRYBEE_CLIENT_SECRET &&
-        process.env.CARRYBEE_CLIENT_CONTEXT,
-      ),
-    },
-  ];
-  for (const provider of shipmentProviders) {
-    await prisma.shipmentProvider.upsert({
-      where: { code: provider.code },
-      update: {
-        name: provider.name,
-        baseUrl: provider.baseUrl,
-        isActive: provider.isActive,
-      },
-      create: provider,
-    });
-  }
-
-  const stores = [
-    {
-      code: 'MAIN',
-      name: 'Central Warehouse & Hub',
-      isStore: false,
-      district: 'Dhaka',
-      area: 'Rampura',
-      address: '247, West Rampura, Dhaka',
-      phone: '+8801518419801',
-      isActive: true,
-    },
-    // {
-    //   code: 'STORE-DHN',
-    //   name: 'Ferio Dhanmondi Flagship Store',
-    //   isStore: true,
-    //   district: 'Dhaka',
-    //   area: 'Dhanmondi',
-    //   address: 'House 42, Road 11/A, Dhanmondi, Dhaka 1209',
-    //   phone: '+8801700000001',
-    //   operatingHours: '10:00 AM - 08:30 PM',
-    //   operatingDays: 'Sat - Thu',
-    //   pickupInstructions: 'Show your 6-digit pickup OTP to the desk manager at 1st floor counter.',
-    //   isActive: true,
-    // },
-    // {
-    //   code: 'STORE-JFP',
-    //   name: 'Ferio Jamuna Future Park Outlet',
-    //   isStore: true,
-    //   district: 'Dhaka',
-    //   area: 'Kuril',
-    //   address: 'Shop #2F-014, Level 2 (West Court), Jamuna Future Park, Dhaka',
-    //   phone: '+8801700000002',
-    //   operatingHours: '11:00 AM - 09:00 PM',
-    //   operatingDays: 'Wed - Mon (Closed Tue)',
-    //   pickupInstructions: 'Store located near West Court escalator. Present order ID and OTP.',
-    //   isActive: true,
-    // },
-    // {
-    //   code: 'STORE-UTT',
-    //   name: 'Ferio Uttara Experience Center',
-    //   isStore: true,
-    //   district: 'Dhaka',
-    //   area: 'Uttara',
-    //   address: 'Building 12, Sector 3, Jasimuddin Avenue, Uttara, Dhaka',
-    //   phone: '+8801700000003',
-    //   operatingHours: '10:00 AM - 08:00 PM',
-    //   operatingDays: 'Sat - Thu',
-    //   pickupInstructions: 'Ground floor pickup counter. Parking space available.',
-    //   isActive: true,
-    // },
-  ];
-
-  for (const store of stores) {
-    await prisma.warehouse.upsert({
-      where: { code: store.code },
-      update: store,
-      create: store,
-    });
-  }
-
-  console.log(`Seeded Ferio admin: ${email}`);
-  // console.log(`Seeded ${deliveryZones.length} delivery zones`);
-  console.log(`Seeded ${shipmentProviders.length} shipment providers`);
-  console.log(`Seeded ${stores.length} store locations & warehouses`);
+  console.log('✨ Seed completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seed error:', e);
     process.exit(1);
   })
   .finally(async () => {
