@@ -105,7 +105,12 @@ export function MosqueDetailModal({
     { name: 'Asr', start: schedule?.asrStart, jamaat: schedule?.asrJamaat },
     { name: 'Maghrib', start: schedule?.maghribStart, jamaat: schedule?.maghribJamaat },
     { name: 'Isha', start: schedule?.ishaStart, jamaat: schedule?.ishaJamaat },
-    { name: 'Jumu\'ah (Friday)', start: null, jamaat: schedule?.jumuahJamaat || '13:30', isFriday: true },
+    {
+      name: 'Jumu\'ah (Friday)',
+      start: schedule?.jumuahSecondJamaat ? `2nd: ${schedule.jumuahSecondJamaat}` : null,
+      jamaat: schedule?.jumuahJamaat || '13:30',
+      isFriday: true,
+    },
   ];
 
   const freshness = mosque.freshness || { level: 'FRESH', daysAgo: 0 };

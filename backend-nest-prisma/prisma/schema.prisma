@@ -426,6 +426,7 @@ model PrayerSchedule {
   ishaJamaat    String?
 
   jumuahJamaat  String?
+  jumuahSecondJamaat String?
   taraweehJamaat String?
   sahriEnd      String?
   iftarStart    String?

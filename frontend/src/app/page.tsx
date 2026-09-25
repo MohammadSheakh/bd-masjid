@@ -13,6 +13,7 @@ import { ReportModal } from '@/components/ReportModal';
 import { RoleClaimModal } from '@/components/RoleClaimModal';
 import { AnnouncementModal } from '@/components/AnnouncementModal';
 import { DonationModal } from '@/components/DonationModal';
+import { PrayerCountdownBanner } from '@/components/PrayerCountdownBanner';
 import { Search, Map as MapIcon, List, Compass, Filter, RefreshCw, Check, Bookmark, BookmarkCheck } from 'lucide-react';
 
 // Dynamically import Leaflet map (client-side only to prevent SSR window issues)
@@ -188,6 +189,12 @@ export default function HomePage() {
         >
           {/* Search & City Filter Bar */}
           <div className="p-3 sm:p-4 border-b border-[#e8e8ea] space-y-2.5 bg-white">
+            {/* Live Next Prayer Countdown & Reminder */}
+            <PrayerCountdownBanner
+              schedule={selectedMosque?.prayerSchedule || displayedMosques[0]?.prayerSchedule}
+              mosqueName={selectedMosque?.name || (displayedMosques.length > 0 ? displayedMosques[0].name : undefined)}
+            />
+
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6e6e73]" />
               <input

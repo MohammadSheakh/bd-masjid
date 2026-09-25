@@ -115,6 +115,15 @@ export class UpdatePrayerScheduleDto {
   jumuahJamaat?: string;
 
   @ApiPropertyOptional({
+    example: '14:15',
+    description: 'Second Jumuah Jamaat time for large mosques with multiple sessions (HH:mm)',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(TIME_REGEX, { message: TIME_MESSAGE })
+  jumuahSecondJamaat?: string;
+
+  @ApiPropertyOptional({
     example: '20:45',
     description: 'Taraweeh prayer Jamaat time during Ramadan (HH:mm)',
   })

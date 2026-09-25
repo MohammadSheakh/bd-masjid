@@ -22,6 +22,7 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
   const [maghrib, setMaghrib] = useState(schedule?.maghribJamaat || '');
   const [isha, setIsha] = useState(schedule?.ishaJamaat || '');
   const [jumuah, setJumuah] = useState(schedule?.jumuahJamaat || '');
+  const [jumuahSecond, setJumuahSecond] = useState(schedule?.jumuahSecondJamaat || '');
 
   // Ramadan timings
   const [taraweeh, setTaraweeh] = useState(schedule?.taraweehJamaat || '');
@@ -47,6 +48,7 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
           maghribJamaat: maghrib,
           ishaJamaat: isha,
           jumuahJamaat: jumuah,
+          jumuahSecondJamaat: jumuahSecond.trim() || undefined,
           taraweehJamaat: taraweeh.trim() || undefined,
           sahriEnd: sahri.trim() || undefined,
           iftarStart: iftar.trim() || undefined,
@@ -155,7 +157,7 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Jumu'ah</span>
+                <span className="text-[10px] text-[#6e6e73]">Jumu'ah 1st</span>
                 <input
                   type="text"
                   value={jumuah}
@@ -164,6 +166,17 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
                   className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
                 />
               </div>
+            </div>
+
+            <div className="pt-0.5">
+              <span className="text-[10px] text-[#6e6e73]">Jumu'ah 2nd Session (Optional, for large capacity mosques)</span>
+              <input
+                type="text"
+                value={jumuahSecond}
+                onChange={(e) => setJumuahSecond(e.target.value)}
+                placeholder="14:15"
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[#e8e8ea] mt-0.5"
+              />
             </div>
 
             {/* Ramadan Schedule (Taraweeh, Sahri, Iftar) */}
