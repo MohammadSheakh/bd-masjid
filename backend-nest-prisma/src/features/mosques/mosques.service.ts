@@ -148,6 +148,13 @@ export class MosquesService {
           operationalStatus: MosqueOperationalStatus.OPEN,
           verificationStatus: MosqueVerificationStatus.UNVERIFIED,
           createdById: actor?.userId || null,
+          hasWuduArea: dto.hasWuduArea ?? true,
+          hasSeparateWomenSpace: dto.hasSeparateWomenSpace ?? false,
+          hasAirConditioning: dto.hasAirConditioning ?? false,
+          hasParking: dto.hasParking ?? false,
+          hasWheelchairAccess: dto.hasWheelchairAccess ?? false,
+          hasJanazaFacility: dto.hasJanazaFacility ?? false,
+          capacity: dto.capacity || null,
         },
       });
 

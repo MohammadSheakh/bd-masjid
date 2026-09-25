@@ -47,14 +47,26 @@ interface ReportItem {
   createdAt: string;
 }
 
+interface RoleClaimItem {
+  id: string;
+  mosqueId: string;
+  mosque?: { name: string; city: string | null };
+  user?: { name: string; email: string; phoneNumber: string | null };
+  role: string;
+  evidence: string;
+  status: string;
+  createdAt: string;
+}
+
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'verifications' | 'suggestions' | 'reports'>('verifications');
+  const [activeTab, setActiveTab] = useState<'verifications' | 'suggestions' | 'reports' | 'claims'>('verifications');
   const [isLoading, setIsLoading] = useState(false);
 
   // Data states
   const [pendingMosques, setPendingMosques] = useState<PendingMosque[]>([]);
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [reports, setReports] = useState<ReportItem[]>([]);
+  const [roleClaims, setRoleClaims] = useState<RoleClaimItem[]>([]);
 
   // Action modal / feedback states
   const [rejectId, setRejectId] = useState<string | null>(null);
@@ -134,11 +146,60 @@ export default function AdminPage() {
             },
           ]);
         }
+      } else if (activeTab === 'claims') {
+        const res = await fetch(`${API_BASE}/admin/role-claims?status=OPEN`);
+        if (res.ok) {
+          const json = await res.json();
+          setRoleClaims(json.data?.items || json.items || []);
+        } else {
+          setRoleClaims([
+            {
+              id: 'claim-1',
+              mosqueId: 'mosque-1',
+              mosque: { name: 'Baitul Mukarram National Mosque', city: 'Dhaka' },
+              user: { name: 'Qari Saiful Islam', email: 'saiful@example.com', phoneNumber: '01711223344' },
+              role: 'IMAM',
+              evidence: 'Appointed pesh imam by Ministry / Islamic Foundation since 2021.',
+              status: 'OPEN',
+              createdAt: new Date().toISOString(),
+            },
+          ]);
+        }
       }
     } catch {
       // Fallback preview
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleApproveClaim = async (id: string) => {
+    try {
+      await fetch(`${API_BASE}/admin/role-claims/${id}/review`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'APPROVED', resolutionNotes: 'Verified official role appointment' }),
+      });
+      setRoleClaims((prev) => prev.filter((c) => c.id !== id));
+      setStatusMessage('Role claim approved and verified staff provisioned.');
+    } catch {
+      setRoleClaims((prev) => prev.filter((c) => c.id !== id));
+      setStatusMessage('Mock: Role claim approved.');
+    }
+  };
+
+  const handleRejectClaim = async (id: string) => {
+    try {
+      await fetch(`${API_BASE}/admin/role-claims/${id}/review`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'REJECTED', resolutionNotes: 'Insufficient evidence' }),
+      });
+      setRoleClaims((prev) => prev.filter((c) => c.id !== id));
+      setStatusMessage('Role claim rejected.');
+    } catch {
+      setRoleClaims((prev) => prev.filter((c) => c.id !== id));
+      setStatusMessage('Mock: Role claim rejected.');
     }
   };
 
@@ -270,6 +331,17 @@ export default function AdminPage() {
             }`}
           >
             Issue Reports ({reports.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('claims')}
+            className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+              activeTab === 'claims'
+                ? 'bg-[#111114] text-white shadow-sm'
+                : 'bg-white text-[#6e6e73] hover:text-black border border-[#e8e8ea]'
+            }`}
+          >
+            Role Claims ({roleClaims.length})
           </button>
         </div>
 
@@ -484,6 +556,64 @@ export default function AdminPage() {
                       className="px-4 py-1.5 rounded-full bg-zinc-900 text-white text-xs font-semibold hover:bg-black"
                     >
                       Resolve & Dismiss
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Tab 4: Role Claims */}
+        {activeTab === 'claims' && (
+          <div className="space-y-4">
+            {roleClaims.length === 0 ? (
+              <div className="p-12 text-center rounded-3xl bg-white border border-[#e8e8ea] text-xs text-[#6e6e73]">
+                No pending official role claims.
+              </div>
+            ) : (
+              roleClaims.map((claim) => (
+                <div
+                  key={claim.id}
+                  className="p-5 rounded-3xl bg-white border border-[#e8e8ea] shadow-sm space-y-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {claim.role}
+                      </span>
+                      <h2 className="text-sm font-bold text-[#111114] mt-1.5">
+                        {claim.mosque?.name || 'Mosque'}
+                      </h2>
+                      <div className="text-xs text-[#6e6e73] mt-0.5">
+                        Submitted by: <strong className="text-zinc-800">{claim.user?.name || 'Musalli'}</strong>{' '}
+                        {claim.user?.phoneNumber && `(${claim.user.phoneNumber})`}
+                      </div>
+                    </div>
+                    <span className="text-[11px] text-zinc-400 font-mono">
+                      {new Date(claim.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className="bg-[#fafafa] p-3 rounded-2xl border border-[#e8e8ea] text-xs text-zinc-800">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#6e6e73] block mb-1">
+                      Submitted Evidence
+                    </span>
+                    <p className="leading-relaxed">"{claim.evidence}"</p>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-[#f0f0f2]">
+                    <button
+                      onClick={() => handleRejectClaim(claim.id)}
+                      className="px-4 py-1.5 rounded-full border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-50 transition-colors"
+                    >
+                      Reject Claim
+                    </button>
+                    <button
+                      onClick={() => handleApproveClaim(claim.id)}
+                      className="px-4 py-1.5 rounded-full bg-emerald-700 text-white text-xs font-semibold hover:bg-emerald-800 transition-colors"
+                    >
+                      Approve & Verify Staff
                     </button>
                   </div>
                 </div>
