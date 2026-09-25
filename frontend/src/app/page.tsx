@@ -10,6 +10,7 @@ import { MosqueDetailModal } from '@/components/MosqueDetailModal';
 import { AddMosqueModal } from '@/components/AddMosqueModal';
 import { SuggestionModal } from '@/components/SuggestionModal';
 import { ReportModal } from '@/components/ReportModal';
+import { RoleClaimModal } from '@/components/RoleClaimModal';
 import { Search, Map as MapIcon, List, Compass, Filter, RefreshCw } from 'lucide-react';
 
 // Dynamically import Leaflet map (client-side only to prevent SSR window issues)
@@ -46,6 +47,7 @@ export default function HomePage() {
   const [droppedPin, setDroppedPin] = useState<{ lat: number; lng: number } | null>(null);
   const [suggestionMosque, setSuggestionMosque] = useState<Mosque | null>(null);
   const [reportMosque, setReportMosque] = useState<Mosque | null>(null);
+  const [roleClaimMosque, setRoleClaimMosque] = useState<Mosque | null>(null);
 
   // Available cities for filtering
   const cities = ['All', 'Dhaka', 'Chattogram', 'Sylhet'];
@@ -265,6 +267,7 @@ export default function HomePage() {
           onClose={() => setSelectedMosque(null)}
           onOpenSuggestion={(m) => setSuggestionMosque(m)}
           onOpenReport={(m) => setReportMosque(m)}
+          onOpenRoleClaim={(m) => setRoleClaimMosque(m)}
         />
       )}
 
@@ -295,6 +298,14 @@ export default function HomePage() {
           mosque={reportMosque}
           onClose={() => setReportMosque(null)}
           onSuccess={() => {}}
+        />
+      )}
+
+      {/* Role Claim Modal */}
+      {roleClaimMosque && (
+        <RoleClaimModal
+          mosque={roleClaimMosque}
+          onClose={() => setRoleClaimMosque(null)}
         />
       )}
     </div>

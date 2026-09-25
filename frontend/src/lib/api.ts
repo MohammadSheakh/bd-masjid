@@ -308,3 +308,46 @@ export async function submitMosqueReport(
   });
   return res.json();
 }
+
+export async function fetchMosqueStaff(mosqueId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/staff`);
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || json || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function submitRoleClaim(
+  mosqueId: string,
+  data: { role: string; evidence: string },
+) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/role-claims`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to submit role claim' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+export async function fetchMosqueAnnouncements(mosqueId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/announcements`);
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || json || [];
+  } catch {
+    return [];
+  }
+}
+

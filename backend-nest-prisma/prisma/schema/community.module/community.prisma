@@ -1,0 +1,79 @@
+enum MosqueStaffRole {
+  IMAM
+  MUAZZIN
+  KHATIB
+  KHADEM
+  COMMITTEE_PRESIDENT
+  COMMITTEE_SECRETARY
+  COMMITTEE_MEMBER
+}
+
+enum RoleClaimStatus {
+  OPEN
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model MosqueStaff {
+  id            String          @id @default(cuid())
+  mosqueId      String
+  mosque        Mosque          @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  userId        String?
+  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  role          MosqueStaffRole
+  name          String
+  contactNumber String?
+  isVerified    Boolean         @default(false)
+  verifiedAt    DateTime?
+  verifiedById  String?
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([mosqueId, role])
+  @@index([userId])
+}
+
+model MosqueRoleClaim {
+  id              String          @id @default(cuid())
+  mosqueId        String
+  mosque          Mosque          @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role            MosqueStaffRole
+  evidence        String
+  status          RoleClaimStatus @default(OPEN)
+
+  reviewedById    String?
+  reviewedAt      DateTime?
+  resolutionNotes String?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([mosqueId, status])
+  @@index([userId])
+}
+
+model MosqueAnnouncement {
+  id        String   @id @default(cuid())
+  mosqueId  String
+  mosque    Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  title     String
+  content   String
+  isPinned  Boolean  @default(false)
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mosqueId, isPinned, createdAt])
+}

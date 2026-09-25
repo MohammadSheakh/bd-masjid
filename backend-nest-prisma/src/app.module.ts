@@ -13,6 +13,7 @@ import { PrayerSchedulesModule } from './features/prayer-schedules/prayer-schedu
 import { AttendanceModule } from './features/attendance/attendance.module';
 import { SuggestionsModule } from './features/suggestions/suggestions.module';
 import { MosqueVerificationModule } from './features/mosque-verification/mosque-verification.module';
+import { CommunityModule } from './features/community/community.module';
 
 /**
  * Application Root Module - Mosque Information & Community Platform
@@ -31,6 +32,7 @@ import { MosqueVerificationModule } from './features/mosque-verification/mosque-
     AttendanceModule,
     SuggestionsModule,
     MosqueVerificationModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

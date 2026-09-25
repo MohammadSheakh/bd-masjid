@@ -39,12 +39,24 @@ model Mosque {
   createdAt          DateTime                 @default(now())
   updatedAt          DateTime                 @updatedAt
 
+  // Facilities
+  hasWuduArea             Boolean                  @default(true)
+  hasSeparateWomenSpace   Boolean                  @default(false)
+  hasAirConditioning      Boolean                  @default(false)
+  hasParking              Boolean                  @default(false)
+  hasWheelchairAccess     Boolean                  @default(false)
+  hasJanazaFacility       Boolean                  @default(false)
+  capacity                Int?
+
   // Relations
-  prayerSchedule     PrayerSchedule?
-  scheduleHistories  PrayerScheduleHistory[]
-  attendances        UserMosqueAttendance[]
-  suggestions        MosqueSuggestion[]
-  reports            MosqueReport[]
+  prayerSchedule          PrayerSchedule?
+  scheduleHistories       PrayerScheduleHistory[]
+  attendances             UserMosqueAttendance[]
+  suggestions             MosqueSuggestion[]
+  reports                 MosqueReport[]
+  staffMembers            MosqueStaff[]
+  roleClaims              MosqueRoleClaim[]
+  announcements           MosqueAnnouncement[]
 
   @@index([latitude, longitude])
   @@index([verificationStatus, operationalStatus, isDeleted])

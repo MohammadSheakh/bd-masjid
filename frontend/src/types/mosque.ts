@@ -47,6 +47,22 @@ export interface AttendanceSummary {
   userStatus: AttendanceStatus;
 }
 
+export interface MosqueStaffMember {
+  id: string;
+  role: string;
+  name: string;
+  contactNumber?: string | null;
+  isVerified: boolean;
+}
+
+export interface MosqueAnnouncement {
+  id: string;
+  title: string;
+  content: string;
+  isPinned: boolean;
+  createdAt: string;
+}
+
 export interface Mosque {
   id: string;
   name: string;
@@ -62,6 +78,15 @@ export interface Mosque {
   prayerSchedule?: PrayerSchedule | null;
   freshness?: FreshnessMetadata;
   attendanceSummary?: AttendanceSummary;
+  hasWuduArea?: boolean;
+  hasSeparateWomenSpace?: boolean;
+  hasAirConditioning?: boolean;
+  hasParking?: boolean;
+  hasWheelchairAccess?: boolean;
+  hasJanazaFacility?: boolean;
+  capacity?: number | null;
+  staffMembers?: MosqueStaffMember[];
+  announcements?: MosqueAnnouncement[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -71,3 +96,4 @@ export interface DuplicateCandidate {
   name: string;
   distanceMeters: number;
 }
+

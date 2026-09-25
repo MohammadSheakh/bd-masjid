@@ -29,6 +29,9 @@ model User {
   reports             MosqueReport[]
   scheduleUpdates     PrayerSchedule[]
   scheduleHistories   PrayerScheduleHistory[]
+  staffRoles          MosqueStaff[]
+  roleClaims          MosqueRoleClaim[]
+  announcements       MosqueAnnouncement[]
 
   @@index([email, isDeleted])
   @@index([role, isDeleted])

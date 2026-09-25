@@ -101,6 +101,9 @@ model User {
   reports             MosqueReport[]
   scheduleUpdates     PrayerSchedule[]
   scheduleHistories   PrayerScheduleHistory[]
+  staffRoles          MosqueStaff[]
+  roleClaims          MosqueRoleClaim[]
+  announcements       MosqueAnnouncement[]
 
   @@index([email, isDeleted])
   @@index([role, isDeleted])
@@ -190,6 +193,88 @@ model AuditLog {
 }
 
 
+// Source: community.module/community.prisma
+enum MosqueStaffRole {
+  IMAM
+  MUAZZIN
+  KHATIB
+  KHADEM
+  COMMITTEE_PRESIDENT
+  COMMITTEE_SECRETARY
+  COMMITTEE_MEMBER
+}
+
+enum RoleClaimStatus {
+  OPEN
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model MosqueStaff {
+  id            String          @id @default(cuid())
+  mosqueId      String
+  mosque        Mosque          @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  userId        String?
+  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  role          MosqueStaffRole
+  name          String
+  contactNumber String?
+  isVerified    Boolean         @default(false)
+  verifiedAt    DateTime?
+  verifiedById  String?
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([mosqueId, role])
+  @@index([userId])
+}
+
+model MosqueRoleClaim {
+  id              String          @id @default(cuid())
+  mosqueId        String
+  mosque          Mosque          @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role            MosqueStaffRole
+  evidence        String
+  status          RoleClaimStatus @default(OPEN)
+
+  reviewedById    String?
+  reviewedAt      DateTime?
+  resolutionNotes String?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([mosqueId, status])
+  @@index([userId])
+}
+
+model MosqueAnnouncement {
+  id        String   @id @default(cuid())
+  mosqueId  String
+  mosque    Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  title     String
+  content   String
+  isPinned  Boolean  @default(false)
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mosqueId, isPinned, createdAt])
+}
+
+
 // Source: mosque.module/mosque.prisma
 enum MosqueOperationalStatus {
   OPEN
@@ -232,12 +317,24 @@ model Mosque {
   createdAt          DateTime                 @default(now())
   updatedAt          DateTime                 @updatedAt
 
+  // Facilities
+  hasWuduArea             Boolean                  @default(true)
+  hasSeparateWomenSpace   Boolean                  @default(false)
+  hasAirConditioning      Boolean                  @default(false)
+  hasParking              Boolean                  @default(false)
+  hasWheelchairAccess     Boolean                  @default(false)
+  hasJanazaFacility       Boolean                  @default(false)
+  capacity                Int?
+
   // Relations
-  prayerSchedule     PrayerSchedule?
-  scheduleHistories  PrayerScheduleHistory[]
-  attendances        UserMosqueAttendance[]
-  suggestions        MosqueSuggestion[]
-  reports            MosqueReport[]
+  prayerSchedule          PrayerSchedule?
+  scheduleHistories       PrayerScheduleHistory[]
+  attendances             UserMosqueAttendance[]
+  suggestions             MosqueSuggestion[]
+  reports                 MosqueReport[]
+  staffMembers            MosqueStaff[]
+  roleClaims              MosqueRoleClaim[]
+  announcements           MosqueAnnouncement[]
 
   @@index([latitude, longitude])
   @@index([verificationStatus, operationalStatus, isDeleted])
