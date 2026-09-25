@@ -1,6 +1,10 @@
 import { Provider, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
-import { REDIS_CLIENT, REDIS_PUB_CLIENT, REDIS_SUB_CLIENT } from './redis.constants';
+import {
+  REDIS_CLIENT,
+  REDIS_PUB_CLIENT,
+  REDIS_SUB_CLIENT,
+} from './redis.constants';
 import { ConfigService } from '@nestjs/config';
 
 /**
@@ -29,8 +33,12 @@ const createRedisClient = (options: any, logger: Logger, label: string) => {
       },
     });
 
-    client.on('error', (err) => logger.error(`Redis Client (${label}) Error:`, err.message));
-    client.on('connect', () => logger.log(`Redis Client (${label}) connected successfully`));
+    client.on('error', (err) =>
+      logger.error(`Redis Client (${label}) Error:`, err.message),
+    );
+    client.on('connect', () =>
+      logger.log(`Redis Client (${label}) connected successfully`),
+    );
 
     return client;
   } catch (error) {

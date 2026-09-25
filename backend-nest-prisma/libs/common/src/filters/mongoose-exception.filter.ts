@@ -10,9 +10,9 @@ import { Response } from 'express';
 /**
  * Database Exception Filter
  * Prisma-only build: keep the filter behavior generic and avoid Mongoose types.
- * 
+ *
  * 📚 INDUSTRY STANDARD IMPLEMENTATION
- * 
+ *
  * Features:
  * ✅ User-friendly error messages
  * ✅ Proper HTTP status codes
@@ -37,7 +37,9 @@ export class MongooseExceptionFilter implements ExceptionFilter {
     // Prisma databases often surface structured errors with a code field.
     if (errorObject?.code === 'P2002' || errorObject?.code === 11000) {
       status = HttpStatus.CONFLICT;
-      const field = Object.keys(errorObject?.meta?.target || errorObject?.keyValue || {})[0];
+      const field = Object.keys(
+        errorObject?.meta?.target || errorObject?.keyValue || {},
+      )[0];
       message = field ? `${field} already exists` : 'Record already exists';
       error = 'Duplicate Key Error';
     }
@@ -99,7 +101,8 @@ export class MongooseExceptionFilter implements ExceptionFilter {
 
     // Include stack trace in development mode
     if (process.env.NODE_ENV === 'development') {
-      responseBody.stack = exception instanceof Error ? exception.stack : undefined;
+      responseBody.stack =
+        exception instanceof Error ? exception.stack : undefined;
     }
 
     response.status(status).json(responseBody);

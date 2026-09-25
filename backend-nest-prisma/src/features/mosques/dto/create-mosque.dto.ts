@@ -83,7 +83,8 @@ export class CreateMosqueDto {
   country?: string;
 
   @ApiPropertyOptional({
-    description: 'If true, ignores the proximity duplicate warning and creates the record anyway',
+    description:
+      'If true, ignores the proximity duplicate warning and creates the record anyway',
     default: false,
   })
   @IsOptional()
@@ -91,33 +92,61 @@ export class CreateMosqueDto {
   allowDuplicateWarningBypass?: boolean;
 
   // Optional initial prayer / Jamaat schedule
-  @ApiPropertyOptional({ example: '05:15', description: 'Fajr Jamaat time (HH:mm)' })
+  @ApiPropertyOptional({
+    example: '05:15',
+    description: 'Fajr Jamaat time (HH:mm)',
+  })
   @IsOptional()
-  @Matches(TIME_REGEX, { message: 'fajrJamaat must be in HH:mm 24-hour format' })
+  @Matches(TIME_REGEX, {
+    message: 'fajrJamaat must be in HH:mm 24-hour format',
+  })
   fajrJamaat?: string;
 
-  @ApiPropertyOptional({ example: '13:15', description: 'Zuhr Jamaat time (HH:mm)' })
+  @ApiPropertyOptional({
+    example: '13:15',
+    description: 'Zuhr Jamaat time (HH:mm)',
+  })
   @IsOptional()
-  @Matches(TIME_REGEX, { message: 'zuhrJamaat must be in HH:mm 24-hour format' })
+  @Matches(TIME_REGEX, {
+    message: 'zuhrJamaat must be in HH:mm 24-hour format',
+  })
   zuhrJamaat?: string;
 
-  @ApiPropertyOptional({ example: '16:45', description: 'Asr Jamaat time (HH:mm)' })
+  @ApiPropertyOptional({
+    example: '16:45',
+    description: 'Asr Jamaat time (HH:mm)',
+  })
   @IsOptional()
   @Matches(TIME_REGEX, { message: 'asrJamaat must be in HH:mm 24-hour format' })
   asrJamaat?: string;
 
-  @ApiPropertyOptional({ example: '18:10', description: 'Maghrib Jamaat time (HH:mm)' })
+  @ApiPropertyOptional({
+    example: '18:10',
+    description: 'Maghrib Jamaat time (HH:mm)',
+  })
   @IsOptional()
-  @Matches(TIME_REGEX, { message: 'maghribJamaat must be in HH:mm 24-hour format' })
+  @Matches(TIME_REGEX, {
+    message: 'maghribJamaat must be in HH:mm 24-hour format',
+  })
   maghribJamaat?: string;
 
-  @ApiPropertyOptional({ example: '20:00', description: 'Isha Jamaat time (HH:mm)' })
+  @ApiPropertyOptional({
+    example: '20:00',
+    description: 'Isha Jamaat time (HH:mm)',
+  })
   @IsOptional()
-  @Matches(TIME_REGEX, { message: 'ishaJamaat must be in HH:mm 24-hour format' })
+  @Matches(TIME_REGEX, {
+    message: 'ishaJamaat must be in HH:mm 24-hour format',
+  })
   ishaJamaat?: string;
 
-  @ApiPropertyOptional({ example: '13:30', description: 'Jumuah Jamaat time (HH:mm)' })
+  @ApiPropertyOptional({
+    example: '13:30',
+    description: 'Jumuah Jamaat time (HH:mm)',
+  })
   @IsOptional()
-  @Matches(TIME_REGEX, { message: 'jumuahJamaat must be in HH:mm 24-hour format' })
+  @Matches(TIME_REGEX, {
+    message: 'jumuahJamaat must be in HH:mm 24-hour format',
+  })
   jumuahJamaat?: string;
 }

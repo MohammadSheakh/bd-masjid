@@ -45,10 +45,14 @@ export class MosquesController {
   @RateLimit({ windowMs: 60 * 1000, max: 15 })
   @ApiOperation({
     summary: 'Submit a new mosque',
-    description: 'Pin-drop mosque creation with spatial proximity duplicate detection',
+    description:
+      'Pin-drop mosque creation with spatial proximity duplicate detection',
   })
   @ApiResponse({ status: 201, description: 'Mosque submitted successfully' })
-  @ApiResponse({ status: 409, description: 'Possible duplicate detected within 50m' })
+  @ApiResponse({
+    status: 409,
+    description: 'Possible duplicate detected within 50m',
+  })
   async create(
     @Body() dto: CreateMosqueDto,
     @CurrentUser() actor?: UserPayload,
@@ -63,7 +67,10 @@ export class MosquesController {
     summary: 'Find nearby mosques',
     description: 'Spherical spatial distance query bounded by radius and limit',
   })
-  @ApiResponse({ status: 200, description: 'Nearby mosques list with distance in meters' })
+  @ApiResponse({
+    status: 200,
+    description: 'Nearby mosques list with distance in meters',
+  })
   async findNearby(@Query() query: NearbyMosquesQueryDto) {
     return this.mosquesService.findNearby(query);
   }
@@ -74,9 +81,13 @@ export class MosquesController {
   @RateLimit({ windowMs: 60 * 1000, max: 30 })
   @ApiOperation({
     summary: 'Check for duplicate candidates',
-    description: 'Pre-flight check returning existing mosques within 50m of coordinates',
+    description:
+      'Pre-flight check returning existing mosques within 50m of coordinates',
   })
-  @ApiResponse({ status: 200, description: 'List of candidate duplicate mosques' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of candidate duplicate mosques',
+  })
   async checkDuplicate(
     @Body() coords: { latitude: number; longitude: number },
   ) {
@@ -92,15 +103,13 @@ export class MosquesController {
   @RateLimit({ windowMs: 60 * 1000, max: 120 })
   @ApiOperation({
     summary: 'Get mosque by ID',
-    description: 'Returns profile, current prayer timetable, freshness, and attendance summary',
+    description:
+      'Returns profile, current prayer timetable, freshness, and attendance summary',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiResponse({ status: 200, description: 'Mosque profile' })
   @ApiResponse({ status: 404, description: 'Mosque not found' })
-  async findById(
-    @Param('id') id: string,
-    @CurrentUser() user?: UserPayload,
-  ) {
+  async findById(@Param('id') id: string, @CurrentUser() user?: UserPayload) {
     return this.mosquesService.findById(id, user?.userId);
   }
 
@@ -109,7 +118,8 @@ export class MosquesController {
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
     summary: 'Search and filter mosques',
-    description: 'Paginated search with text query and operational/verification filters',
+    description:
+      'Paginated search with text query and operational/verification filters',
   })
   @ApiResponse({ status: 200, description: 'Paginated mosque list' })
   async findAll(@Query() query: MosqueQueryDto) {

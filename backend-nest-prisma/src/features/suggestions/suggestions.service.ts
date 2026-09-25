@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { Prisma, SuggestionStatus, ReportType } from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
@@ -41,24 +37,24 @@ export class SuggestionsService {
       data: {
         mosqueId,
         userId: userId || null,
-        suggestedTimes: dto.suggestedTimes ? (dto.suggestedTimes as Prisma.InputJsonValue) : Prisma.JsonNull,
+        suggestedTimes: dto.suggestedTimes
+          ? (dto.suggestedTimes as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
         description: dto.description?.trim() || null,
         status: SuggestionStatus.OPEN,
       },
     });
 
-    this.logger.log(`New suggestion ${suggestion.id} submitted for mosque ${mosqueId}`);
+    this.logger.log(
+      `New suggestion ${suggestion.id} submitted for mosque ${mosqueId}`,
+    );
     return suggestion;
   }
 
   /**
    * Submit issue or discrepancy report
    */
-  async createReport(
-    mosqueId: string,
-    dto: CreateReportDto,
-    userId?: string,
-  ) {
+  async createReport(mosqueId: string, dto: CreateReportDto, userId?: string) {
     const mosque = await this.prisma.mosque.findUnique({
       where: { id: mosqueId, isDeleted: false },
       select: { id: true, name: true },
@@ -79,7 +75,9 @@ export class SuggestionsService {
       },
     });
 
-    this.logger.log(`New report ${report.id} (${report.type}) submitted for mosque ${mosqueId}`);
+    this.logger.log(
+      `New report ${report.id} (${report.type}) submitted for mosque ${mosqueId}`,
+    );
     return report;
   }
 

@@ -1,7 +1,17 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
-import { MosqueOperationalStatus, MosqueVerificationStatus } from '@prisma/client';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
+import {
+  MosqueOperationalStatus,
+  MosqueVerificationStatus,
+} from '@prisma/client';
 import { MOSQUE_CONSTANTS } from '../mosques.constants';
 
 export class MosqueQueryDto {

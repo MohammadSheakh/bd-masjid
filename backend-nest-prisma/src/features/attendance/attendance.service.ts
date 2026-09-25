@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { AttendanceStatus } from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { SetAttendanceDto } from './dto/set-attendance.dto';
@@ -43,7 +39,9 @@ export class AttendanceService {
       },
     });
 
-    this.logger.log(`User ${userId} marked ${dto.status} at mosque ${mosqueId}`);
+    this.logger.log(
+      `User ${userId} marked ${dto.status} at mosque ${mosqueId}`,
+    );
 
     const summary = await this.getSummary(mosqueId, userId);
     return {
@@ -69,7 +67,9 @@ export class AttendanceService {
       await this.prisma.userMosqueAttendance.delete({
         where: { id: existing.id },
       });
-      this.logger.log(`User ${userId} cleared attendance at mosque ${mosqueId}`);
+      this.logger.log(
+        `User ${userId} cleared attendance at mosque ${mosqueId}`,
+      );
     }
 
     const summary = await this.getSummary(mosqueId, userId);

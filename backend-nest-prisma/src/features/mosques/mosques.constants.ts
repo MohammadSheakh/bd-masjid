@@ -11,7 +11,7 @@ export const MOSQUE_CONSTANTS = {
 } as const;
 
 export const FRESHNESS_THRESHOLDS_DAYS = {
-  FRESH: 90,     // < 90 days: recent / fresh
-  STALE: 180,    // 90-180 days: stale
-  VERY_STALE: 180 // > 180 days: very stale
+  FRESH: 90, // < 90 days: recent / fresh
+  STALE: 180, // 90-180 days: stale
+  VERY_STALE: 180, // > 180 days: very stale
 } as const;

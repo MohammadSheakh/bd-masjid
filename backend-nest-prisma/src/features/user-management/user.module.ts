@@ -10,10 +10,7 @@ import { UserDevicesService } from './userDevices/userDevices.service';
  * User Module - Mosque Platform
  */
 @Module({
-  imports: [
-    PrismaModule,
-    AuthModule,
-  ],
+  imports: [PrismaModule, AuthModule],
   controllers: [UserController, UserDevicesController],
   providers: [UserService, UserDevicesService],
   exports: [UserService, UserDevicesService],

@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { SuggestionStatus } from '@prisma/client';
 
 export class UpdateStatusDto {
@@ -10,7 +16,8 @@ export class UpdateStatusDto {
   })
   @IsNotEmpty()
   @IsEnum(SuggestionStatus, {
-    message: 'status must be a valid SuggestionStatus (OPEN, UNDER_REVIEW, RESOLVED, REJECTED)',
+    message:
+      'status must be a valid SuggestionStatus (OPEN, UNDER_REVIEW, RESOLVED, REJECTED)',
   })
   status: SuggestionStatus;
 

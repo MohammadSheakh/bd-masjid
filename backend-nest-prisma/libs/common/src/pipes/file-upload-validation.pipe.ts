@@ -7,15 +7,15 @@ import {
 
 /**
  * File Upload Validation Pipe
- * 
+ *
  * 📚 INDUSTRY STANDARD IMPLEMENTATION
- * 
+ *
  * Validates uploaded files:
  * - Required field check
  * - MIME type validation
  * - File size validation
  * - File count validation
- * 
+ *
  * Usage:
  * @UseInterceptors(FileFieldsInterceptor([...]))
  * @UsePipes(new FileUploadValidationPipe([...]))
@@ -36,12 +36,12 @@ export class FileUploadValidationPipe implements PipeTransform {
 
   transform(value: any, metadata: ArgumentMetadata) {
     // This pipe is used with @UploadedFiles() decorator
-    const files = value as Express.Multer.File[] | Record<string, Express.Multer.File[]>;
+    const files = value as
+      | Express.Multer.File[]
+      | Record<string, Express.Multer.File[]>;
 
     for (const option of this.options) {
-      const fieldFiles = Array.isArray(files) 
-        ? files 
-        : (files[option.name] as Express.Multer.File[]);
+      const fieldFiles = Array.isArray(files) ? files : files[option.name];
 
       // ✅ 1. Required field check
       if (option.required && (!fieldFiles || fieldFiles.length === 0)) {
@@ -51,7 +51,11 @@ export class FileUploadValidationPipe implements PipeTransform {
       }
 
       // ✅ 2. Max count validation
-      if (option.maxCount && fieldFiles && fieldFiles.length > option.maxCount) {
+      if (
+        option.maxCount &&
+        fieldFiles &&
+        fieldFiles.length > option.maxCount
+      ) {
         throw new BadRequestException(
           `Field ${option.name} exceeds maximum file count of ${option.maxCount}`,
         );
@@ -71,7 +75,9 @@ export class FileUploadValidationPipe implements PipeTransform {
 
       // ✅ 4. File size validation
       if (option.maxSize && fieldFiles && fieldFiles.length > 0) {
-        const oversized = fieldFiles.some((file) => file.size > option.maxSize!);
+        const oversized = fieldFiles.some(
+          (file) => file.size > option.maxSize!,
+        );
         if (oversized) {
           throw new BadRequestException(
             `File size exceeds maximum of ${option.maxSize} bytes for field ${option.name}`,

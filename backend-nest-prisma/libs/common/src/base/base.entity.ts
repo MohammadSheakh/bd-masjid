@@ -20,7 +20,11 @@ export interface IBaseEntity {
  * Defines common CRUD operations
  */
 export interface IBaseService<T extends IBaseEntity> {
-  findById(id: string, populateOptions?: any, select?: string): Promise<T | null>;
+  findById(
+    id: string,
+    populateOptions?: any,
+    select?: string,
+  ): Promise<T | null>;
   findAll(
     filters?: FilterQuery<T>,
     populateOptions?: any,

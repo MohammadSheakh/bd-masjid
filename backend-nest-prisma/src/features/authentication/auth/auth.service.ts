@@ -6,11 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import {
-  Prisma,
-  UserAuthProvider,
-  UserRole,
-} from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { createHash } from 'crypto';
 
@@ -437,8 +433,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-
-
     const tokens = await this.generateTokens(user);
     await this.blacklistToken(refreshToken);
 
@@ -606,7 +600,7 @@ export class AuthService {
               email: normalizedEmail,
               role: UserRole.user,
               isEmailVerified: true,
-              authProvider: provider as UserAuthProvider,
+              authProvider: provider,
               profileImageUrl: profileImage || '/uploads/users/user.png',
             },
             select: authUserSelect,

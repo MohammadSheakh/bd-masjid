@@ -1,4 +1,4 @@
-import{
+import {
   Injectable,
   NestInterceptor,
   ExecutionContext,
@@ -10,14 +10,14 @@ import { map } from 'rxjs/operators';
 
 /**
  * File Upload Processing Interceptor
- * 
+ *
  * 📚 INDUSTRY STANDARD IMPLEMENTATION
- * 
+ *
  * Processes uploaded files:
  * - Uploads to Cloudinary/S3
  * - Stores URLs in request object
  * - Makes URLs available to controller
- * 
+ *
  * Usage:
  * @UseInterceptors(FileFieldsInterceptor([...]))
  * @UseInterceptors(new FileUploadProcessingInterceptor('attachments', 'folder'))

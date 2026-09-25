@@ -43,7 +43,10 @@ describe('AttendanceService', () => {
     });
 
     it('should idempotently upsert attendance status', async () => {
-      prisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', name: 'Test Mosque' });
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        name: 'Test Mosque',
+      });
       prisma.userMosqueAttendance.upsert.mockResolvedValue({
         id: 'att-1',
         userId: 'user-1',

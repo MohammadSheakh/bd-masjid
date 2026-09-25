@@ -143,7 +143,7 @@ async function bootstrap() {
   // ────────────────────────────────────────────────────────────────────────
 
   app.setGlobalPrefix(apiPrefix, {
-    exclude: ['/socket.io', '/socket.io/(.*)'],
+    exclude: ['/socket.io', '/socket.io/(.*)', 'health/live', 'health/ready'],
   });
 
   // ────────────────────────────────────────────────────────────────────────
@@ -153,8 +153,10 @@ async function bootstrap() {
   // Swagger is a development convenience: never expose API docs in production.
   if (nodeEnv !== 'production') {
     const config = new DocumentBuilder()
-      .setTitle('Ferio Commerce API')
-      .setDescription('Ferio modular NestJS backend with PostgreSQL and Prisma')
+      .setTitle('BD Masjid — Mosque Information & Community API')
+      .setDescription(
+        'Modular NestJS backend with PostgreSQL/PostGIS for mosque discovery, prayer schedules, attendance, and verification',
+      )
       .setVersion('1.0.0')
       .addBearerAuth({
         type: 'http',
@@ -162,17 +164,32 @@ async function bootstrap() {
         bearerFormat: 'JWT',
         description: 'Enter your JWT token',
       })
+      .addTag(
+        'Mosques',
+        'Mosque registry, pin-drop creation, and nearby geospatial queries',
+      )
+      .addTag(
+        'Prayer Schedules',
+        'Prayer and Jamaat schedule mutations, snapshots, and history',
+      )
+      .addTag(
+        'Attendance',
+        'User regular and occasional mosque attendance tracking',
+      )
+      .addTag(
+        'Suggestions & Reports',
+        'Community schedule updates and issue reporting',
+      )
+      .addTag(
+        'Admin Verification',
+        'Administrative mosque verification and moderation pipelines',
+      )
       .addTag('Authentication', 'User authentication endpoints')
-      .addTag('Users', 'User management endpoints')
-      // .addTag('Tasks', 'Task management endpoints')
-      // .addTag('Children Business User', 'Parent-child relationship management')
-      .addTag('Settings', 'Store settings endpoints')
-      .addTag('Catalog', 'Published customer catalog endpoints')
-      .addTag('Admin Catalog', 'Protected catalog and inventory operations')
-      .addTag('Cart', 'Persistent guest cart and server revalidation')
-      .addTag('Checkout', 'Delivery pricing and recoverable checkout drafts')
-      .addTag('Orders', 'Idempotent COD order placement')
-      .addTag('Admin Orders', 'Protected COD verification and order operations')
+      .addTag('Users', 'User profile management endpoints')
+      .addTag(
+        'Health & Operations',
+        'Liveness, readiness, and diagnostic metrics',
+      )
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
@@ -193,18 +210,20 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   // Handle process termination
-  process.on('SIGTERM', async () => {
+  process.on('SIGTERM', () => {
     logger.log('SIGTERM signal received: closing HTTP server');
-    await app.close();
-    logger.log('HTTP server closed');
-    process.exit(0);
+    void app.close().then(() => {
+      logger.log('HTTP server closed');
+      process.exit(0);
+    });
   });
 
-  process.on('SIGINT', async () => {
+  process.on('SIGINT', () => {
     logger.log('SIGINT signal received: closing HTTP server');
-    await app.close();
-    logger.log('HTTP server closed');
-    process.exit(0);
+    void app.close().then(() => {
+      logger.log('HTTP server closed');
+      process.exit(0);
+    });
   });
 
   // ────────────────────────────────────────────────────────────────────────

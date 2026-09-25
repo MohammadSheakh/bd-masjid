@@ -4,7 +4,11 @@ import {
   ConflictException,
   Logger,
 } from '@nestjs/common';
-import { Prisma, MosqueOperationalStatus, MosqueVerificationStatus } from '@prisma/client';
+import {
+  Prisma,
+  MosqueOperationalStatus,
+  MosqueVerificationStatus,
+} from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
 import type { UserPayload } from '@app/common';
@@ -12,7 +16,10 @@ import { CreateMosqueDto } from './dto/create-mosque.dto';
 import { UpdateMosqueDto } from './dto/update-mosque.dto';
 import { NearbyMosquesQueryDto } from './dto/nearby-mosques.dto';
 import { MosqueQueryDto } from './dto/mosque-query.dto';
-import { MOSQUE_CONSTANTS, FRESHNESS_THRESHOLDS_DAYS } from './mosques.constants';
+import {
+  MOSQUE_CONSTANTS,
+  FRESHNESS_THRESHOLDS_DAYS,
+} from './mosques.constants';
 
 export interface DuplicateCandidate {
   mosqueId: string;
@@ -70,7 +77,9 @@ export class MosquesService {
     thresholdMeters = MOSQUE_CONSTANTS.DUPLICATE_CHECK_RADIUS_METERS,
   ): Promise<DuplicateCandidate[]> {
     // Parameterized spatial distance query (spherical distance in meters)
-    const rawResults = await this.prisma.$queryRaw<Array<{ id: string; name: string; distance: number }>>`
+    const rawResults = await this.prisma.$queryRaw<
+      Array<{ id: string; name: string; distance: number }>
+    >`
       SELECT 
         id, 
         name,
@@ -171,7 +180,7 @@ export class MosquesService {
         await tx.prayerScheduleHistory.create({
           data: {
             mosqueId: mosque.id,
-            scheduleSnapshot: schedule as unknown as Prisma.InputJsonValue,
+            scheduleSnapshot: schedule,
             changedById: actor?.userId || null,
             reason: 'Initial schedule on mosque creation',
           },
@@ -183,7 +192,12 @@ export class MosquesService {
           action: 'MOSQUE_CREATED',
           entityType: 'Mosque',
           entityId: mosque.id,
-          actor: actor || { userId: 'anonymous', email: 'anonymous', role: 'user', permissions: [] },
+          actor: actor || {
+            userId: 'anonymous',
+            email: 'anonymous',
+            role: 'user',
+            permissions: [],
+          },
           newValue: mosque,
           metadata: { bypassWarning: !!dto.allowDuplicateWarningBypass },
         },
@@ -196,7 +210,9 @@ export class MosquesService {
     this.logger.log(`Mosque created: ${result.id} (${result.name})`);
     return {
       ...result,
-      freshness: this.deriveFreshness(result.prayerSchedule?.updatedAt || result.createdAt),
+      freshness: this.deriveFreshness(
+        result.prayerSchedule?.updatedAt || result.createdAt,
+      ),
     };
   }
 
@@ -205,12 +221,14 @@ export class MosquesService {
    */
   async findNearby(query: NearbyMosquesQueryDto) {
     const { lat, lng } = query;
-    const radiusMeters = query.radiusMeters || MOSQUE_CONSTANTS.DEFAULT_NEARBY_RADIUS_METERS;
+    const radiusMeters =
+      query.radiusMeters || MOSQUE_CONSTANTS.DEFAULT_NEARBY_RADIUS_METERS;
     const limit = query.limit || MOSQUE_CONSTANTS.DEFAULT_LIMIT;
 
     // Bounding box approximation for spatial index scan before exact spherical calculation
     const latDelta = radiusMeters / 111000.0;
-    const lngDelta = radiusMeters / (111000.0 * Math.cos((lat * Math.PI) / 180));
+    const lngDelta =
+      radiusMeters / (111000.0 * Math.cos((lat * Math.PI) / 180));
 
     const rawMosques = await this.prisma.$queryRaw<
       Array<{
@@ -278,7 +296,9 @@ export class MosquesService {
       return {
         ...mosque,
         prayerSchedule: schedule,
-        freshness: this.deriveFreshness(schedule?.updatedAt || mosque.updatedAt),
+        freshness: this.deriveFreshness(
+          schedule?.updatedAt || mosque.updatedAt,
+        ),
       };
     });
   }
@@ -377,7 +397,9 @@ export class MosquesService {
     return {
       items: items.map((m) => ({
         ...m,
-        freshness: this.deriveFreshness(m.prayerSchedule?.updatedAt || m.updatedAt),
+        freshness: this.deriveFreshness(
+          m.prayerSchedule?.updatedAt || m.updatedAt,
+        ),
       })),
       meta: {
         page,
@@ -404,7 +426,8 @@ export class MosquesService {
       const data: Prisma.MosqueUpdateInput = {};
       if (dto.name) data.name = dto.name.trim();
       if (dto.address !== undefined) data.address = dto.address?.trim() || null;
-      if (dto.landmark !== undefined) data.landmark = dto.landmark?.trim() || null;
+      if (dto.landmark !== undefined)
+        data.landmark = dto.landmark?.trim() || null;
       if (dto.city) data.city = dto.city.trim();
       if (dto.operationalStatus) data.operationalStatus = dto.operationalStatus;
 

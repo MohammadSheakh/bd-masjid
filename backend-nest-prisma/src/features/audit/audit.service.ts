@@ -41,13 +41,22 @@ export class AuditService {
   async getAuditLogs(query: AuditLogQueryDto) {
     const where: Prisma.AuditLogWhereInput = {
       action: query.action
-        ? { contains: query.action.normalize('NFKC').trim(), mode: 'insensitive' }
+        ? {
+            contains: query.action.normalize('NFKC').trim(),
+            mode: 'insensitive',
+          }
         : undefined,
       entityType: query.entityType
-        ? { equals: query.entityType.normalize('NFKC').trim(), mode: 'insensitive' }
+        ? {
+            equals: query.entityType.normalize('NFKC').trim(),
+            mode: 'insensitive',
+          }
         : undefined,
       entityId: query.entityId
-        ? { contains: query.entityId.normalize('NFKC').trim(), mode: 'insensitive' }
+        ? {
+            contains: query.entityId.normalize('NFKC').trim(),
+            mode: 'insensitive',
+          }
         : undefined,
       actorId: query.actorId,
       source: query.source,

@@ -6,17 +6,20 @@ import {
 } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { FileUploadValidationPipe, FileUploadValidationOptions } from '../pipes/file-upload-validation.pipe';
+import {
+  FileUploadValidationPipe,
+  FileUploadValidationOptions,
+} from '../pipes/file-upload-validation.pipe';
 import { FileUploadProcessingInterceptor } from '../interceptors/file-upload-processing.interceptor';
 
 /**
  * File Upload Pipeline Configuration
- * 
+ *
  * 📚 INDUSTRY STANDARD IMPLEMENTATION
- * 
+ *
  * Creates a reusable file upload pipeline similar to Express.js middleware
  * but using NestJS decorators and interceptors
- * 
+ *
  * Usage:
  * @UseFileUploadPipeline({
  *   fieldName: 'attachments',
@@ -30,32 +33,32 @@ import { FileUploadProcessingInterceptor } from '../interceptors/file-upload-pro
 export interface FileUploadPipelineOptions {
   /** Field name for file upload */
   fieldName: string;
-  
+
   /** Folder name for cloud storage */
   folder: string;
-  
+
   /** Maximum number of files */
   maxCount?: number;
-  
+
   /** Is file required */
   required?: boolean;
-  
+
   /** Allowed MIME types */
   allowedMimeTypes?: string[];
-  
+
   /** Maximum file size in bytes */
   maxSize?: number;
-  
+
   /** Upload destination (memory/disk) */
   storage?: 'memory' | 'disk';
-  
+
   /** Disk storage path (if storage is 'disk') */
   dest?: string;
 }
 
 /**
  * File Upload Pipeline Decorator
- * 
+ *
  * Combines:
  * 1. Multer interceptor (file upload)
  * 2. Validation pipe (file validation)
@@ -82,7 +85,8 @@ export function UseFileUploadPipeline(options: FileUploadPipelineOptions) {
             callback(null, dest);
           },
           filename: (req, file, callback) => {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
             const ext = extname(file.originalname);
             callback(null, `${fieldName}-${uniqueSuffix}${ext}`);
           },
@@ -91,7 +95,8 @@ export function UseFileUploadPipeline(options: FileUploadPipelineOptions) {
           // Disk storage
           destination: dest,
           filename: (req, file, callback) => {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
             const ext = extname(file.originalname);
             callback(null, `${fieldName}-${uniqueSuffix}${ext}`);
           },
@@ -113,20 +118,17 @@ export function UseFileUploadPipeline(options: FileUploadPipelineOptions) {
   return applyDecorators(
     // 1. Multer file upload interceptor
     UseInterceptors(
-      FileFieldsInterceptor(
-        [{ name: fieldName, maxCount }],
-        {
-          storage: multerStorage,
-          limits: {
-            fileSize: maxSize,
-          },
+      FileFieldsInterceptor([{ name: fieldName, maxCount }], {
+        storage: multerStorage,
+        limits: {
+          fileSize: maxSize,
         },
-      ),
+      }),
     ),
-    
+
     // 2. Validation pipe
     UsePipes(new FileUploadValidationPipe(validationOptions)),
-    
+
     // 3. Processing interceptor (upload to cloud)
     UseInterceptors(new FileUploadProcessingInterceptor(fieldName, folder)),
   );
@@ -134,10 +136,12 @@ export function UseFileUploadPipeline(options: FileUploadPipelineOptions) {
 
 /**
  * Single File Upload Pipeline
- * 
+ *
  * Simplified version for single file uploads
  */
-export function UseSingleFileUpload(options: Omit<FileUploadPipelineOptions, 'maxCount'>) {
+export function UseSingleFileUpload(
+  options: Omit<FileUploadPipelineOptions, 'maxCount'>,
+) {
   return UseFileUploadPipeline({
     ...options,
     maxCount: 1,
@@ -146,7 +150,7 @@ export function UseSingleFileUpload(options: Omit<FileUploadPipelineOptions, 'ma
 
 /**
  * Multiple Files Upload Pipeline
- * 
+ *
  * Simplified version for multiple file uploads
  */
 export function UseMultipleFilesUpload(options: FileUploadPipelineOptions) {

@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma, Settings, SettingsType } from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { RedisService } from '@app/redis';

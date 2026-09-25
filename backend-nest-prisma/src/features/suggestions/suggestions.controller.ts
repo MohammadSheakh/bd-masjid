@@ -46,16 +46,24 @@ export class SuggestionsController {
   @RateLimit({ windowMs: 60 * 1000, max: 15 })
   @ApiOperation({
     summary: 'Submit prayer schedule or info suggestion',
-    description: 'Allows community members to suggest prayer time or profile corrections',
+    description:
+      'Allows community members to suggest prayer time or profile corrections',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
-  @ApiResponse({ status: 201, description: 'Suggestion submitted successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'Suggestion submitted successfully',
+  })
   async createSuggestion(
     @Param('id') mosqueId: string,
     @Body() dto: CreateSuggestionDto,
     @CurrentUser() user?: UserPayload,
   ) {
-    return this.suggestionsService.createSuggestion(mosqueId, dto, user?.userId);
+    return this.suggestionsService.createSuggestion(
+      mosqueId,
+      dto,
+      user?.userId,
+    );
   }
 
   @Post('mosques/:id/reports')
@@ -63,7 +71,8 @@ export class SuggestionsController {
   @RateLimit({ windowMs: 60 * 1000, max: 10 })
   @ApiOperation({
     summary: 'Report an issue or incorrect data',
-    description: 'Report incorrect prayer times, wrong location, closed mosque, or duplicate listing',
+    description:
+      'Report incorrect prayer times, wrong location, closed mosque, or duplicate listing',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiResponse({ status: 201, description: 'Report submitted successfully' })
@@ -83,7 +92,8 @@ export class SuggestionsController {
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
     summary: 'List suggestions for moderation',
-    description: 'Retrieve pending or reviewed community suggestions (moderator/admin)',
+    description:
+      'Retrieve pending or reviewed community suggestions (moderator/admin)',
   })
   @ApiQuery({ name: 'status', enum: SuggestionStatus, required: false })
   @ApiQuery({ name: 'mosqueId', required: false })
@@ -126,7 +136,8 @@ export class SuggestionsController {
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
     summary: 'List reports for moderation',
-    description: 'Retrieve issue reports with type and status filtering (moderator/admin)',
+    description:
+      'Retrieve issue reports with type and status filtering (moderator/admin)',
   })
   @ApiQuery({ name: 'status', enum: SuggestionStatus, required: false })
   @ApiQuery({ name: 'type', enum: ReportType, required: false })

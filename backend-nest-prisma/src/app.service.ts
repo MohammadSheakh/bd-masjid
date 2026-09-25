@@ -4,8 +4,8 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   getApplicationInfo() {
     return {
-      name: 'Ferio Commerce API',
-      version: '0.1.0',
+      name: 'BD Masjid API',
+      version: '1.0.0',
     };
   }
 

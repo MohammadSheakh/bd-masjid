@@ -9,22 +9,22 @@ import { map } from 'rxjs/operators';
 
 /**
  * Transform Response Interceptor
- * 
+ *
  * 📚 INDUSTRY STANDARD IMPLEMENTATION
- * 
+ *
  * Standardizes all API responses to a consistent format:
  * {
  *   success: true,
  *   data: { ... },
  *   message: 'Operation successful'
  * }
- * 
+ *
  * Features:
  * ✅ Consistent response structure
  * ✅ Automatic success flag
  * ✅ Optional message
  * ✅ Error handling passthrough
- * 
+ *
  * Usage:
  * @UseInterceptors(TransformResponseInterceptor)
  * async getData() {
@@ -39,9 +39,10 @@ export interface Response<T> {
 }
 
 @Injectable()
-export class TransformResponseInterceptor<T>
-  implements NestInterceptor<T, Response<T>>
-{
+export class TransformResponseInterceptor<T> implements NestInterceptor<
+  T,
+  Response<T>
+> {
   intercept(
     context: ExecutionContext,
     next: CallHandler,

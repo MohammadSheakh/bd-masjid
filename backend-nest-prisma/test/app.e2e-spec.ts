@@ -22,8 +22,8 @@ describe('AppController (e2e)', () => {
       .expect(200)
       .expect(({ body }) => {
         expect(body).toEqual({
-          name: 'Ferio Commerce API',
-          version: '0.1.0',
+          name: 'BD Masjid API',
+          version: '1.0.0',
         });
       });
   });

@@ -3,7 +3,8 @@ import { IsOptional, IsString, MaxLength, IsObject } from 'class-validator';
 
 export class CreateSuggestionDto {
   @ApiPropertyOptional({
-    description: 'Suggested prayer times map, e.g. { fajrJamaat: "05:15", zuhrJamaat: "13:30" }',
+    description:
+      'Suggested prayer times map, e.g. { fajrJamaat: "05:15", zuhrJamaat: "13:30" }',
     example: { fajrJamaat: '05:15', ishaJamaat: '20:15' },
   })
   @IsOptional()

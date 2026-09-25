@@ -35,14 +35,17 @@ import { VerifyMosqueDto, RejectMosqueDto } from './dto/verification.dto';
 @UseInterceptors(TransformResponseInterceptor)
 @ApiBearerAuth()
 export class MosqueVerificationController {
-  constructor(private readonly verificationService: MosqueVerificationService) {}
+  constructor(
+    private readonly verificationService: MosqueVerificationService,
+  ) {}
 
   @Get('pending-verification')
   @Roles('admin', 'moderator')
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
     summary: 'List mosques pending verification',
-    description: 'Retrieve mosques with UNVERIFIED or DISPUTED status awaiting review',
+    description:
+      'Retrieve mosques with UNVERIFIED or DISPUTED status awaiting review',
   })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 20 })
@@ -80,7 +83,8 @@ export class MosqueVerificationController {
   @RateLimit({ windowMs: 60 * 1000, max: 30 })
   @ApiOperation({
     summary: 'Reject mosque listing',
-    description: 'Marks mosque as REJECTED with required reason and audit record',
+    description:
+      'Marks mosque as REJECTED with required reason and audit record',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiResponse({ status: 200, description: 'Mosque rejected' })

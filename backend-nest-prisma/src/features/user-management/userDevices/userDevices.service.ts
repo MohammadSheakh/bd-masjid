@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, UserDevices } from '@prisma/client';
 import { GenericService } from '@app/common';
 import { PrismaService } from '@app/database';
@@ -14,15 +14,16 @@ const publicUserDeviceSelect = {
 
 /**
  * UserDevices Service
- * 
+ *
  * Manages user devices for push notifications
  * Extends GenericService for CRUD operations
  */
 @Injectable()
-export class UserDevicesService extends GenericService<Prisma.UserDevicesDelegate, Partial<UserDevices>> {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {
+export class UserDevicesService extends GenericService<
+  Prisma.UserDevicesDelegate,
+  Partial<UserDevices>
+> {
+  constructor(private readonly prisma: PrismaService) {
     super(prisma.userDevices, publicUserDeviceSelect);
   }
 
@@ -93,7 +94,10 @@ export class UserDevicesService extends GenericService<Prisma.UserDevicesDelegat
   /**
    * Remove device (soft delete)
    */
-  async removeDevice(userId: string, deviceId: string): Promise<UserDevices | null> {
+  async removeDevice(
+    userId: string,
+    deviceId: string,
+  ): Promise<UserDevices | null> {
     const device = await this.prisma.userDevices.findFirst({
       where: { id: deviceId, userId, isDeleted: false },
     });
@@ -154,7 +158,10 @@ export class UserDevicesService extends GenericService<Prisma.UserDevicesDelegat
   /**
    * Enable/disable push notifications for device
    */
-  async updatePushEnabled(deviceId: string, enabled: boolean): Promise<UserDevices | null> {
+  async updatePushEnabled(
+    deviceId: string,
+    enabled: boolean,
+  ): Promise<UserDevices | null> {
     return this.prisma.userDevices.update({
       where: { id: deviceId },
       data: { pushEnabled: enabled },

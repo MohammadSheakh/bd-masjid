@@ -39,7 +39,8 @@ export class AttendanceController {
   @RateLimit({ windowMs: 60 * 1000, max: 30 })
   @ApiOperation({
     summary: 'Set attendance status',
-    description: 'Idempotently marks user as REGULAR or OCCASIONAL attendee of the mosque',
+    description:
+      'Idempotently marks user as REGULAR or OCCASIONAL attendee of the mosque',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiResponse({ status: 200, description: 'Attendance updated successfully' })
@@ -75,7 +76,8 @@ export class AttendanceController {
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
     summary: 'Get mosque attendance summary',
-    description: 'Returns counts of regular/occasional attendees and the current user affiliation',
+    description:
+      'Returns counts of regular/occasional attendees and the current user affiliation',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiResponse({ status: 200, description: 'Attendance summary' })
@@ -91,7 +93,8 @@ export class AttendanceController {
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
     summary: 'Get my attended mosques',
-    description: 'Lists all mosques where current user has marked regular or occasional attendance',
+    description:
+      'Lists all mosques where current user has marked regular or occasional attendance',
   })
   @ApiResponse({ status: 200, description: 'List of attended mosques' })
   async getMyMosques(@CurrentUser() user: UserPayload) {

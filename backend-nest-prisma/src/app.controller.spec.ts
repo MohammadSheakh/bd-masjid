@@ -15,10 +15,10 @@ describe('AppController', () => {
   });
 
   describe('application info', () => {
-    it('returns the Ferio API identity', () => {
+    it('returns the BD Masjid API identity', () => {
       expect(appController.getApplicationInfo()).toEqual({
-        name: 'Ferio Commerce API',
-        version: '0.1.0',
+        name: 'BD Masjid API',
+        version: '1.0.0',
       });
     });
 

@@ -51,9 +51,13 @@ import { ConfigModule as NestConfigModule } from '@nestjs/config';
           const value = config[key];
           if (!value) return;
           if (value.length < 32) {
-            throw new Error(`${key} must be at least 32 characters for security`);
+            throw new Error(
+              `${key} must be at least 32 characters for security`,
+            );
           }
-          if (knownWeakSecrets.some((weak) => value.toLowerCase().includes(weak))) {
+          if (
+            knownWeakSecrets.some((weak) => value.toLowerCase().includes(weak))
+          ) {
             throw new Error(
               `${key} is still set to a placeholder/template value. Generate a cryptographically random secret (e.g. openssl rand -hex 64) before starting the server.`,
             );

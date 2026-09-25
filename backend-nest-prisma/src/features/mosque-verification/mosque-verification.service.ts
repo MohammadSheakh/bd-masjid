@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { MosqueVerificationStatus } from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
@@ -146,7 +142,9 @@ export class MosqueVerificationService {
       return mosque;
     });
 
-    this.logger.log(`Mosque ${mosqueId} rejected by ${actor.userId} (Reason: ${dto.reason})`);
+    this.logger.log(
+      `Mosque ${mosqueId} rejected by ${actor.userId} (Reason: ${dto.reason})`,
+    );
     return updated;
   }
 }

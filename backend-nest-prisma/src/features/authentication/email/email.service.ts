@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { QUEUE_NAMES } from '@app/queue';
@@ -17,36 +17,36 @@ import { StructuredLogger } from '@app/common';
  *
  * Production Ready:
  * - Integrate with SendGrid, AWS SES, or Nodemailer
- * - Queue emails via BullMQ for async processing
+ * - Queue emails via BullMQ for async processing (optional)
  * - Track email delivery and open rates
- *
- * Current Implementation:
- * - Emits recipient-free structured delivery diagnostics
- * - Ready for production integration
  */
 @Injectable()
 export class EmailService {
   private readonly logger = new StructuredLogger(EmailService.name);
 
-  constructor(@InjectQueue(QUEUE_NAMES.EMAIL) private emailQueue: Queue) {}
+  constructor(
+    @Optional()
+    @InjectQueue(QUEUE_NAMES.EMAIL)
+    private emailQueue?: Queue,
+  ) {}
 
   /**
-   * Send OTP Email (Queued)
-   *
-   * @param email - Recipient email address
-   * @param otp - OTP code
-   * @param type - OTP type (verify or reset)
+   * Send OTP Email (Queued or Synchronous fallback)
    */
   async sendOtpEmail(
     email: string,
     otp: string,
     type: 'verify' | 'reset',
   ): Promise<void> {
-    await this.emailQueue.add('send-otp-email', { email, otp, type });
-    this.logger.log('authentication_email_queued', {
-      template: 'OTP',
-      purpose: type,
-    });
+    if (this.emailQueue) {
+      await this.emailQueue.add('send-otp-email', { email, otp, type });
+      this.logger.log('authentication_email_queued', {
+        template: 'OTP',
+        purpose: type,
+      });
+    } else {
+      await this.sendOtpEmailNow(email, otp, type);
+    }
   }
 
   /**
@@ -77,14 +77,18 @@ export class EmailService {
    * @param name - User name
    */
   async sendWelcomeEmail(email: string, name: string): Promise<void> {
-    await this.emailQueue.add('send-welcome-email', { email, name });
-    this.logger.log('authentication_email_queued', { template: 'WELCOME' });
+    if (this.emailQueue) {
+      await this.emailQueue.add('send-welcome-email', { email, name });
+      this.logger.log('authentication_email_queued', { template: 'WELCOME' });
+    } else {
+      await this.sendWelcomeEmailNow(email, name);
+    }
   }
 
   /**
    * Send Welcome Email Now
    */
-  async sendWelcomeEmailNow(email: string, name: string): Promise<void> {
+  async sendWelcomeEmailNow(_email: string, _name: string): Promise<void> {
     this.logger.log('authentication_email_delivery_simulated', {
       template: 'WELCOME',
     });
@@ -103,16 +107,20 @@ export class EmailService {
    * @param email - Recipient email address
    */
   async sendPasswordResetConfirmation(email: string): Promise<void> {
-    await this.emailQueue.add('send-password-reset-confirmation', { email });
-    this.logger.log('authentication_email_queued', {
-      template: 'PASSWORD_RESET_CONFIRMATION',
-    });
+    if (this.emailQueue) {
+      await this.emailQueue.add('send-password-reset-confirmation', { email });
+      this.logger.log('authentication_email_queued', {
+        template: 'PASSWORD_RESET_CONFIRMATION',
+      });
+    } else {
+      await this.sendPasswordResetConfirmationNow(email);
+    }
   }
 
   /**
    * Send Password Reset Confirmation Now
    */
-  async sendPasswordResetConfirmationNow(email: string): Promise<void> {
+  async sendPasswordResetConfirmationNow(_email: string): Promise<void> {
     this.logger.log('authentication_email_delivery_simulated', {
       template: 'PASSWORD_RESET_CONFIRMATION',
     });
@@ -130,12 +138,16 @@ export class EmailService {
     token: string,
     purpose: 'INVITE' | 'RESET',
   ): Promise<void> {
-    await this.emailQueue.add('send-staff-access-email', {
-      email,
-      token,
-      purpose,
-    });
-    this.logger.log('staff_access_email_queued', { purpose });
+    if (this.emailQueue) {
+      await this.emailQueue.add('send-staff-access-email', {
+        email,
+        token,
+        purpose,
+      });
+      this.logger.log('staff_access_email_queued', { purpose });
+    } else {
+      await this.sendStaffAccessEmailNow(email, token, purpose);
+    }
   }
 
   async sendStaffAccessEmailNow(

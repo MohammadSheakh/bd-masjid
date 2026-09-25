@@ -53,7 +53,8 @@ export class OperationsHealthService {
       return {
         available: false,
         latencyMs: Date.now() - start,
-        detail: error instanceof Error ? error.message : 'Database probe failed',
+        detail:
+          error instanceof Error ? error.message : 'Database probe failed',
       };
     }
   }

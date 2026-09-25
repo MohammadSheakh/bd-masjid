@@ -70,7 +70,9 @@ describe('MosquesService', () => {
     });
 
     it('should return VERY_STALE for schedule updated 200 days ago', () => {
-      const twoHundredDaysAgo = new Date(Date.now() - 200 * 24 * 60 * 60 * 1000);
+      const twoHundredDaysAgo = new Date(
+        Date.now() - 200 * 24 * 60 * 60 * 1000,
+      );
       const freshness = service.deriveFreshness(twoHundredDaysAgo);
       expect(freshness.level).toBe('VERY_STALE');
       expect(freshness.daysAgo).toBe(200);

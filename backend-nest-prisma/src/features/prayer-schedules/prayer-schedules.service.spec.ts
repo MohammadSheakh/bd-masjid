@@ -47,12 +47,16 @@ describe('PrayerSchedulesService', () => {
       prisma.mosque.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.updateSchedule('invalid-id', { fajrJamaat: '05:15' }, {
-          userId: 'user-1',
-          email: 'u@example.com',
-          role: 'user',
-          permissions: [],
-        }),
+        service.updateSchedule(
+          'invalid-id',
+          { fajrJamaat: '05:15' },
+          {
+            userId: 'user-1',
+            email: 'u@example.com',
+            role: 'user',
+            permissions: [],
+          },
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -69,7 +73,12 @@ describe('PrayerSchedulesService', () => {
       const result = await service.updateSchedule(
         'mosque-1',
         { fajrJamaat: '05:15', reason: 'Summer adjustment' },
-        { userId: 'user-1', email: 'u@example.com', role: 'user', permissions: [] },
+        {
+          userId: 'user-1',
+          email: 'u@example.com',
+          role: 'user',
+          permissions: [],
+        },
       );
 
       expect(result.id).toBe('sched-1');

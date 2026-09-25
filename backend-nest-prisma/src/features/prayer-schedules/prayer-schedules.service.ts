@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
 import type { UserPayload } from '@app/common';
@@ -110,7 +105,7 @@ export class PrayerSchedulesService {
       await tx.prayerScheduleHistory.create({
         data: {
           mosqueId,
-          scheduleSnapshot: updatedSchedule as unknown as Prisma.InputJsonValue,
+          scheduleSnapshot: updatedSchedule,
           changedById: actor.userId,
           reason: reason?.trim() || null,
         },
@@ -138,7 +133,9 @@ export class PrayerSchedulesService {
       return updatedSchedule;
     });
 
-    this.logger.log(`Prayer schedule updated for mosque ${mosqueId} by user ${actor.userId}`);
+    this.logger.log(
+      `Prayer schedule updated for mosque ${mosqueId} by user ${actor.userId}`,
+    );
 
     return {
       ...result,

@@ -7,8 +7,19 @@ import {
   UseInterceptors,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthGuard, User as CurrentUser, TransformResponseInterceptor, SlidingWindowRateLimitGuard, RateLimit } from '@app/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import {
+  AuthGuard,
+  User as CurrentUser,
+  TransformResponseInterceptor,
+  SlidingWindowRateLimitGuard,
+  RateLimit,
+} from '@app/common';
 import { UserService } from './user.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import type { UserPayload } from '@app/common';
@@ -24,14 +35,14 @@ export class UserController {
 
   @Get('profile')
   @RateLimit(USER_RATE_LIMITS.PROFILE_ACCESS)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get my profile',
     description: 'Get current authenticated user profile with community stats',
   })
   @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
   async getProfile(@CurrentUser() user: UserPayload) {
     const userProfile = await this.userService.findById(user.userId);
-    
+
     if (!userProfile) {
       throw new NotFoundException('User not found');
     }
@@ -46,7 +57,7 @@ export class UserController {
 
   @Put('profile')
   @RateLimit(USER_RATE_LIMITS.PROFILE_UPDATE)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Update my profile',
     description: 'Update current authenticated user profile information',
   })
@@ -69,18 +80,21 @@ export class UserController {
 
   @Get('statistics')
   @RateLimit(USER_RATE_LIMITS.PROFILE_ACCESS)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get my statistics',
     description: 'Get current user mosque and attendance statistics',
   })
-  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Statistics retrieved successfully',
+  })
   async getStatistics(@CurrentUser() user: UserPayload) {
     return await this.userService.getUserStatistics(user.userId);
   }
 
   @Get('me')
   @RateLimit(USER_RATE_LIMITS.PROFILE_ACCESS)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get current user',
     description: 'Get current authenticated user information',
   })

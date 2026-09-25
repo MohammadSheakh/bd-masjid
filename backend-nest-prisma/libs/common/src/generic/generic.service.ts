@@ -1,6 +1,14 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PaginateOptions, PaginateResult } from '../shared/types/paginate';
-import { cleanFilters, parseSort, buildProjection } from '../utils/prisma.utils';
+import {
+  cleanFilters,
+  parseSort,
+  buildProjection,
+} from '../utils/prisma.utils';
 
 type PrismaDelegate<TRecord = any> = {
   findUnique(args: any): Promise<TRecord | null>;
@@ -100,7 +108,10 @@ export class GenericService<TDelegate = any, TRecord = any> {
     });
   }
 
-  async updateById(id: string, data: Record<string, any>): Promise<TRecord | null> {
+  async updateById(
+    id: string,
+    data: Record<string, any>,
+  ): Promise<TRecord | null> {
     this.validateId(id);
 
     try {
@@ -157,7 +168,9 @@ export class GenericService<TDelegate = any, TRecord = any> {
     return cleanFilters(filters);
   }
 
-  protected parseSort(sortBy?: string): Record<string, 'asc' | 'desc'> | undefined {
+  protected parseSort(
+    sortBy?: string,
+  ): Record<string, 'asc' | 'desc'> | undefined {
     return parseSort(sortBy);
   }
 

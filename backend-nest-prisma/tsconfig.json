@@ -34,7 +34,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
   },
-  "include": ["src/**/*.ts", "libs/**/*.ts", "types/**/*.d.ts"],
+  "include": ["src/**/*.ts", "libs/**/*.ts", "types/**/*.d.ts", "test/**/*.ts"],
   "exclude": [
     "dist",
     "node_modules",

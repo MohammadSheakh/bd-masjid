@@ -1,6 +1,10 @@
 import { Provider, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
-import { REDIS_CLIENT, REDIS_PUB_CLIENT, REDIS_SUB_CLIENT } from './redis.constants';
+import {
+  REDIS_CLIENT,
+  REDIS_PUB_CLIENT,
+  REDIS_SUB_CLIENT,
+} from './redis.constants';
 import { ConfigService } from '@nestjs/config';
 
 /**
@@ -17,20 +21,38 @@ export const getRedisOptions = (configService: ConfigService) => ({
  * Creates a Redis client with the given options and logger
  */
 const createRedisClient = (options: any, logger: Logger, label: string) => {
+  const isTest = process.env.NODE_ENV === 'test';
+  if (isTest) {
+    const client = new Redis({
+      ...options,
+      lazyConnect: true,
+      maxRetriesPerRequest: 0,
+      enableOfflineQueue: false,
+      retryStrategy: () => null,
+    });
+    client.on('error', () => {});
+    return client;
+  }
+
   try {
     const client = new Redis({
       ...options,
+      maxRetriesPerRequest: 3,
       retryStrategy: (retries) => {
-        if (retries > 10) {
+        if (retries > 3) {
           logger.error(`Max reconnection attempts reached for ${label}`);
           return null;
         }
-        return Math.min(retries * 100, 3000);
+        return Math.min(retries * 200, 1000);
       },
     });
 
-    client.on('error', (err) => logger.error(`Redis Client (${label}) Error:`, err.message));
-    client.on('connect', () => logger.log(`Redis Client (${label}) connected successfully`));
+    client.on('error', (err) =>
+      logger.error(`Redis Client (${label}) Error:`, err.message),
+    );
+    client.on('connect', () =>
+      logger.log(`Redis Client (${label}) connected successfully`),
+    );
 
     return client;
   } catch (error) {

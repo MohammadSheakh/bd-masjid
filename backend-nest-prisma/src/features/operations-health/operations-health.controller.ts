@@ -1,5 +1,15 @@
-import { Controller, Get, ServiceUnavailableException, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  ServiceUnavailableException,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard, Roles, RolesGuard } from '@app/common';
 import { OperationsHealthService } from './operations-health.service';
 
@@ -9,14 +19,20 @@ export class OperationsHealthController {
   constructor(private readonly operationsHealth: OperationsHealthService) {}
 
   @Get('health/live')
-  @ApiOperation({ summary: 'Liveness probe', description: 'Returns 200 if process is running' })
+  @ApiOperation({
+    summary: 'Liveness probe',
+    description: 'Returns 200 if process is running',
+  })
   @ApiResponse({ status: 200, description: 'Service is alive' })
   getLiveness() {
     return { status: 'ok', timestamp: new Date().toISOString() };
   }
 
   @Get('health/ready')
-  @ApiOperation({ summary: 'Readiness probe', description: 'Returns 200 if database and dependencies are ready' })
+  @ApiOperation({
+    summary: 'Readiness probe',
+    description: 'Returns 200 if database and dependencies are ready',
+  })
   @ApiResponse({ status: 200, description: 'Service is ready' })
   @ApiResponse({ status: 503, description: 'Service is not ready' })
   async getReadiness() {
@@ -31,7 +47,10 @@ export class OperationsHealthController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
   @Get('admin/operations/health')
-  @ApiOperation({ summary: 'Admin diagnostic health', description: 'Detailed health and latency metrics' })
+  @ApiOperation({
+    summary: 'Admin diagnostic health',
+    description: 'Detailed health and latency metrics',
+  })
   getDetailedHealth() {
     return this.operationsHealth.getHealth();
   }

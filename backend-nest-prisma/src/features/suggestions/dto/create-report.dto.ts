@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, IsEmail } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  IsEmail,
+} from 'class-validator';
 import { ReportType } from '@prisma/client';
 
 export class CreateReportDto {
@@ -10,13 +17,15 @@ export class CreateReportDto {
   })
   @IsNotEmpty()
   @IsEnum(ReportType, {
-    message: 'type must be a valid ReportType (e.g., PRAYER_TIME, LOCATION, CLOSED_MOSQUE, DUPLICATE, OTHER)',
+    message:
+      'type must be a valid ReportType (e.g., PRAYER_TIME, LOCATION, CLOSED_MOSQUE, DUPLICATE, OTHER)',
   })
   type: ReportType;
 
   @ApiProperty({
     description: 'Detailed explanation of the issue or discrepancy',
-    example: 'This mosque was temporarily closed for renovation starting last Friday.',
+    example:
+      'This mosque was temporarily closed for renovation starting last Friday.',
   })
   @IsNotEmpty()
   @IsString()

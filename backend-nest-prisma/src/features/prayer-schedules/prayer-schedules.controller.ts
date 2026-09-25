@@ -40,7 +40,8 @@ export class PrayerSchedulesController {
   @RateLimit({ windowMs: 60 * 1000, max: 120 })
   @ApiOperation({
     summary: 'Get current prayer schedule',
-    description: 'Retrieves current active prayer schedule and information freshness level',
+    description:
+      'Retrieves current active prayer schedule and information freshness level',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiResponse({ status: 200, description: 'Current prayer schedule' })
@@ -54,7 +55,8 @@ export class PrayerSchedulesController {
   @RateLimit({ windowMs: 60 * 1000, max: 20 })
   @ApiOperation({
     summary: 'Update prayer schedule',
-    description: 'Atomically updates timetable, writes immutable history snapshot, and touches freshness',
+    description:
+      'Atomically updates timetable, writes immutable history snapshot, and touches freshness',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiResponse({ status: 200, description: 'Updated prayer schedule' })
@@ -73,7 +75,8 @@ export class PrayerSchedulesController {
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
     summary: 'Get prayer schedule change history',
-    description: 'Paginated historical snapshots of prayer schedule modifications',
+    description:
+      'Paginated historical snapshots of prayer schedule modifications',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
@@ -85,6 +88,10 @@ export class PrayerSchedulesController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.schedulesService.getHistory(id, page ? Number(page) : 1, limit ? Number(limit) : 20);
+    return this.schedulesService.getHistory(
+      id,
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 20,
+    );
   }
 }

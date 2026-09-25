@@ -15,7 +15,9 @@ export class FirebaseService {
 
     try {
       if (!process.env.FIREBASE_PROJECT_ID) {
-        this.logger.warn('⚠️ Firebase credentials not found in env. Push notifications will be disabled.');
+        this.logger.warn(
+          '⚠️ Firebase credentials not found in env. Push notifications will be disabled.',
+        );
         return;
       }
 
@@ -29,9 +31,10 @@ export class FirebaseService {
           client_id: process.env.FIREBASE_CLIENT_ID,
           auth_uri: process.env.FIREBASE_AUTH_URI,
           token_uri: process.env.FIREBASE_TOKEN_URI,
-          auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+          auth_provider_x509_cert_url:
+            process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
           client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
-          universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN
+          universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
         };
 
         admin.initializeApp({
@@ -41,13 +44,22 @@ export class FirebaseService {
       }
       this.firebaseInitialized = true;
     } catch (error: any) {
-      this.logger.warn(`⚠️ Failed to initialize Firebase Admin SDK: ${error.message}`);
+      this.logger.warn(
+        `⚠️ Failed to initialize Firebase Admin SDK: ${error.message}`,
+      );
     }
   }
 
-  async sendPushNotification(fcmToken: string, title: string, body: string, data?: any) {
+  async sendPushNotification(
+    fcmToken: string,
+    title: string,
+    body: string,
+    data?: any,
+  ) {
     if (!this.firebaseInitialized) {
-      this.logger.warn('⚠️ Push notification skipped (Firebase Admin SDK not initialized)');
+      this.logger.warn(
+        '⚠️ Push notification skipped (Firebase Admin SDK not initialized)',
+      );
       return;
     }
     try {
