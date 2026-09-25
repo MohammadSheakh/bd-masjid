@@ -1,0 +1,36 @@
+model User {
+  id                  String           @id @default(cuid())
+  name                String
+  email               String           @unique
+  password            String?
+  role                UserRole         @default(user)
+  profileImageUrl     String           @default("/uploads/users/user.png")
+  phoneNumber         String?
+  isEmailVerified     Boolean          @default(false)
+  authProvider        UserAuthProvider @default(local)
+  failedLoginAttempts Int              @default(0)
+  lockUntil           DateTime?
+  twoFactorEnabled            Boolean          @default(false)
+  twoFactorSecretEncrypted    String?
+  twoFactorPendingEncrypted   String?
+  twoFactorRecoveryCodeHashes String[]         @default([])
+
+  isDeleted           Boolean          @default(false)
+  deletedAt           DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  // Relationships
+  devices             UserDevices[]
+  createdMosques      Mosque[]         @relation("MosqueCreator")
+  verifiedMosques     Mosque[]         @relation("MosqueVerifier")
+  attendanceRecords   UserMosqueAttendance[]
+  suggestions         MosqueSuggestion[]
+  reports             MosqueReport[]
+  scheduleUpdates     PrayerSchedule[]
+  scheduleHistories   PrayerScheduleHistory[]
+
+  @@index([email, isDeleted])
+  @@index([role, isDeleted])
+  @@index([createdAt, isDeleted])
+}

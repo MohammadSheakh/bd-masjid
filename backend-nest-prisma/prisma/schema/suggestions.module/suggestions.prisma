@@ -1,0 +1,65 @@
+enum SuggestionStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum ReportType {
+  PRAYER_TIME
+  LOCATION
+  CLOSED_MOSQUE
+  DUPLICATE
+  CONTACT_INFO
+  STAFF_INFO
+  DONATION_INFO
+  OTHER
+}
+
+model MosqueSuggestion {
+  id              String           @id @default(cuid())
+  mosqueId        String
+  mosque          Mosque           @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  suggestedTimes  Json?
+  description     String?
+
+  status          SuggestionStatus @default(OPEN)
+  reviewedById    String?
+  reviewedAt      DateTime?
+  resolutionNotes String?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([mosqueId, status])
+  @@index([status, createdAt])
+}
+
+model MosqueReport {
+  id              String           @id @default(cuid())
+  mosqueId        String
+  mosque          Mosque           @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  type            ReportType
+  description     String
+  contactEmail    String?
+
+  status          SuggestionStatus @default(OPEN)
+  reviewedById    String?
+  reviewedAt      DateTime?
+  resolutionNotes String?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([mosqueId, status])
+  @@index([type, status])
+  @@index([status, createdAt])
+}

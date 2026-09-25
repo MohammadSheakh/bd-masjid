@@ -1,0 +1,24 @@
+enum AttendanceStatus {
+  REGULAR
+  OCCASIONAL
+  NONE
+}
+
+model UserMosqueAttendance {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  mosqueId  String
+  mosque    Mosque           @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  status    AttendanceStatus @default(NONE)
+
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Invariant: One registered user has at most one attendance record per mosque
+  @@unique([userId, mosqueId])
+  @@index([mosqueId, status])
+  @@index([userId, status])
+}

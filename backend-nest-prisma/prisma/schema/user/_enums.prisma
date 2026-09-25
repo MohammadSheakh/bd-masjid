@@ -1,0 +1,19 @@
+// User module enums
+
+enum UserRole {
+  admin
+  moderator
+  user
+}
+
+enum UserAuthProvider {
+  local
+  google
+}
+
+enum DeviceType {
+  web
+  ios
+  android
+  desktop
+}

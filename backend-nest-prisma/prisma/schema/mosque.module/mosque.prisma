@@ -1,0 +1,54 @@
+enum MosqueOperationalStatus {
+  OPEN
+  TEMPORARILY_CLOSED
+  PERMANENTLY_CLOSED
+  UNDER_CONSTRUCTION
+  UNKNOWN
+}
+
+enum MosqueVerificationStatus {
+  UNVERIFIED
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+}
+
+model Mosque {
+  id                 String                   @id @default(cuid())
+  name               String
+  latitude           Float
+  longitude          Float
+  address            String?
+  landmark           String?
+  city               String?                  @default("Dhaka")
+  country            String                   @default("Bangladesh")
+
+  operationalStatus  MosqueOperationalStatus  @default(OPEN)
+  verificationStatus MosqueVerificationStatus @default(UNVERIFIED)
+
+  createdById        String?
+  creator            User?                    @relation("MosqueCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  verifiedById       String?
+  verifier           User?                    @relation("MosqueVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt         DateTime?
+  verificationNotes  String?
+
+  isDeleted          Boolean                  @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  // Relations
+  prayerSchedule     PrayerSchedule?
+  scheduleHistories  PrayerScheduleHistory[]
+  attendances        UserMosqueAttendance[]
+  suggestions        MosqueSuggestion[]
+  reports            MosqueReport[]
+
+  @@index([latitude, longitude])
+  @@index([verificationStatus, operationalStatus, isDeleted])
+  @@index([name, isDeleted])
+  @@index([createdById])
+  @@index([createdAt])
+}

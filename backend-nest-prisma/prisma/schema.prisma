@@ -1,0 +1,388 @@
+// Source: base/datasource.prisma
+// Prisma datasource configuration.
+// This file only describes which database Prisma connects to.
+// All models are kept in module folders and combined into prisma/schema.prisma by the build script.
+datasource db {
+  provider = "postgresql" // Change to "mongodb" only if the schema is converted to Mongo ObjectId style.
+}
+
+
+// Source: base/generator.prisma
+// Prisma Client generator.
+// Run the schema builder first, then run prisma generate against prisma/schema.prisma.
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../../generated/prisma"
+}
+
+
+// Source: shared/attachment.prisma
+enum AttachmentType {
+  document
+  image
+  video
+  unknown
+}
+
+model Attachment {
+  id             String         @id @default(cuid())
+  attachment     String
+  attachmentType AttachmentType
+  publicId       String?
+  originalName   String?
+  size           Int?
+  mimeType       String?
+
+  // Polymorphic target: one attachment can point to a mosque, user, report evidence, etc.
+  attachedToType String?
+  attachedToId   String?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([attachedToType, attachedToId, isDeleted])
+  @@index([attachmentType, isDeleted])
+  @@index([createdAt, isDeleted])
+}
+
+
+// Source: user/_enums.prisma
+// User module enums
+
+enum UserRole {
+  admin
+  moderator
+  user
+}
+
+enum UserAuthProvider {
+  local
+  google
+}
+
+enum DeviceType {
+  web
+  ios
+  android
+  desktop
+}
+
+
+// Source: user/user.prisma
+model User {
+  id                  String           @id @default(cuid())
+  name                String
+  email               String           @unique
+  password            String?
+  role                UserRole         @default(user)
+  profileImageUrl     String           @default("/uploads/users/user.png")
+  phoneNumber         String?
+  isEmailVerified     Boolean          @default(false)
+  authProvider        UserAuthProvider @default(local)
+  failedLoginAttempts Int              @default(0)
+  lockUntil           DateTime?
+  twoFactorEnabled            Boolean          @default(false)
+  twoFactorSecretEncrypted    String?
+  twoFactorPendingEncrypted   String?
+  twoFactorRecoveryCodeHashes String[]         @default([])
+
+  isDeleted           Boolean          @default(false)
+  deletedAt           DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  // Relationships
+  devices             UserDevices[]
+  createdMosques      Mosque[]         @relation("MosqueCreator")
+  verifiedMosques     Mosque[]         @relation("MosqueVerifier")
+  attendanceRecords   UserMosqueAttendance[]
+  suggestions         MosqueSuggestion[]
+  reports             MosqueReport[]
+  scheduleUpdates     PrayerSchedule[]
+  scheduleHistories   PrayerScheduleHistory[]
+
+  @@index([email, isDeleted])
+  @@index([role, isDeleted])
+  @@index([createdAt, isDeleted])
+}
+
+
+// Source: user/userDevices.prisma
+model UserDevices {
+  id              String     @id @default(cuid())
+
+  // 🔗 Many devices can belong to one user.
+  userId          String
+  user            User       @relation(fields: [userId], references: [id])
+
+  fcmToken        String
+  deviceType      DeviceType @default(web)
+  deviceName      String?
+  deviceOsVersion String?
+  appVersion      String?
+  lastActive      DateTime   @default(now())
+  pushEnabled     Boolean    @default(true)
+  isDeleted       Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([userId, isDeleted])
+  @@index([fcmToken, isDeleted])
+  @@index([deviceType, isDeleted])
+  @@index([lastActive, isDeleted])
+}
+
+
+// Source: attendance.module/attendance.prisma
+enum AttendanceStatus {
+  REGULAR
+  OCCASIONAL
+  NONE
+}
+
+model UserMosqueAttendance {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  mosqueId  String
+  mosque    Mosque           @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  status    AttendanceStatus @default(NONE)
+
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Invariant: One registered user has at most one attendance record per mosque
+  @@unique([userId, mosqueId])
+  @@index([mosqueId, status])
+  @@index([userId, status])
+}
+
+
+// Source: audit.module/audit.prisma
+enum AuditSource {
+  ADMIN_API
+  SYSTEM
+  JOB
+  PROVIDER
+}
+
+model AuditLog {
+  id            String      @id @default(cuid())
+  action        String
+  entityType    String
+  entityId      String
+  actorId       String?
+  actorRole     String?
+  source        AuditSource @default(ADMIN_API)
+  previousValue Json?
+  newValue      Json?
+  metadata      Json?
+  createdAt     DateTime    @default(now())
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@index([source, createdAt])
+  @@index([createdAt])
+}
+
+
+// Source: mosque.module/mosque.prisma
+enum MosqueOperationalStatus {
+  OPEN
+  TEMPORARILY_CLOSED
+  PERMANENTLY_CLOSED
+  UNDER_CONSTRUCTION
+  UNKNOWN
+}
+
+enum MosqueVerificationStatus {
+  UNVERIFIED
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+}
+
+model Mosque {
+  id                 String                   @id @default(cuid())
+  name               String
+  latitude           Float
+  longitude          Float
+  address            String?
+  landmark           String?
+  city               String?                  @default("Dhaka")
+  country            String                   @default("Bangladesh")
+
+  operationalStatus  MosqueOperationalStatus  @default(OPEN)
+  verificationStatus MosqueVerificationStatus @default(UNVERIFIED)
+
+  createdById        String?
+  creator            User?                    @relation("MosqueCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  verifiedById       String?
+  verifier           User?                    @relation("MosqueVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt         DateTime?
+  verificationNotes  String?
+
+  isDeleted          Boolean                  @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  // Relations
+  prayerSchedule     PrayerSchedule?
+  scheduleHistories  PrayerScheduleHistory[]
+  attendances        UserMosqueAttendance[]
+  suggestions        MosqueSuggestion[]
+  reports            MosqueReport[]
+
+  @@index([latitude, longitude])
+  @@index([verificationStatus, operationalStatus, isDeleted])
+  @@index([name, isDeleted])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+
+// Source: prayer-schedule.module/prayerSchedule.prisma
+model PrayerSchedule {
+  id            String   @id @default(cuid())
+  mosqueId      String   @unique
+  mosque        Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  // Prayer start & Jamaat times (24h HH:mm format)
+  fajrStart     String?
+  fajrJamaat    String?
+
+  sunrise       String?
+
+  zuhrStart     String?
+  zuhrJamaat    String?
+
+  asrStart      String?
+  asrJamaat     String?
+
+  maghribStart  String?
+  maghribJamaat String?
+
+  ishaStart     String?
+  ishaJamaat    String?
+
+  jumuahJamaat  String?
+
+  timezone      String   @default("Asia/Dhaka")
+
+  updatedById   String?
+  updatedBy     User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([mosqueId])
+  @@index([updatedAt])
+}
+
+model PrayerScheduleHistory {
+  id               String   @id @default(cuid())
+  mosqueId         String
+  mosque           Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  scheduleSnapshot Json
+  changedById      String?
+  changedBy        User?    @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  reason           String?
+
+  createdAt        DateTime @default(now())
+
+  @@index([mosqueId, createdAt])
+}
+
+
+// Source: settings.module/settings.prisma
+enum SettingsType {
+  aboutUs
+  contactUs
+  privacyPolicy
+  termsAndConditions
+}
+
+model Settings {
+  id        String       @id @default(cuid())
+  type      SettingsType @unique
+  details   String       @default("")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([type])
+}
+
+
+// Source: suggestions.module/suggestions.prisma
+enum SuggestionStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum ReportType {
+  PRAYER_TIME
+  LOCATION
+  CLOSED_MOSQUE
+  DUPLICATE
+  CONTACT_INFO
+  STAFF_INFO
+  DONATION_INFO
+  OTHER
+}
+
+model MosqueSuggestion {
+  id              String           @id @default(cuid())
+  mosqueId        String
+  mosque          Mosque           @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  suggestedTimes  Json?
+  description     String?
+
+  status          SuggestionStatus @default(OPEN)
+  reviewedById    String?
+  reviewedAt      DateTime?
+  resolutionNotes String?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([mosqueId, status])
+  @@index([status, createdAt])
+}
+
+model MosqueReport {
+  id              String           @id @default(cuid())
+  mosqueId        String
+  mosque          Mosque           @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  type            ReportType
+  description     String
+  contactEmail    String?
+
+  status          SuggestionStatus @default(OPEN)
+  reviewedById    String?
+  reviewedAt      DateTime?
+  resolutionNotes String?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([mosqueId, status])
+  @@index([type, status])
+  @@index([status, createdAt])
+}
