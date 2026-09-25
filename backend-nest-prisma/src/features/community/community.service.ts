@@ -13,6 +13,8 @@ import { AddStaffDto } from './dto/add-staff.dto';
 import { CreateRoleClaimDto } from './dto/create-claim.dto';
 import { ReviewRoleClaimDto } from './dto/review-claim.dto';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
+import { CreateDonationMethodDto } from './dto/create-donation.dto';
+import { ReviewDonationMethodDto } from './dto/review-donation.dto';
 
 @Injectable()
 export class CommunityService {
@@ -380,5 +382,218 @@ export class CommunityService {
     });
 
     return { deleted: true, announcementId };
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Verified Mosque Donation Information (Release 3 / PRD Section 14)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  async getDonationMethods(mosqueId: string, actor?: UserPayload) {
+    const mosque = await this.prisma.mosque.findUnique({
+      where: { id: mosqueId, isDeleted: false },
+      select: { id: true },
+    });
+
+    if (!mosque) {
+      throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
+    }
+
+    const isAdmin = actor?.role === 'admin' || actor?.role === 'moderator';
+
+    return this.prisma.mosqueDonationMethod.findMany({
+      where: {
+        mosqueId,
+        ...(isAdmin ? {} : { isVerified: true }),
+      },
+      orderBy: [{ isVerified: 'desc' }, { createdAt: 'asc' }],
+    });
+  }
+
+  async addDonationMethod(
+    mosqueId: string,
+    dto: CreateDonationMethodDto,
+    actor: UserPayload,
+  ) {
+    const mosque = await this.prisma.mosque.findUnique({
+      where: { id: mosqueId, isDeleted: false },
+    });
+
+    if (!mosque) {
+      throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
+    }
+
+    const isAdmin = actor.role === 'admin' || actor.role === 'moderator';
+
+    // Must be admin or verified staff
+    if (!isAdmin) {
+      const staffMember = await this.prisma.mosqueStaff.findFirst({
+        where: {
+          mosqueId,
+          userId: actor.userId,
+          isVerified: true,
+        },
+      });
+
+      if (!staffMember) {
+        throw new ForbiddenException(
+          'Only verified mosque staff, committee members, or platform admins can register donation methods',
+        );
+      }
+    }
+
+    const method = await this.prisma.mosqueDonationMethod.create({
+      data: {
+        mosqueId,
+        methodType: dto.methodType,
+        accountType: dto.accountType || 'MERCHANT',
+        accountNumber: dto.accountNumber.trim(),
+        accountTitle: dto.accountTitle?.trim() || null,
+        bankName: dto.bankName?.trim() || null,
+        branchName: dto.branchName?.trim() || null,
+        routingNumber: dto.routingNumber?.trim() || null,
+        instructions: dto.instructions?.trim() || null,
+        isVerified: isAdmin,
+        verifiedById: isAdmin ? actor.userId : null,
+        verifiedAt: isAdmin ? new Date() : null,
+        createdById: actor.userId,
+      },
+    });
+
+    await this.audit.record({
+      action: 'MOSQUE_DONATION_METHOD_ADDED',
+      entityType: 'MosqueDonationMethod',
+      entityId: method.id,
+      actor,
+      newValue: method,
+      metadata: { mosqueId, methodType: dto.methodType },
+    });
+
+    return method;
+  }
+
+  async reviewDonationMethod(
+    donationMethodId: string,
+    dto: ReviewDonationMethodDto,
+    actor: UserPayload,
+  ) {
+    const method = await this.prisma.mosqueDonationMethod.findUnique({
+      where: { id: donationMethodId },
+    });
+
+    if (!method) {
+      throw new NotFoundException(`Donation method with ID ${donationMethodId} not found`);
+    }
+
+    const updated = await this.prisma.mosqueDonationMethod.update({
+      where: { id: donationMethodId },
+      data: {
+        isVerified: dto.isVerified,
+        verifiedById: actor.userId,
+        verifiedAt: new Date(),
+      },
+    });
+
+    await this.audit.record({
+      action: 'MOSQUE_DONATION_METHOD_REVIEWED',
+      entityType: 'MosqueDonationMethod',
+      entityId: donationMethodId,
+      actor,
+      previousValue: method,
+      newValue: updated,
+      metadata: { isVerified: dto.isVerified },
+    });
+
+    return updated;
+  }
+
+  async deleteDonationMethod(
+    mosqueId: string,
+    donationMethodId: string,
+    actor: UserPayload,
+  ) {
+    const method = await this.prisma.mosqueDonationMethod.findFirst({
+      where: { id: donationMethodId, mosqueId },
+    });
+
+    if (!method) {
+      throw new NotFoundException(`Donation method not found`);
+    }
+
+    const isAdmin = actor.role === 'admin' || actor.role === 'moderator';
+    if (!isAdmin && method.createdById !== actor.userId) {
+      throw new ForbiddenException(
+        'You do not have permission to delete this donation destination',
+      );
+    }
+
+    await this.prisma.mosqueDonationMethod.delete({
+      where: { id: donationMethodId },
+    });
+
+    await this.audit.record({
+      action: 'MOSQUE_DONATION_METHOD_DELETED',
+      entityType: 'MosqueDonationMethod',
+      entityId: donationMethodId,
+      actor,
+      previousValue: method,
+      metadata: { mosqueId },
+    });
+
+    return { deleted: true, donationMethodId };
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Follow / Bookmark Mosque (Release 3)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  async toggleBookmark(mosqueId: string, userId: string) {
+    const mosque = await this.prisma.mosque.findUnique({
+      where: { id: mosqueId, isDeleted: false },
+      select: { id: true },
+    });
+
+    if (!mosque) {
+      throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
+    }
+
+    const existing = await this.prisma.mosqueBookmark.findUnique({
+      where: {
+        mosqueId_userId: {
+          mosqueId,
+          userId,
+        },
+      },
+    });
+
+    if (existing) {
+      await this.prisma.mosqueBookmark.delete({
+        where: { id: existing.id },
+      });
+      return { isBookmarked: false, mosqueId };
+    } else {
+      await this.prisma.mosqueBookmark.create({
+        data: {
+          mosqueId,
+          userId,
+        },
+      });
+      return { isBookmarked: true, mosqueId };
+    }
+  }
+
+  async getUserBookmarks(userId: string) {
+    const bookmarks = await this.prisma.mosqueBookmark.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        mosque: {
+          include: {
+            prayerSchedule: true,
+          },
+        },
+      },
+    });
+
+    return bookmarks.map((b) => b.mosque);
   }
 }

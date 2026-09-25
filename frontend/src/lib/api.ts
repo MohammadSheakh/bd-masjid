@@ -404,3 +404,69 @@ export async function deleteMosqueAnnouncement(
   }
 }
 
+export async function fetchMosqueDonations(mosqueId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/donations`);
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || json || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function createMosqueDonation(
+  mosqueId: string,
+  data: {
+    methodType: string;
+    accountType?: string;
+    accountNumber: string;
+    accountTitle?: string;
+    bankName?: string;
+    branchName?: string;
+    routingNumber?: string;
+    instructions?: string;
+  },
+) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/donations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return {
+        success: false,
+        error: json.message || 'Failed to add donation destination',
+      };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+export async function toggleMosqueBookmark(mosqueId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/bookmark`, {
+      method: 'POST',
+    });
+    const json = await res.json();
+    return json.data || json || { isBookmarked: false };
+  } catch {
+    return { isBookmarked: false };
+  }
+}
+
+export async function fetchUserBookmarks() {
+  try {
+    const res = await fetch(`${API_BASE}/users/me/bookmarks`);
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || json || [];
+  } catch {
+    return [];
+  }
+}
+

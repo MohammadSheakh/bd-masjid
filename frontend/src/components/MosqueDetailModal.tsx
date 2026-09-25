@@ -15,8 +15,11 @@ import {
   Check,
   Megaphone,
   Pin,
+  CreditCard,
+  Bookmark,
+  BookmarkCheck,
 } from 'lucide-react';
-import { toggleAttendance } from '@/lib/api';
+import { toggleAttendance, toggleMosqueBookmark } from '@/lib/api';
 
 interface MosqueDetailModalProps {
   mosque: Mosque | null;
@@ -25,6 +28,7 @@ interface MosqueDetailModalProps {
   onOpenReport: (mosque: Mosque) => void;
   onOpenRoleClaim?: (mosque: Mosque) => void;
   onOpenAnnouncements?: (mosque: Mosque) => void;
+  onOpenDonations?: (mosque: Mosque) => void;
   onAttendanceChanged?: (mosqueId: string, status: AttendanceStatus) => void;
 }
 
@@ -35,9 +39,13 @@ export function MosqueDetailModal({
   onOpenReport,
   onOpenRoleClaim,
   onOpenAnnouncements,
+  onOpenDonations,
   onAttendanceChanged,
 }: MosqueDetailModalProps) {
   if (!mosque) return null;
+
+  const [isBookmarked, setIsBookmarked] = useState(mosque.isBookmarked || false);
+  const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
 
   const [currentAttendance, setCurrentAttendance] = useState<AttendanceStatus>(
     mosque.attendanceSummary?.userStatus || 'NONE',
@@ -131,12 +139,36 @@ export function MosqueDetailModal({
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={async () => {
+                setIsTogglingBookmark(true);
+                const res = await toggleMosqueBookmark(mosque.id);
+                setIsBookmarked(res.isBookmarked);
+                setIsTogglingBookmark(false);
+              }}
+              disabled={isTogglingBookmark}
+              title={isBookmarked ? 'Following Mosque (Click to unfollow)' : 'Follow Mosque for prayer alerts'}
+              className={`p-2 rounded-full transition-colors ${
+                isBookmarked
+                  ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
+                  : 'text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100'
+              }`}
+            >
+              {isBookmarked ? (
+                <BookmarkCheck className="w-5 h-5 text-emerald-600 fill-emerald-600" />
+              ) : (
+                <Bookmark className="w-5 h-5" />
+              )}
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Content */}
@@ -370,32 +402,40 @@ export function MosqueDetailModal({
             </div>
           </div>
 
-          {/* Quick Actions (Directions, Suggestion, Report, Share) */}
-          <div className="grid grid-cols-3 gap-2 pt-1">
+          {/* Quick Actions (Directions, Donate, Suggestion, Report) */}
+          <div className="grid grid-cols-4 gap-2 pt-1">
             <a
               href={directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-[#e8e8ea] hover:bg-zinc-50 text-[#111114] transition-colors"
+              className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-[#e8e8ea] hover:bg-zinc-50 text-[#111114] transition-colors"
             >
               <Navigation className="w-4 h-4 mb-1 text-emerald-600" />
-              <span className="text-[11px] font-semibold">Directions</span>
+              <span className="text-[10px] font-semibold">Directions</span>
             </a>
 
             <button
+              onClick={() => onOpenDonations && onOpenDonations(mosque)}
+              className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-[#e8e8ea] hover:bg-zinc-50 text-[#111114] transition-colors"
+            >
+              <CreditCard className="w-4 h-4 mb-1 text-emerald-600" />
+              <span className="text-[10px] font-semibold">Donate</span>
+            </button>
+
+            <button
               onClick={() => onOpenSuggestion(mosque)}
-              className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-[#e8e8ea] hover:bg-zinc-50 text-[#111114] transition-colors"
+              className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-[#e8e8ea] hover:bg-zinc-50 text-[#111114] transition-colors"
             >
               <Edit3 className="w-4 h-4 mb-1 text-blue-600" />
-              <span className="text-[11px] font-semibold">Suggest Time</span>
+              <span className="text-[10px] font-semibold">Suggest</span>
             </button>
 
             <button
               onClick={() => onOpenReport(mosque)}
-              className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-[#e8e8ea] hover:bg-zinc-50 text-[#111114] transition-colors"
+              className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-[#e8e8ea] hover:bg-zinc-50 text-[#111114] transition-colors"
             >
               <Flag className="w-4 h-4 mb-1 text-rose-600" />
-              <span className="text-[11px] font-semibold">Report Issue</span>
+              <span className="text-[10px] font-semibold">Report</span>
             </button>
           </div>
         </div>

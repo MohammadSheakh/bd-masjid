@@ -57,6 +57,8 @@ model Mosque {
   staffMembers            MosqueStaff[]
   roleClaims              MosqueRoleClaim[]
   announcements           MosqueAnnouncement[]
+  donationMethods         MosqueDonationMethod[]
+  bookmarks               MosqueBookmark[]
 
   @@index([latitude, longitude])
   @@index([verificationStatus, operationalStatus, isDeleted])

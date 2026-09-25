@@ -12,6 +12,7 @@ import { SuggestionModal } from '@/components/SuggestionModal';
 import { ReportModal } from '@/components/ReportModal';
 import { RoleClaimModal } from '@/components/RoleClaimModal';
 import { AnnouncementModal } from '@/components/AnnouncementModal';
+import { DonationModal } from '@/components/DonationModal';
 import { Search, Map as MapIcon, List, Compass, Filter, RefreshCw, Check } from 'lucide-react';
 
 // Dynamically import Leaflet map (client-side only to prevent SSR window issues)
@@ -53,6 +54,7 @@ export default function HomePage() {
   const [reportMosque, setReportMosque] = useState<Mosque | null>(null);
   const [roleClaimMosque, setRoleClaimMosque] = useState<Mosque | null>(null);
   const [announcementMosque, setAnnouncementMosque] = useState<Mosque | null>(null);
+  const [donationMosque, setDonationMosque] = useState<Mosque | null>(null);
 
   // Available cities for filtering
   const cities = ['All', 'Dhaka', 'Chattogram', 'Sylhet'];
@@ -325,6 +327,7 @@ export default function HomePage() {
           onOpenReport={(m) => setReportMosque(m)}
           onOpenRoleClaim={(m) => setRoleClaimMosque(m)}
           onOpenAnnouncements={(m) => setAnnouncementMosque(m)}
+          onOpenDonations={(m) => setDonationMosque(m)}
         />
       )}
 
@@ -377,6 +380,26 @@ export default function HomePage() {
               setSelectedMosque({
                 ...selectedMosque,
                 announcements: [newNotice, ...(selectedMosque.announcements || [])],
+              });
+            }
+          }}
+        />
+      )}
+
+      {/* Verified Donation Modal */}
+      {donationMosque && (
+        <DonationModal
+          isOpen={!!donationMosque}
+          mosque={donationMosque}
+          onClose={() => setDonationMosque(null)}
+          onDonationAdded={(newMethod) => {
+            if (selectedMosque && selectedMosque.id === donationMosque.id) {
+              setSelectedMosque({
+                ...selectedMosque,
+                donationMethods: [
+                  ...(selectedMosque.donationMethods || []),
+                  newMethod,
+                ],
               });
             }
           }}

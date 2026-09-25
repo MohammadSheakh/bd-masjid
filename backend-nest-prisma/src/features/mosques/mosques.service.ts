@@ -353,6 +353,21 @@ export class MosquesService {
             createdAt: true,
           },
         },
+        donationMethods: {
+          where: { isVerified: true },
+          select: {
+            id: true,
+            methodType: true,
+            accountType: true,
+            accountNumber: true,
+            accountTitle: true,
+            bankName: true,
+            branchName: true,
+            routingNumber: true,
+            instructions: true,
+            isVerified: true,
+          },
+        },
       },
     });
 

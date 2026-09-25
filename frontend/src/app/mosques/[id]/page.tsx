@@ -13,6 +13,10 @@ import {
   Share2,
   Megaphone,
   Pin,
+  CreditCard,
+  ShieldCheck,
+  Smartphone,
+  Building,
 } from 'lucide-react';
 
 interface MosquePageProps {
@@ -311,6 +315,59 @@ export default async function MosquePage({ params }: MosquePageProps) {
                 </p>
               </div>
               <Users className="w-6 h-6 text-zinc-400" />
+            </div>
+          )}
+
+          {/* Verified Donations (Release 3) */}
+          {mosque.donationMethods && mosque.donationMethods.length > 0 && (
+            <div>
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73]">
+                  Verified Donation Channels
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {mosque.donationMethods.map((method) => (
+                  <div
+                    key={method.id}
+                    className="p-3 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl text-xs space-y-1"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-bold text-[#111114]">
+                        {method.methodType === 'BANK_TRANSFER' ? (
+                          <Building className="w-3.5 h-3.5 text-blue-600" />
+                        ) : (
+                          <Smartphone className="w-3.5 h-3.5 text-pink-600" />
+                        )}
+                        <span>{method.methodType.replace(/_/g, ' ')}</span>
+                        <span className="text-[10px] font-normal text-[#6e6e73]">
+                          ({method.accountType.replace(/_/g, ' ')})
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        Verified
+                      </span>
+                    </div>
+
+                    <div className="font-mono font-bold text-sm text-zinc-900 pt-0.5">
+                      {method.accountNumber}
+                    </div>
+
+                    {method.accountTitle && (
+                      <div className="text-[11px] text-[#6e6e73]">
+                        Beneficiary: <strong className="text-zinc-800">{method.accountTitle}</strong>
+                      </div>
+                    )}
+
+                    {method.instructions && (
+                      <div className="text-[10px] text-zinc-500 pt-0.5">
+                        {method.instructions}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

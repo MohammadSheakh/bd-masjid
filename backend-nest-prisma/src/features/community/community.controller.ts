@@ -35,6 +35,8 @@ import { AddStaffDto } from './dto/add-staff.dto';
 import { CreateRoleClaimDto } from './dto/create-claim.dto';
 import { ReviewRoleClaimDto } from './dto/review-claim.dto';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
+import { CreateDonationMethodDto } from './dto/create-donation.dto';
+import { ReviewDonationMethodDto } from './dto/review-donation.dto';
 
 @ApiTags('Mosque Community & Roles')
 @Controller()
@@ -217,5 +219,113 @@ export class CommunityController {
       announcementId,
       actor,
     );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Verified Mosque Donations (Release 3 / PRD Section 14)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  @Get('mosques/:id/donations')
+  @Public()
+  @RateLimit({ windowMs: 60 * 1000, max: 60 })
+  @ApiOperation({
+    summary: 'List verified donation methods for a mosque',
+    description:
+      'Returns bKash, Nagad, or Bank channels verified by committee/admin',
+  })
+  @ApiParam({ name: 'id', description: 'Mosque UUID' })
+  async getDonationMethods(
+    @Param('id') mosqueId: string,
+    @CurrentUser() actor?: UserPayload,
+  ) {
+    return this.communityService.getDonationMethods(mosqueId, actor);
+  }
+
+  @Post('mosques/:id/donations')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 15 })
+  @ApiOperation({
+    summary: 'Add verified donation method for a mosque',
+    description: 'Authorized for verified staff, committee, or platform admin',
+  })
+  @ApiParam({ name: 'id', description: 'Mosque UUID' })
+  async addDonationMethod(
+    @Param('id') mosqueId: string,
+    @Body() dto: CreateDonationMethodDto,
+    @CurrentUser() actor: UserPayload,
+  ) {
+    return this.communityService.addDonationMethod(mosqueId, dto, actor);
+  }
+
+  @Patch('admin/donations/:id/review')
+  @Roles('admin', 'moderator')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 30 })
+  @ApiOperation({
+    summary: 'Review and verify/reject a donation method',
+    description: 'Admin/moderator approves or un-verifies a donation method',
+  })
+  @ApiParam({ name: 'id', description: 'Donation Method UUID' })
+  async reviewDonationMethod(
+    @Param('id') donationMethodId: string,
+    @Body() dto: ReviewDonationMethodDto,
+    @CurrentUser() actor: UserPayload,
+  ) {
+    return this.communityService.reviewDonationMethod(
+      donationMethodId,
+      dto,
+      actor,
+    );
+  }
+
+  @Delete('mosques/:id/donations/:donationId')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 15 })
+  @ApiOperation({
+    summary: 'Delete a donation method',
+    description: 'Creator or admin can delete a donation channel',
+  })
+  @ApiParam({ name: 'id', description: 'Mosque UUID' })
+  @ApiParam({ name: 'donationId', description: 'Donation Method UUID' })
+  async deleteDonationMethod(
+    @Param('id') mosqueId: string,
+    @Param('donationId') donationId: string,
+    @CurrentUser() actor: UserPayload,
+  ) {
+    return this.communityService.deleteDonationMethod(
+      mosqueId,
+      donationId,
+      actor,
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Follow / Bookmark Mosques (Release 3)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  @Post('mosques/:id/bookmark')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 30 })
+  @ApiOperation({
+    summary: 'Toggle follow / bookmark mosque for personal prayer updates',
+    description: 'Authenticated user bookmarks or un-bookmarks a mosque',
+  })
+  @ApiParam({ name: 'id', description: 'Mosque UUID' })
+  async toggleBookmark(
+    @Param('id') mosqueId: string,
+    @CurrentUser() actor: UserPayload,
+  ) {
+    return this.communityService.toggleBookmark(mosqueId, actor.userId);
+  }
+
+  @Get('users/me/bookmarks')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 60 })
+  @ApiOperation({
+    summary: 'Get current user followed / bookmarked mosques',
+    description: 'Returns list of mosques bookmarked by the authenticated user',
+  })
+  async getUserBookmarks(@CurrentUser() actor: UserPayload) {
+    return this.communityService.getUserBookmarks(actor.userId);
   }
 }

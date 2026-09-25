@@ -104,6 +104,7 @@ model User {
   staffRoles          MosqueStaff[]
   roleClaims          MosqueRoleClaim[]
   announcements       MosqueAnnouncement[]
+  bookmarks           MosqueBookmark[]
 
   @@index([email, isDeleted])
   @@index([role, isDeleted])
@@ -274,6 +275,60 @@ model MosqueAnnouncement {
   @@index([mosqueId, isPinned, createdAt])
 }
 
+enum DonationMethodType {
+  BKASH
+  NAGAD
+  ROCKET
+  UPAY
+  BANK_TRANSFER
+}
+
+enum DonationAccountType {
+  MERCHANT
+  PERSONAL
+  BANK_ACCOUNT
+}
+
+model MosqueDonationMethod {
+  id            String              @id @default(cuid())
+  mosqueId      String
+  mosque        Mosque              @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  methodType    DonationMethodType
+  accountType   DonationAccountType @default(MERCHANT)
+  accountNumber String
+  accountTitle  String?
+  bankName      String?
+  branchName    String?
+  routingNumber String?
+  instructions  String?
+
+  isVerified    Boolean             @default(false)
+  verifiedById  String?
+  verifiedAt    DateTime?
+
+  createdById   String
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([mosqueId, isVerified])
+}
+
+model MosqueBookmark {
+  id        String   @id @default(cuid())
+  mosqueId  String
+  mosque    Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([mosqueId, userId])
+  @@index([userId])
+}
+
+
 
 // Source: mosque.module/mosque.prisma
 enum MosqueOperationalStatus {
@@ -335,6 +390,8 @@ model Mosque {
   staffMembers            MosqueStaff[]
   roleClaims              MosqueRoleClaim[]
   announcements           MosqueAnnouncement[]
+  donationMethods         MosqueDonationMethod[]
+  bookmarks               MosqueBookmark[]
 
   @@index([latitude, longitude])
   @@index([verificationStatus, operationalStatus, isDeleted])

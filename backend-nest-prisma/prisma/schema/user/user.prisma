@@ -32,6 +32,7 @@ model User {
   staffRoles          MosqueStaff[]
   roleClaims          MosqueRoleClaim[]
   announcements       MosqueAnnouncement[]
+  bookmarks           MosqueBookmark[]
 
   @@index([email, isDeleted])
   @@index([role, isDeleted])
