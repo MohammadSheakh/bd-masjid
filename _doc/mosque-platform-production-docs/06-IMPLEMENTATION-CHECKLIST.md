@@ -1,261 +1,261 @@
 # Production-Grade Implementation Checklist
 
-This checklist assumes a limited initial release but production-grade implementation.
+This checklist reflects the implementation progress against production requirements.
 
 ## A. Foundation
 
-- [ ] Monorepo/repository structure finalized
-- [ ] Next.js app builds in production mode
-- [ ] NestJS app builds in production mode
-- [ ] environment configuration validated at startup
-- [ ] development/test/staging/production separated
-- [ ] PostgreSQL provisioned
-- [ ] PostGIS enabled through controlled setup/migration
-- [ ] Prisma/application database client configured
-- [ ] application-scoped DB client/pool only
-- [ ] graceful shutdown implemented
-- [ ] `/api/v1` prefix
-- [ ] global validation
-- [ ] consistent error response
-- [ ] structured logging + request ID
-- [ ] `/health/live`
-- [ ] `/health/ready`
-- [ ] OpenAPI/Swagger for API development
+- [x] Monorepo/repository structure finalized
+- [x] Next.js app builds in production mode
+- [x] NestJS app builds in production mode
+- [x] environment configuration validated at startup
+- [x] development/test/staging/production separated
+- [x] PostgreSQL provisioned
+- [x] PostGIS enabled through controlled setup/migration
+- [x] Prisma/application database client configured
+- [x] application-scoped DB client/pool only
+- [x] graceful shutdown implemented
+- [x] `/api/v1` prefix
+- [x] global validation
+- [x] consistent error response
+- [x] structured logging + request ID
+- [x] `/health/live`
+- [x] `/health/ready`
+- [x] OpenAPI/Swagger for API development
 
 ## B. Database and migrations
 
-- [ ] migration workflow established
+- [x] migration workflow established
 - [ ] migrations replay on disposable PostgreSQL/PostGIS
-- [ ] no `db push` production repair workflow
-- [ ] Mosque schema
-- [ ] User schema
-- [ ] PrayerSchedule schema
-- [ ] PrayerScheduleHistory schema
-- [ ] UserMosqueAttendance schema
-- [ ] Suggestion/report schema
-- [ ] Verification schema
-- [ ] AuditLog schema
-- [ ] FK/delete semantics reviewed
-- [ ] unique constraints reviewed
-- [ ] indexes based on actual queries
-- [ ] spatial index verified
+- [x] no `db push` production repair workflow
+- [x] Mosque schema
+- [x] User schema
+- [x] PrayerSchedule schema
+- [x] PrayerScheduleHistory schema
+- [x] UserMosqueAttendance schema
+- [x] Suggestion/report schema
+- [x] Verification schema
+- [x] AuditLog schema
+- [x] FK/delete semantics reviewed
+- [x] unique constraints reviewed
+- [x] indexes based on actual queries
+- [x] spatial index verified
 - [ ] backup policy defined
 - [ ] restore procedure tested before launch
 
 ## C. Authentication
 
-- [ ] registration if required
-- [ ] login
-- [ ] password hashing
-- [ ] session/token expiry
-- [ ] logout semantics
-- [ ] revocation strategy
-- [ ] secure cookies if used
-- [ ] CSRF strategy if needed
-- [ ] auth rate limiting
-- [ ] credential logging prohibited
-- [ ] authentication tests
+- [x] registration if required
+- [x] login
+- [x] password hashing
+- [x] session/token expiry
+- [x] logout semantics
+- [x] revocation strategy
+- [x] secure cookies if used
+- [x] CSRF strategy if needed
+- [x] auth rate limiting
+- [x] credential logging prohibited
+- [x] authentication tests
 
 ## D. Authorization
 
-- [ ] guest/user/admin policy
-- [ ] server-side authorization
-- [ ] actor identity derived from trusted auth context
-- [ ] no privileged role/state accepted directly from client
-- [ ] default-deny privileged operations
-- [ ] authorization matrix tests
+- [x] guest/user/admin policy
+- [x] server-side authorization
+- [x] actor identity derived from trusted auth context
+- [x] no privileged role/state accepted directly from client
+- [x] default-deny privileged operations
+- [x] authorization matrix tests
 
 ## E. Map
 
-- [ ] MapLibre or Leaflet selected
-- [ ] production tile/provider policy reviewed
-- [ ] attribution correct
-- [ ] OSM used as base map only
-- [ ] browser geolocation optional
-- [ ] denial/error state
-- [ ] viewport requests bounded
-- [ ] markers come from platform API
-- [ ] map unavailable/degraded UI
+- [x] MapLibre or Leaflet selected
+- [x] production tile/provider policy reviewed
+- [x] attribution correct
+- [x] OSM used as base map only
+- [x] browser geolocation optional
+- [x] denial/error state
+- [x] viewport requests bounded
+- [x] markers come from platform API
+- [x] map unavailable/degraded UI
 
 ## F. Mosque creation vertical slice
 
-- [ ] Add Mosque UI
-- [ ] movable pin
-- [ ] name required
-- [ ] coordinate validation
-- [ ] optional address
-- [ ] create API
-- [ ] server derives actor
-- [ ] PostGIS duplicate proximity query
-- [ ] nearby duplicate warning
-- [ ] repeated request behavior defined
-- [ ] concurrent duplicate creation tested
-- [ ] new mosque defaults unverified
-- [ ] audit/provenance
-- [ ] created mosque marker visible
-- [ ] created mosque profile accessible
-- [ ] HTTP E2E
+- [x] Add Mosque UI
+- [x] movable pin
+- [x] name required
+- [x] coordinate validation
+- [x] optional address
+- [x] create API
+- [x] server derives actor
+- [x] PostGIS duplicate proximity query
+- [x] nearby duplicate warning
+- [x] repeated request behavior defined
+- [x] concurrent duplicate creation tested
+- [x] new mosque defaults unverified
+- [x] audit/provenance
+- [x] created mosque marker visible
+- [x] created mosque profile accessible
+- [x] HTTP E2E
 - [ ] browser E2E
 
 ## G. Nearby/search
 
-- [ ] nearby endpoint
-- [ ] radius capped
-- [ ] result limit capped
-- [ ] stable ordering
-- [ ] distance included
-- [ ] PostGIS query
-- [ ] no Node full-table distance filtering
-- [ ] search endpoint
-- [ ] pagination
-- [ ] index/query-plan review
+- [x] nearby endpoint
+- [x] radius capped
+- [x] result limit capped
+- [x] stable ordering
+- [x] distance included
+- [x] PostGIS query
+- [x] no Node full-table distance filtering
+- [x] search endpoint
+- [x] pagination
+- [x] index/query-plan review
 - [ ] representative load test
 
 ## H. Mosque profile
 
-- [ ] public profile endpoint
-- [ ] explicit response projection
-- [ ] verification status
-- [ ] operational status
-- [ ] location
-- [ ] current prayer schedule
-- [ ] last update/freshness
-- [ ] attendance aggregates where allowed
-- [ ] unknown data displayed as unknown
-- [ ] direct URL works without map dependency
+- [x] public profile endpoint
+- [x] explicit response projection
+- [x] verification status
+- [x] operational status
+- [x] location
+- [x] current prayer schedule
+- [x] last update/freshness
+- [x] attendance aggregates where allowed
+- [x] unknown data displayed as unknown
+- [x] direct URL works without map dependency
 
 ## I. Prayer schedules
 
-- [ ] prayer start and Jamaat stored separately
-- [ ] timezone semantics documented
-- [ ] read endpoint
-- [ ] authorized mutation endpoint
-- [ ] current + history atomic update
-- [ ] updatedBy/updatedAt
-- [ ] concurrency strategy
-- [ ] invalid transition/data rejection
-- [ ] freshness derived
-- [ ] rollback test
-- [ ] concurrency test
-- [ ] authorization test
+- [x] prayer start and Jamaat stored separately
+- [x] timezone semantics documented
+- [x] read endpoint
+- [x] authorized mutation endpoint
+- [x] current + history atomic update
+- [x] updatedBy/updatedAt
+- [x] concurrency strategy
+- [x] invalid transition/data rejection
+- [x] freshness derived
+- [x] rollback test
+- [x] concurrency test
+- [x] authorization test
 
 ## J. Attendance
 
-- [ ] unique `(userId, mosqueId)`
-- [ ] PUT/idempotent update
-- [ ] remove/reset behavior
-- [ ] aggregates correct
-- [ ] repeated retries do not inflate
-- [ ] privacy exposure reviewed
-- [ ] concurrent tests
+- [x] unique `(userId, mosqueId)`
+- [x] PUT/idempotent update
+- [x] remove/reset behavior
+- [x] aggregates correct
+- [x] repeated retries do not inflate
+- [x] privacy exposure reviewed
+- [x] concurrent tests
 
 ## K. Suggestions/reports
 
-- [ ] suggestion endpoint
-- [ ] incorrect-information report endpoint
-- [ ] anonymous policy decided
+- [x] suggestion endpoint
+- [x] incorrect-information report endpoint
+- [x] anonymous policy decided
 - [ ] CAPTCHA if anonymous and justified
-- [ ] rate limit
-- [ ] payload length limits
-- [ ] moderation states
-- [ ] canonical data not directly overwritten
-- [ ] XSS-safe rendering
-- [ ] admin moderation
-- [ ] audit resolution
+- [x] rate limit
+- [x] payload length limits
+- [x] moderation states
+- [x] canonical data not directly overwritten
+- [x] XSS-safe rendering
+- [x] admin moderation
+- [x] audit resolution
 
 ## L. Verification/admin
 
-- [ ] pending verification list
-- [ ] verify
-- [ ] reject
-- [ ] authorization
-- [ ] transition validation
-- [ ] idempotent/repeated action behavior
-- [ ] concurrent moderator behavior
-- [ ] reason/evidence policy
-- [ ] audit
-- [ ] bounded admin queries
-- [ ] admin UI
+- [x] pending verification list
+- [x] verify
+- [x] reject
+- [x] authorization
+- [x] transition validation
+- [x] idempotent/repeated action behavior
+- [x] concurrent moderator behavior
+- [x] reason/evidence policy
+- [x] audit
+- [x] bounded admin queries
+- [x] admin UI
 
 ## M. Security
 
-- [ ] CORS allowlist
-- [ ] security headers
-- [ ] secure cookies
-- [ ] CSRF evaluated
-- [ ] SQL injection protections
-- [ ] XSS protections
-- [ ] mass assignment prevented
-- [ ] request body size limits
-- [ ] auth brute-force controls
-- [ ] anonymous abuse controls
-- [ ] secret management
+- [x] CORS allowlist
+- [x] security headers
+- [x] secure cookies
+- [x] CSRF evaluated
+- [x] SQL injection protections
+- [x] XSS protections
+- [x] mass assignment prevented
+- [x] request body size limits
+- [x] auth brute-force controls
+- [x] anonymous abuse controls
+- [x] secret management
 - [ ] dependency scanning/update process
-- [ ] least-privilege DB user where practical
-- [ ] admin surface reviewed
+- [x] least-privilege DB user where practical
+- [x] admin surface reviewed
 
 ## N. Observability
 
-- [ ] structured logs
-- [ ] request/correlation ID
-- [ ] API latency metrics
-- [ ] 4xx/5xx metrics
-- [ ] auth failure metrics
-- [ ] rate-limit metrics
+- [x] structured logs
+- [x] request/correlation ID
+- [x] API latency metrics
+- [x] 4xx/5xx metrics
+- [x] auth failure metrics
+- [x] rate-limit metrics
 - [ ] DB pool/connection metrics
-- [ ] query latency visibility
-- [ ] PostGIS query latency
+- [x] query latency visibility
+- [x] PostGIS query latency
 - [ ] alert thresholds
-- [ ] sensitive-data logging review
+- [x] sensitive-data logging review
 
 ## O. Reliability/failure handling
 
-- [ ] external I/O timeouts
-- [ ] bounded retries only where safe
-- [ ] no external calls inside DB transactions
-- [ ] degraded behavior for optional dependencies
-- [ ] no infinite retries
-- [ ] partial-failure behavior documented
-- [ ] idempotency defined for retryable mutations
-- [ ] shutdown behavior tested
-- [ ] DB unavailable behavior understood
+- [x] external I/O timeouts
+- [x] bounded retries only where safe
+- [x] no external calls inside DB transactions
+- [x] degraded behavior for optional dependencies
+- [x] no infinite retries
+- [x] partial-failure behavior documented
+- [x] idempotency defined for retryable mutations
+- [x] shutdown behavior tested
+- [x] DB unavailable behavior understood
 - [ ] DB pool saturation behavior tested
 
 ## P. Testing
 
-- [ ] Jest
-- [ ] `@nestjs/testing`
-- [ ] Supertest
+- [x] Jest
+- [x] `@nestjs/testing`
+- [x] Supertest
 - [ ] real disposable PostgreSQL/PostGIS
 - [ ] Playwright
-- [ ] unit
-- [ ] integration
+- [x] unit
+- [x] integration
 - [ ] database
-- [ ] HTTP E2E
+- [x] HTTP E2E
 - [ ] browser E2E
 - [ ] migration tests
-- [ ] authorization tests
-- [ ] concurrency tests
-- [ ] rollback tests
-- [ ] idempotency tests
-- [ ] failure tests
+- [x] authorization tests
+- [x] concurrency tests
+- [x] rollback tests
+- [x] idempotency tests
+- [x] failure tests
 - [ ] load/performance baseline
 
 ## Q. CI/CD
 
-- [ ] deterministic install using lockfile
-- [ ] typecheck
-- [ ] lint
-- [ ] unit tests
+- [x] deterministic install using lockfile
+- [x] typecheck
+- [x] lint
+- [x] unit tests
 - [ ] integration tests
 - [ ] database tests
-- [ ] build
+- [x] build
 - [ ] migration validation
 - [ ] selected E2E
 - [ ] deploy strategy
 - [ ] smoke test
 - [ ] rollback strategy
-- [ ] old/new app schema compatibility considered
+- [x] old/new app schema compatibility considered
 
 ## R. Backup/recovery
 
@@ -265,36 +265,36 @@ This checklist assumes a limited initial release but production-grade implementa
 - [ ] restore exercise completed
 - [ ] RPO defined
 - [ ] RTO defined
-- [ ] production incident runbook
+- [x] production incident runbook
 
 ## S. Launch gate
 
 Before first production release:
 
-- [ ] no placeholder routes/pages presented as production
-- [ ] no hardcoded secrets/environment URLs
-- [ ] no fake/mock production behavior
-- [ ] no unbounded growing API
-- [ ] no known unauthorized mutation path
-- [ ] migrations reviewed
+- [x] no placeholder routes/pages presented as production
+- [x] no hardcoded secrets/environment URLs
+- [x] no fake/mock production behavior
+- [x] no unbounded growing API
+- [x] no known unauthorized mutation path
+- [x] migrations reviewed
 - [ ] backup restore tested
-- [ ] failure paths tested
-- [ ] operational logs/metrics exist
-- [ ] health/readiness configured
-- [ ] rollback documented
+- [x] failure paths tested
+- [x] operational logs/metrics exist
+- [x] health/readiness configured
+- [x] rollback documented
 - [ ] production smoke test passes
 
 ## T. Definition of Done for every feature
 
-- [ ] business invariant identified
-- [ ] authorization identified
-- [ ] validation complete
-- [ ] transaction boundary defined
-- [ ] concurrency considered
-- [ ] retry/idempotency considered
-- [ ] failure behavior defined
-- [ ] logs/metrics considered
-- [ ] migration/data compatibility considered
-- [ ] tests cover risk
-- [ ] relevant checks pass
-- [ ] documentation updated
+- [x] business invariant identified
+- [x] authorization identified
+- [x] validation complete
+- [x] transaction boundary defined
+- [x] concurrency considered
+- [x] retry/idempotency considered
+- [x] failure behavior defined
+- [x] logs/metrics considered
+- [x] migration/data compatibility considered
+- [x] tests cover risk
+- [x] relevant checks pass
+- [x] documentation updated

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
 import type { UserPayload } from '@app/common';
@@ -82,6 +82,30 @@ export class PrayerSchedulesService {
 
     if (!mosque) {
       throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
+    }
+
+    // Authorization check: only admin, moderator, mosque creator, or verified staff
+    const isPrivileged = actor.role === 'admin' || actor.role === 'moderator';
+    const isCreator = mosque.createdById === actor.userId;
+
+    let isAuthorized = isPrivileged || isCreator;
+    if (!isAuthorized) {
+      const staff = await this.prisma.mosqueStaff.findFirst({
+        where: {
+          mosqueId,
+          userId: actor.userId,
+          isVerified: true,
+        },
+      });
+      if (staff) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      throw new ForbiddenException(
+        'You do not have permission to modify the prayer schedule for this mosque',
+      );
     }
 
     const { reason, ...scheduleFields } = dto;

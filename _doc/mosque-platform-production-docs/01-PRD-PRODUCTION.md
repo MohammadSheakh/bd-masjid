@@ -1,3 +1,8 @@
+proceed where you left off as you know about my backend structure @directory:backend-nest-prisma .. you know the [SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/nestjs-best-practices/SKILL.md)  , about frontend design guide [SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/ferio-frontend-design/SKILL.md)  and @mosque-platform-production-docs this folders all prd, system architecture, implementation checklist and other relevant information . and 
+[SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/git-commit-push/SKILL.md)  git commit and push with proper commit message
+
+
+
 # Mosque Information & Community Platform — Production PRD
 
 ## 1. Product vision

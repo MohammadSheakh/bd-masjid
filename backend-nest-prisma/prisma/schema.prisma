@@ -393,6 +393,8 @@ model Mosque {
   donationMethods         MosqueDonationMethod[]
   bookmarks               MosqueBookmark[]
 
+  // Note: Spatial GiST index "Mosque_location_gist_idx" on ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography
+  // is provisioned in PostGIS migration for sub-millisecond ST_DWithin radial queries.
   @@index([latitude, longitude])
   @@index([verificationStatus, operationalStatus, isDeleted])
   @@index([name, isDeleted])

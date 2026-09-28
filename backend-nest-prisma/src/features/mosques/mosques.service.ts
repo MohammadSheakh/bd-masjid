@@ -76,7 +76,7 @@ export class MosquesService {
     lng: number,
     thresholdMeters = MOSQUE_CONSTANTS.DUPLICATE_CHECK_RADIUS_METERS,
   ): Promise<DuplicateCandidate[]> {
-    // Parameterized spatial distance query (spherical distance in meters)
+    // PostGIS spherical geography distance query (ST_DWithin and ST_Distance on EPSG:4326)
     const rawResults = await this.prisma.$queryRaw<
       Array<{ id: string; name: string; distance: number }>
     >`
@@ -84,29 +84,27 @@ export class MosquesService {
         id, 
         name,
         ROUND(
-          (6371000 * acos(
-            LEAST(1.0, GREATEST(-1.0, 
-              cos(radians(${lat})) * cos(radians(latitude)) * 
-              cos(radians(longitude) - radians(${lng})) + 
-              sin(radians(${lat})) * sin(radians(latitude))
-            ))
-          ))::numeric, 1
+          ST_Distance(
+            ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
+            ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
+          )::numeric, 1
         )::double precision AS distance
       FROM "Mosque"
       WHERE "isDeleted" = false
-        AND abs(latitude - ${lat}) < (${thresholdMeters} / 111000.0)
-        AND abs(longitude - ${lng}) < (${thresholdMeters} / (111000.0 * cos(radians(${lat}))))
+        AND ST_DWithin(
+          ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
+          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+          ${thresholdMeters}
+        )
       ORDER BY distance ASC
       LIMIT 5
     `;
 
-    return rawResults
-      .filter((r) => r.distance <= thresholdMeters)
-      .map((r) => ({
-        mosqueId: r.id,
-        name: r.name,
-        distanceMeters: r.distance,
-      }));
+    return rawResults.map((r) => ({
+      mosqueId: r.id,
+      name: r.name,
+      distanceMeters: r.distance,
+    }));
   }
 
   /**
@@ -282,37 +280,34 @@ export class MosquesService {
         m."createdAt",
         m."updatedAt",
         ROUND(
-          (6371000 * acos(
-            LEAST(1.0, GREATEST(-1.0, 
-              cos(radians(${lat})) * cos(radians(m.latitude)) * 
-              cos(radians(m.longitude) - radians(${lng})) + 
-              sin(radians(${lat})) * sin(radians(m.latitude))
-            ))
-          ))::numeric, 1
+          ST_Distance(
+            ST_SetSRID(ST_MakePoint(m.longitude, m.latitude), 4326)::geography,
+            ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
+          )::numeric, 1
         )::double precision AS "distanceMeters"
       FROM "Mosque" m
       WHERE m."isDeleted" = false
-        AND m.latitude BETWEEN (${lat} - ${latDelta}) AND (${lat} + ${latDelta})
-        AND m.longitude BETWEEN (${lng} - ${lngDelta}) AND (${lng} + ${lngDelta})
+        AND ST_DWithin(
+          ST_SetSRID(ST_MakePoint(m.longitude, m.latitude), 4326)::geography,
+          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+          ${radiusMeters}
+        )
       ORDER BY "distanceMeters" ASC
       LIMIT ${limit}
     `;
 
-    // Filter within exact radius
-    const filtered = rawMosques.filter((m) => m.distanceMeters <= radiusMeters);
-
-    if (filtered.length === 0) {
+    if (rawMosques.length === 0) {
       return [];
     }
 
     // Attach current prayer schedules
-    const mosqueIds = filtered.map((m) => m.id);
+    const mosqueIds = rawMosques.map((m) => m.id);
     const schedules = await this.prisma.prayerSchedule.findMany({
       where: { mosqueId: { in: mosqueIds } },
     });
     const scheduleMap = new Map(schedules.map((s) => [s.mosqueId, s]));
 
-    return filtered.map((mosque) => {
+    return rawMosques.map((mosque) => {
       const schedule = scheduleMap.get(mosque.id) || null;
       return {
         ...mosque,

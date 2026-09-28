@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrayerSchedulesService } from './prayer-schedules.service';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('PrayerSchedulesService', () => {
   let service: PrayerSchedulesService;
@@ -15,6 +15,9 @@ describe('PrayerSchedulesService', () => {
       mosque: {
         findUnique: jest.fn(),
         update: jest.fn(),
+      },
+      mosqueStaff: {
+        findFirst: jest.fn(),
       },
       prayerSchedule: {
         findUnique: jest.fn(),
@@ -60,8 +63,26 @@ describe('PrayerSchedulesService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should atomically update schedule, create history snapshot, and touch mosque', async () => {
-      prisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1' });
+    it('should throw ForbiddenException if caller is not authorized to edit this mosque', async () => {
+      prisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', createdById: 'other-user' });
+      prisma.mosqueStaff.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.updateSchedule(
+          'mosque-1',
+          { fajrJamaat: '05:15' },
+          {
+            userId: 'unauthorized-user',
+            email: 'unauth@example.com',
+            role: 'user',
+            permissions: [],
+          },
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should atomically update schedule, create history snapshot, and touch mosque when authorized', async () => {
+      prisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', createdById: 'user-1' });
       const mockSchedule = {
         id: 'sched-1',
         mosqueId: 'mosque-1',
