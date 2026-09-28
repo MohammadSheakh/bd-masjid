@@ -19,6 +19,7 @@ import {
   FileText,
   AlertCircle,
   Terminal,
+  Key,
 } from 'lucide-react';
 
 interface PendingMosque {
@@ -93,7 +94,7 @@ interface AuditLogItem {
 }
 
 interface SystemHealthData {
-  status: 'healthy' | 'degraded';
+  status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
   dependencies: {
     database: {
@@ -133,8 +134,39 @@ export default function AdminPage() {
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [tokenInput, setTokenInput] = useState('');
+  const [showTokenPrompt, setShowTokenPrompt] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6733/api/v1';
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('access_token');
+      setHasToken(Boolean(stored));
+      if (stored) setTokenInput(stored);
+    }
+  }, []);
+
+  const getAuthHeaders = (): Record<string, string> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const handleSaveToken = (tokenToSave: string) => {
+    if (typeof window !== 'undefined') {
+      if (tokenToSave.trim()) {
+        localStorage.setItem('access_token', tokenToSave.trim());
+        setHasToken(true);
+      } else {
+        localStorage.removeItem('access_token');
+        setHasToken(false);
+      }
+    }
+    setShowTokenPrompt(false);
+    loadData();
+  };
 
   useEffect(() => {
     loadData();
@@ -143,193 +175,104 @@ export default function AdminPage() {
   const loadData = async () => {
     setIsLoading(true);
     setStatusMessage(null);
+    setAuthError(null);
+    const headers = getAuthHeaders();
     try {
       if (activeTab === 'verifications') {
-        const res = await fetch(`${API_BASE}/admin/mosques/pending-verification`);
+        const res = await fetch(`${API_BASE}/admin/mosques/pending-verification`, { headers });
         if (res.ok) {
           const json = await res.json();
           setPendingMosques(json.data?.items || json.items || []);
+        } else if (res.status === 401 || res.status === 403) {
+          setAuthError('Authentication required: Admin credentials missing or expired (401/403). Live queue access is restricted.');
+          setPendingMosques([]);
         } else {
-          // Mock data for preview if auth/db offline
-          setPendingMosques([
-            {
-              id: 'pending-1',
-              name: 'Baitul Aman Central Mosque',
-              city: 'Dhaka',
-              address: 'Ring Road, Mohammadpur',
-              latitude: 23.7554,
-              longitude: 90.3621,
-              createdAt: new Date().toISOString(),
-              prayerSchedule: {
-                fajrJamaat: '05:15',
-                zuhrJamaat: '13:30',
-                asrJamaat: '16:45',
-                maghribJamaat: '18:15',
-                ishaJamaat: '20:00',
-              },
-            },
-          ]);
+          setPendingMosques([]);
         }
       } else if (activeTab === 'suggestions') {
-        const res = await fetch(`${API_BASE}/admin/suggestions?status=OPEN`);
+        const res = await fetch(`${API_BASE}/admin/suggestions?status=OPEN`, { headers });
         if (res.ok) {
           const json = await res.json();
           setSuggestions(json.data?.items || json.items || []);
+        } else if (res.status === 401 || res.status === 403) {
+          setAuthError('Authentication required: Admin credentials missing or expired (401/403). Live queue access is restricted.');
+          setSuggestions([]);
         } else {
-          setSuggestions([
-            {
-              id: 'sugg-1',
-              mosqueId: 'mosque-1',
-              mosque: { name: 'Baitul Mukarram National Mosque', city: 'Dhaka' },
-              suggestedTimes: { asrJamaat: '16:40', ishaJamaat: '20:10' },
-              description: 'Updated after committee meeting on Wednesday.',
-              status: 'OPEN',
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          setSuggestions([]);
         }
       } else if (activeTab === 'reports') {
-        const res = await fetch(`${API_BASE}/admin/reports?status=OPEN`);
+        const res = await fetch(`${API_BASE}/admin/reports?status=OPEN`, { headers });
         if (res.ok) {
           const json = await res.json();
           setReports(json.data?.items || json.items || []);
+        } else if (res.status === 401 || res.status === 403) {
+          setAuthError('Authentication required: Admin credentials missing or expired (401/403). Live queue access is restricted.');
+          setReports([]);
         } else {
-          setReports([
-            {
-              id: 'rep-1',
-              mosqueId: 'mosque-3',
-              mosque: { name: 'Gulshan Society Jame Masjid', city: 'Dhaka' },
-              type: 'PRAYER_TIME',
-              description: 'Isha Jamaat is 20:15, not 20:00.',
-              contactEmail: 'musalli@example.com',
-              status: 'OPEN',
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          setReports([]);
         }
       } else if (activeTab === 'claims') {
-        const res = await fetch(`${API_BASE}/admin/role-claims?status=OPEN`);
+        const res = await fetch(`${API_BASE}/admin/role-claims?status=OPEN`, { headers });
         if (res.ok) {
           const json = await res.json();
           setRoleClaims(json.data?.items || json.items || []);
+        } else if (res.status === 401 || res.status === 403) {
+          setAuthError('Authentication required: Admin credentials missing or expired (401/403). Live queue access is restricted.');
+          setRoleClaims([]);
         } else {
-          setRoleClaims([
-            {
-              id: 'claim-1',
-              mosqueId: 'mosque-1',
-              mosque: { name: 'Baitul Mukarram National Mosque', city: 'Dhaka' },
-              user: { name: 'Qari Saiful Islam', email: 'saiful@example.com', phoneNumber: '01711223344' },
-              role: 'IMAM',
-              evidence: 'Appointed pesh imam by Ministry / Islamic Foundation since 2021.',
-              status: 'OPEN',
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          setRoleClaims([]);
         }
       } else if (activeTab === 'donations') {
-        const res = await fetch(`${API_BASE}/admin/donations`);
+        const res = await fetch(`${API_BASE}/admin/donations`, { headers });
         if (res.ok) {
           const json = await res.json();
           setDonations(json.data || json || []);
+        } else if (res.status === 401 || res.status === 403) {
+          setAuthError('Authentication required: Admin credentials missing or expired (401/403). Live queue access is restricted.');
+          setDonations([]);
         } else {
-          setDonations([
-            {
-              id: 'don-1',
-              mosqueId: 'mosque-1',
-              mosque: { name: 'Baitul Mukarram National Mosque', city: 'Dhaka' },
-              methodType: 'BKASH',
-              accountType: 'MERCHANT',
-              accountNumber: '01711223344',
-              accountTitle: 'National Mosque Welfare Fund',
-              bankName: null,
-              branchName: null,
-              routingNumber: null,
-              instructions: 'Counter: 01',
-              isVerified: false,
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          setDonations([]);
         }
       } else if (activeTab === 'audit') {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-        const res = await fetch(`${API_BASE}/admin/audit-logs`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        const res = await fetch(`${API_BASE}/admin/audit-logs`, { headers });
         if (res.ok) {
           const json = await res.json();
           setAuditLogs(json.data?.items || json.items || []);
+        } else if (res.status === 401 || res.status === 403) {
+          setAuthError('Authentication required: Admin credentials missing or expired (401/403). Live audit logs are restricted.');
+          setAuditLogs([]);
         } else {
-          setAuditLogs([
-            {
-              id: 'audit-mock-1',
-              action: 'MOSQUE_VERIFIED',
-              entityType: 'Mosque',
-              entityId: 'mosque-1',
-              actorId: 'admin-1',
-              actorRole: 'admin',
-              source: 'ADMIN_API',
-              metadata: { verificationNotes: 'Official committee certificate verified' },
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: 'audit-mock-2',
-              action: 'ROLE_CLAIM_REVIEWED',
-              entityType: 'MosqueRoleClaim',
-              entityId: 'claim-1',
-              actorId: 'admin-1',
-              actorRole: 'admin',
-              source: 'ADMIN_API',
-              metadata: { status: 'APPROVED', role: 'IMAM' },
-              createdAt: new Date(Date.now() - 3600000).toISOString(),
-            },
-            {
-              id: 'audit-mock-3',
-              action: 'MOSQUE_DONATION_METHOD_ADDED',
-              entityType: 'MosqueDonationMethod',
-              entityId: 'don-1',
-              actorId: 'admin-1',
-              actorRole: 'admin',
-              source: 'ADMIN_API',
-              metadata: { mosqueId: 'mosque-1', methodType: 'BKASH' },
-              createdAt: new Date(Date.now() - 7200000).toISOString(),
-            },
-          ]);
+          setAuditLogs([]);
         }
       } else if (activeTab === 'health') {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-        const res = await fetch(`${API_BASE}/admin/operations/health`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        const res = await fetch(`${API_BASE}/admin/operations/health`, { headers });
         if (res.ok) {
           const json = await res.json();
           setHealthData(json.data || json);
-        } else {
-          // Probe public health endpoints
+        } else if (res.status === 401 || res.status === 403) {
+          setAuthError('Authentication required for detailed telemetry (401/403). Querying public readiness probe.');
           const liveRes = await fetch(`${API_BASE}/health/live`).catch(() => null);
+          const readyRes = await fetch(`${API_BASE}/health/ready`).catch(() => null);
           setHealthData({
-            status: liveRes?.ok ? 'healthy' : 'degraded',
+            status: readyRes?.ok ? 'healthy' : liveRes?.ok ? 'degraded' : 'unhealthy',
             timestamp: new Date().toISOString(),
             dependencies: {
               database: {
-                available: liveRes?.ok ?? true,
-                latencyMs: 3,
+                available: readyRes?.ok ?? false,
+                latencyMs: null,
               },
             },
             system: {
-              uptimeSeconds: 84200,
-              memoryUsageMb: 148,
-              nodeVersion: 'Node.js v22 LTS',
-            },
-            metrics: {
-              totalRequests: 1420,
-              errorCount: 0,
-              avgLatencyMs: 12,
+              uptimeSeconds: 0,
+              memoryUsageMb: 0,
+              nodeVersion: 'Node.js',
             },
           });
         }
       }
-    } catch {
-      // Fallback preview
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to fetch data';
+      setStatusMessage(`Network error: ${msg}`);
     } finally {
       setIsLoading(false);
     }
@@ -355,134 +298,160 @@ export default function AdminPage() {
 
   const handleVerifyDonation = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/admin/donations/${id}/review`, {
+      const res = await fetch(`${API_BASE}/admin/donations/${id}/review`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ isVerified: true }),
       });
-      setDonations((prev) =>
-        prev.map((d) => (d.id === id ? { ...d, isVerified: true } : d)),
-      );
-      setStatusMessage('Donation destination verified successfully.');
+      if (res.ok) {
+        setDonations((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, isVerified: true } : d)),
+        );
+        setStatusMessage('Donation destination verified successfully.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error (${res.status}): ${err.message || 'Unauthorized or failed to verify donation.'}`);
+      }
     } catch {
-      setDonations((prev) =>
-        prev.map((d) => (d.id === id ? { ...d, isVerified: true } : d)),
-      );
-      setStatusMessage('Mock: Donation destination verified.');
+      setStatusMessage('Network error: Failed to connect to server.');
     }
   };
 
   const handleRevokeDonation = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/admin/donations/${id}/review`, {
+      const res = await fetch(`${API_BASE}/admin/donations/${id}/review`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ isVerified: false }),
       });
-      setDonations((prev) =>
-        prev.map((d) => (d.id === id ? { ...d, isVerified: false } : d)),
-      );
-      setStatusMessage('Donation destination un-verified / revoked.');
+      if (res.ok) {
+        setDonations((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, isVerified: false } : d)),
+        );
+        setStatusMessage('Donation destination un-verified / revoked.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error (${res.status}): ${err.message || 'Unauthorized or failed to revoke donation.'}`);
+      }
     } catch {
-      setDonations((prev) =>
-        prev.map((d) => (d.id === id ? { ...d, isVerified: false } : d)),
-      );
-      setStatusMessage('Mock: Donation destination un-verified.');
+      setStatusMessage('Network error: Failed to connect to server.');
     }
   };
 
   const handleApproveClaim = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/admin/role-claims/${id}/review`, {
+      const res = await fetch(`${API_BASE}/admin/role-claims/${id}/review`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ status: 'APPROVED', resolutionNotes: 'Verified official role appointment' }),
       });
-      setRoleClaims((prev) => prev.filter((c) => c.id !== id));
-      setStatusMessage('Role claim approved and verified staff provisioned.');
+      if (res.ok) {
+        setRoleClaims((prev) => prev.filter((c) => c.id !== id));
+        setStatusMessage('Role claim approved and verified staff provisioned.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error (${res.status}): ${err.message || 'Unauthorized or failed to approve claim.'}`);
+      }
     } catch {
-      setRoleClaims((prev) => prev.filter((c) => c.id !== id));
-      setStatusMessage('Mock: Role claim approved.');
+      setStatusMessage('Network error: Failed to connect to server.');
     }
   };
 
   const handleRejectClaim = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/admin/role-claims/${id}/review`, {
+      const res = await fetch(`${API_BASE}/admin/role-claims/${id}/review`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ status: 'REJECTED', resolutionNotes: 'Insufficient evidence' }),
       });
-      setRoleClaims((prev) => prev.filter((c) => c.id !== id));
-      setStatusMessage('Role claim rejected.');
+      if (res.ok) {
+        setRoleClaims((prev) => prev.filter((c) => c.id !== id));
+        setStatusMessage('Role claim rejected.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error (${res.status}): ${err.message || 'Unauthorized or failed to reject claim.'}`);
+      }
     } catch {
-      setRoleClaims((prev) => prev.filter((c) => c.id !== id));
-      setStatusMessage('Mock: Role claim rejected.');
+      setStatusMessage('Network error: Failed to connect to server.');
     }
   };
 
   const handleVerifyMosque = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/admin/mosques/${id}/verify`, {
+      const res = await fetch(`${API_BASE}/admin/mosques/${id}/verify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ notes: 'Verified via moderation console' }),
       });
-      setPendingMosques((prev) => prev.filter((m) => m.id !== id));
-      setStatusMessage('Mosque verified and approved successfully.');
+      if (res.ok) {
+        setPendingMosques((prev) => prev.filter((m) => m.id !== id));
+        setStatusMessage('Mosque verified and approved successfully.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error (${res.status}): ${err.message || 'Unauthorized or failed to verify mosque.'}`);
+      }
     } catch {
-      setPendingMosques((prev) => prev.filter((m) => m.id !== id));
-      setStatusMessage('Mock: Mosque verified.');
+      setStatusMessage('Network error: Failed to connect to server.');
     }
   };
 
   const handleRejectMosque = async (id: string) => {
     if (!rejectReason.trim()) return;
     try {
-      await fetch(`${API_BASE}/admin/mosques/${id}/reject`, {
+      const res = await fetch(`${API_BASE}/admin/mosques/${id}/reject`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ reason: rejectReason }),
       });
-      setPendingMosques((prev) => prev.filter((m) => m.id !== id));
-      setRejectId(null);
-      setRejectReason('');
-      setStatusMessage('Mosque rejected.');
+      if (res.ok) {
+        setPendingMosques((prev) => prev.filter((m) => m.id !== id));
+        setRejectId(null);
+        setRejectReason('');
+        setStatusMessage('Mosque rejected.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error (${res.status}): ${err.message || 'Unauthorized or failed to reject mosque.'}`);
+      }
     } catch {
-      setPendingMosques((prev) => prev.filter((m) => m.id !== id));
-      setRejectId(null);
-      setRejectReason('');
-      setStatusMessage('Mock: Mosque rejected.');
+      setStatusMessage('Network error: Failed to connect to server.');
     }
   };
 
   const handleResolveSuggestion = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/admin/suggestions/${id}/status`, {
+      const res = await fetch(`${API_BASE}/admin/suggestions/${id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ status: 'RESOLVED', resolutionNotes: 'Applied by moderator' }),
       });
-      setSuggestions((prev) => prev.filter((s) => s.id !== id));
-      setStatusMessage('Suggestion resolved.');
+      if (res.ok) {
+        setSuggestions((prev) => prev.filter((s) => s.id !== id));
+        setStatusMessage('Suggestion resolved.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error (${res.status}): ${err.message || 'Unauthorized or failed to resolve suggestion.'}`);
+      }
     } catch {
-      setSuggestions((prev) => prev.filter((s) => s.id !== id));
-      setStatusMessage('Mock: Suggestion resolved.');
+      setStatusMessage('Network error: Failed to connect to server.');
     }
   };
 
   const handleDismissReport = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/admin/reports/${id}/status`, {
+      const res = await fetch(`${API_BASE}/admin/reports/${id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ status: 'RESOLVED', resolutionNotes: 'Reviewed and closed' }),
       });
-      setReports((prev) => prev.filter((r) => r.id !== id));
-      setStatusMessage('Report resolved.');
+      if (res.ok) {
+        setReports((prev) => prev.filter((r) => r.id !== id));
+        setStatusMessage('Report resolved.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error (${res.status}): ${err.message || 'Unauthorized or failed to resolve report.'}`);
+      }
     } catch {
-      setReports((prev) => prev.filter((r) => r.id !== id));
-      setStatusMessage('Mock: Report resolved.');
+      setStatusMessage('Network error: Failed to connect to server.');
     }
   };
 
@@ -505,13 +474,27 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <button
-          onClick={loadData}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-[#e8e8ea] hover:bg-zinc-100 transition-colors"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowTokenPrompt(true)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors ${
+              hasToken
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100'
+            }`}
+          >
+            <Key className="w-3.5 h-3.5" />
+            <span>{hasToken ? 'Admin Token Active' : 'Set Admin Token'}</span>
+          </button>
+
+          <button
+            onClick={loadData}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-[#e8e8ea] hover:bg-zinc-100 transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </header>
 
       {/* Main Container */}
@@ -597,6 +580,24 @@ export default function AdminPage() {
             <span>System Health</span>
           </button>
         </div>
+
+        {authError && (
+          <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+              <div>
+                <p className="font-semibold text-amber-950">Authentication / Authorization Required</p>
+                <p className="text-amber-800 mt-0.5">{authError}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowTokenPrompt(true)}
+              className="px-3 py-1.5 rounded-lg bg-amber-600 text-white font-medium hover:bg-amber-700 transition-colors shrink-0"
+            >
+              Set Admin Token
+            </button>
+          </div>
+        )}
 
         {statusMessage && (
           <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
@@ -1134,6 +1135,49 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+
+      {/* Admin Token Modal */}
+      {showTokenPrompt && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-[#e8e8ea]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Key className="w-4 h-4 text-emerald-700" />
+                <h3 className="text-sm font-bold text-[#111114]">Set Admin Access Token</h3>
+              </div>
+              <button
+                onClick={() => setShowTokenPrompt(false)}
+                className="text-zinc-400 hover:text-black p-1 text-sm"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-xs text-[#6e6e73]">
+              Paste an admin or moderator JWT Bearer token below. It will be stored in your browser session (<code className="bg-zinc-100 px-1 py-0.5 rounded text-[11px]">access_token</code>) to authenticate API requests.
+            </p>
+            <textarea
+              value={tokenInput}
+              onChange={(e) => setTokenInput(e.target.value)}
+              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              className="w-full text-xs font-mono p-3 border border-[#e8e8ea] rounded-2xl focus:outline-none focus:border-black resize-none h-28"
+            />
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                onClick={() => handleSaveToken('')}
+                className="px-3.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-full transition-colors font-medium"
+              >
+                Clear Token
+              </button>
+              <button
+                onClick={() => handleSaveToken(tokenInput)}
+                className="px-4 py-1.5 text-xs bg-[#111114] text-white hover:bg-black rounded-full transition-colors font-medium"
+              >
+                Save & Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
