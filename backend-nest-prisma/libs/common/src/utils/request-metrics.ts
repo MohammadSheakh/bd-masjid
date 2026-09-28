@@ -11,6 +11,8 @@ export type RequestMetricsSnapshot = {
   successful: number;
   clientErrors: number;
   serverErrors: number;
+  authFailures: number;
+  rateLimitRejections: number;
   averageDurationMs: number;
   p95DurationMs: number;
   maxDurationMs: number;
@@ -23,6 +25,8 @@ export class RequestMetrics {
   private static successful = 0;
   private static clientErrors = 0;
   private static serverErrors = 0;
+  private static authFailures = 0;
+  private static rateLimitRejections = 0;
   private static totalDurationMs = 0;
   private static maxDurationMs = 0;
   private static durations: number[] = [];
@@ -39,6 +43,14 @@ export class RequestMetrics {
     if (this.durations.length > MAX_DURATION_SAMPLES) this.durations.shift();
   }
 
+  static recordAuthFailure() {
+    this.authFailures += 1;
+  }
+
+  static recordRateLimitRejection() {
+    this.rateLimitRejections += 1;
+  }
+
   static snapshot(): RequestMetricsSnapshot {
     const sorted = [...this.durations].sort((left, right) => left - right);
     const p95Index = Math.max(0, Math.ceil(sorted.length * 0.95) - 1);
@@ -48,6 +60,8 @@ export class RequestMetrics {
       successful: this.successful,
       clientErrors: this.clientErrors,
       serverErrors: this.serverErrors,
+      authFailures: this.authFailures,
+      rateLimitRejections: this.rateLimitRejections,
       averageDurationMs:
         this.total === 0 ? 0 : Math.round(this.totalDurationMs / this.total),
       p95DurationMs: sorted[p95Index] ?? 0,
@@ -62,6 +76,8 @@ export class RequestMetrics {
     this.successful = 0;
     this.clientErrors = 0;
     this.serverErrors = 0;
+    this.authFailures = 0;
+    this.rateLimitRejections = 0;
     this.totalDurationMs = 0;
     this.maxDurationMs = 0;
     this.durations = [];

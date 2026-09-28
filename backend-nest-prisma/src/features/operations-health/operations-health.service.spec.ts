@@ -35,6 +35,8 @@ describe('OperationsHealthService', () => {
       expect(health.status).toBe('healthy');
       expect(health.dependencies.database.available).toBe(true);
       expect(typeof health.dependencies.database.latencyMs).toBe('number');
+      expect(health.dependencies.postgis.available).toBe(true);
+      expect(typeof health.dependencies.postgis.latencyMs).toBe('number');
       expect(health.system.nodeVersion).toBeDefined();
       expect(health.metrics).toBeDefined();
     });

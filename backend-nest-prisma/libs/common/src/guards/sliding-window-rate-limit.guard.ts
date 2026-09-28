@@ -14,6 +14,7 @@ import {
   RateLimitOptions,
 } from '../decorators/rate-limit.decorator';
 import { StructuredLogger } from '../utils/structured-logger';
+import { RequestMetrics } from '../utils/request-metrics';
 
 /**
  * Sliding Window Rate Limit Guard
@@ -50,10 +51,16 @@ export class SlidingWindowRateLimitGuard implements CanActivate {
       return true;
     }
 
-    // If Redis is down, fail open (allow request)
-    if (!this.redisClient) {
+    // If Redis is down or disconnected, fail open (allow request)
+    const isRedisDown =
+      !this.redisClient ||
+      (typeof this.redisClient.status === 'string' &&
+        this.redisClient.status !== 'ready');
+
+    if (isRedisDown) {
       this.logger.warn('rate_limit_bypassed', {
-        reason: 'REDIS_UNAVAILABLE',
+        reason: 'REDIS_NOT_READY',
+        status: this.redisClient?.status || 'UNAVAILABLE',
         keyPrefix: options.keyPrefix || 'default',
       });
       return true;
@@ -125,6 +132,8 @@ export class SlidingWindowRateLimitGuard implements CanActivate {
         const durationText = this.formatDuration(retryAfterSeconds);
         response.set('Retry-After', String(retryAfterSeconds));
 
+        RequestMetrics.recordRateLimitRejection();
+
         this.logger.warn('authentication_rate_limit_exceeded', {
           keyPrefix,
           userId,
@@ -146,13 +155,25 @@ export class SlidingWindowRateLimitGuard implements CanActivate {
       }
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
-      this.logger.error('rate_limit_evaluation_failed', error, {
-        keyPrefix,
-      });
+      const isConnectionError =
+        error?.message?.includes?.('Stream') ||
+        error?.message?.includes?.('Connection') ||
+        error?.name === 'MaxRetriesPerRequestError';
+
+      if (isConnectionError) {
+        this.logger.warn('rate_limit_redis_disconnected', {
+          keyPrefix,
+          message: error.message,
+        });
+      } else {
+        this.logger.error('rate_limit_evaluation_failed', error, {
+          keyPrefix,
+        });
+      }
       return true; // Fail open for any other errors
     }
   }

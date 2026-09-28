@@ -49,7 +49,7 @@ export class CommunityController {
   // Staff & Committee
   // ──────────────────────────────────────────────────────────────────────────
 
-  @Get('mosques/:id/staff')
+  @Get(['mosques/:id/staff', 'community/:id/staff'])
   @Public()
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
@@ -63,7 +63,7 @@ export class CommunityController {
     return this.communityService.getStaff(mosqueId);
   }
 
-  @Post('mosques/:id/staff')
+  @Post(['mosques/:id/staff', 'community/:id/staff'])
   @Roles('admin', 'moderator')
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 30 })
@@ -80,7 +80,7 @@ export class CommunityController {
     return this.communityService.addStaff(mosqueId, dto, actor);
   }
 
-  @Delete('mosques/:id/staff/:staffId')
+  @Delete(['mosques/:id/staff/:staffId', 'community/:id/staff/:staffId'])
   @Roles('admin', 'moderator')
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 30 })
@@ -102,7 +102,7 @@ export class CommunityController {
   // Role Claims
   // ──────────────────────────────────────────────────────────────────────────
 
-  @Post('mosques/:id/role-claims')
+  @Post(['mosques/:id/role-claims', 'community/:id/role-claims', 'community/:id/claim-role'])
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 10 })
   @ApiOperation({
@@ -172,7 +172,7 @@ export class CommunityController {
   // Announcements
   // ──────────────────────────────────────────────────────────────────────────
 
-  @Get('mosques/:id/announcements')
+  @Get(['mosques/:id/announcements', 'community/:id/announcements'])
   @Public()
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
@@ -184,7 +184,7 @@ export class CommunityController {
     return this.communityService.getAnnouncements(mosqueId);
   }
 
-  @Post('mosques/:id/announcements')
+  @Post(['mosques/:id/announcements', 'community/:id/announcements'])
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 15 })
   @ApiOperation({
@@ -200,7 +200,7 @@ export class CommunityController {
     return this.communityService.createAnnouncement(mosqueId, dto, actor);
   }
 
-  @Delete('mosques/:id/announcements/:announcementId')
+  @Delete(['mosques/:id/announcements/:announcementId', 'community/:id/announcements/:announcementId'])
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 15 })
   @ApiOperation({
@@ -237,7 +237,7 @@ export class CommunityController {
     return this.communityService.getAllDonationMethods();
   }
 
-  @Get('mosques/:id/donations')
+  @Get(['mosques/:id/donations', 'community/:id/donations'])
   @Public()
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
@@ -253,7 +253,7 @@ export class CommunityController {
     return this.communityService.getDonationMethods(mosqueId, actor);
   }
 
-  @Post('mosques/:id/donations')
+  @Post(['mosques/:id/donations', 'community/:id/donations'])
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 15 })
   @ApiOperation({
@@ -290,7 +290,7 @@ export class CommunityController {
     );
   }
 
-  @Delete('mosques/:id/donations/:donationId')
+  @Delete(['mosques/:id/donations/:donationId', 'community/:id/donations/:donationId'])
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 15 })
   @ApiOperation({
@@ -315,7 +315,7 @@ export class CommunityController {
   // Follow / Bookmark Mosques (Release 3)
   // ──────────────────────────────────────────────────────────────────────────
 
-  @Post('mosques/:id/bookmark')
+  @Post(['mosques/:id/bookmark', 'community/:id/bookmark'])
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 30 })
   @ApiOperation({

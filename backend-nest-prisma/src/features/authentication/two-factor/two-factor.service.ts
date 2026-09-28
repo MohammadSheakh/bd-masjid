@@ -38,7 +38,7 @@ export class TwoFactorService {
       where: { id: userId },
       data: { twoFactorPendingEncrypted: this.encrypt(secret) },
     });
-    const issuer = this.config.get<string>('TWO_FACTOR_ISSUER', 'Ferio Admin');
+    const issuer = this.config.get<string>('TWO_FACTOR_ISSUER', 'BD Masjid');
     const label = `${issuer}:${email}`;
     const uri = `otpauth://totp/${encodeURIComponent(label)}?${new URLSearchParams(
       {

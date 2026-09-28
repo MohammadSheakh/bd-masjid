@@ -127,7 +127,7 @@ export class AuthController {
   @RateLimit(GLOBAL_RATE_LIMITS.auth)
   @ApiOperation({
     summary: 'Admin login',
-    description: 'Authenticate a Ferio staff administrator',
+    description: 'Authenticate a platform administrator or moderator',
   })
   @ApiResponse({ status: 200, description: 'Admin login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials or role' })

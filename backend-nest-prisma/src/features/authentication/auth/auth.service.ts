@@ -19,7 +19,7 @@ import { OAuthVerificationService } from '../oauth/oauth-verification.service';
 import { RedisService } from '@app/redis';
 import { PrismaService } from '@app/database';
 import { OtpType } from '../otp/interfaces/otp-payload.interface';
-import { StructuredLogger } from '@app/common';
+import { StructuredLogger, RequestMetrics } from '@app/common';
 import { TwoFactorService } from '../two-factor/two-factor.service';
 
 const authUserSelect = {
@@ -66,7 +66,7 @@ export class AuthService {
    * Login user
    */
   async login(loginDto: LoginDto) {
-    const user = await this.validateCredentials(loginDto, 'CUSTOMER');
+    const user = await this.validateCredentials(loginDto, 'USER');
     const tokens = await this.generateTokens(user);
 
     return {
@@ -159,7 +159,7 @@ export class AuthService {
 
   private async validateCredentials(
     loginDto: LoginDto,
-    audience: 'CUSTOMER' | 'ADMIN',
+    audience: 'USER' | 'ADMIN',
   ): Promise<AuthUserRecord> {
     const identifier = loginDto.email.trim().toLowerCase();
     const digits = identifier.replace(/\D/g, '');
@@ -183,6 +183,7 @@ export class AuthService {
     });
 
     if (!user || !user.password) {
+      RequestMetrics.recordAuthFailure();
       this.logger.warn('authentication_login_rejected', {
         method: 'PASSWORD',
         audience,
@@ -194,6 +195,7 @@ export class AuthService {
     }
 
     if (user.lockUntil && user.lockUntil > new Date()) {
+      RequestMetrics.recordAuthFailure();
       this.logger.warn('authentication_login_rejected', {
         method: 'PASSWORD',
         audience,
@@ -208,6 +210,7 @@ export class AuthService {
 
     const isValid = await bcrypt.compare(loginDto.password, user.password);
     if (!isValid) {
+      RequestMetrics.recordAuthFailure();
       const failedLogin = await this.recordFailedLogin(user);
       this.logger.warn('authentication_login_rejected', {
         method: 'PASSWORD',
@@ -223,6 +226,7 @@ export class AuthService {
     }
 
     if (user.role === UserRole.user && !user.isEmailVerified) {
+      RequestMetrics.recordAuthFailure();
       this.logger.warn('authentication_login_rejected', {
         method: 'PASSWORD',
         audience,

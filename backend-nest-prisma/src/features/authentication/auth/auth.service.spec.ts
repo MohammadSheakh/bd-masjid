@@ -117,7 +117,7 @@ describe('AuthService token lifecycle', () => {
 
     expect(logger.warn).toHaveBeenCalledWith('authentication_login_rejected', {
       method: 'PASSWORD',
-      audience: 'CUSTOMER',
+      audience: 'USER',
       reason: 'INVALID_CREDENTIALS',
       accountMatched: false,
       userId: undefined,
