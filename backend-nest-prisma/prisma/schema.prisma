@@ -196,6 +196,7 @@ model AuditLog {
 
 // Source: community.module/community.prisma
 enum MosqueStaffRole {
+  MOSQUE_ADMIN
   IMAM
   MUAZZIN
   KHATIB
@@ -231,6 +232,8 @@ model MosqueStaff {
   updatedAt     DateTime        @updatedAt
 
   @@index([mosqueId, role])
+  @@index([mosqueId, role, isVerified])
+  @@index([userId, isVerified])
   @@index([userId])
 }
 
@@ -244,6 +247,7 @@ model MosqueRoleClaim {
 
   role            MosqueStaffRole
   evidence        String
+  documentUrl     String?
   status          RoleClaimStatus @default(OPEN)
 
   reviewedById    String?
@@ -254,6 +258,7 @@ model MosqueRoleClaim {
   updatedAt       DateTime        @updatedAt
 
   @@index([mosqueId, status])
+  @@index([userId, status])
   @@index([userId])
 }
 
@@ -393,8 +398,6 @@ model Mosque {
   donationMethods         MosqueDonationMethod[]
   bookmarks               MosqueBookmark[]
 
-  // Note: Spatial GiST index "Mosque_location_gist_idx" on ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography
-  // is provisioned in PostGIS migration for sub-millisecond ST_DWithin radial queries.
   @@index([latitude, longitude])
   @@index([verificationStatus, operationalStatus, isDeleted])
   @@index([name, isDeleted])

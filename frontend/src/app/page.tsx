@@ -344,7 +344,7 @@ export default function HomePage() {
 
         {/* Right Panel: Interactive Map */}
         <div
-          className={`flex-1 h-full relative ${
+          className={`flex-1 h-full relative z-0 isolate ${
             mobileTab === 'map' ? 'flex' : 'hidden md:flex'
           }`}
         >

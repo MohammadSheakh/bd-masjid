@@ -115,7 +115,7 @@ export function DonationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#e8e8ea] overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
         <div className="p-5 border-b border-[#e8e8ea] flex items-center justify-between bg-white sticky top-0 z-10">

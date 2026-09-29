@@ -28,6 +28,7 @@ The Interactive Map Discovery UI provides responsive, browser-based spatial expl
 2. **Graceful Geolocation Fallback**: Browser geolocation is optional. If the user denies location permission, the map smoothly defaults to Dhaka center (23.8103, 90.4125) without error toasts.
 3. **Bounded Viewport Queries**: Map movements throttle and bound geospatial queries.
 4. **Mobile First & Accessible**: Leaflet map dynamically loaded with SSR disabled to prevent hydration errors.
+5. **Reverse Geocoding Policy Compliance**: Reverse geocoding requests identify via proper User-Agent headers, utilize local caching, and implement resilient client-side fallbacks.
 
 ## 3. Extracted Implementation Checklist
 - [x] Leaflet integrated with dynamic Next.js import (`ssr: false`)
@@ -36,6 +37,7 @@ The Interactive Map Discovery UI provides responsive, browser-based spatial expl
 - [x] Custom map markers indicating verification status
 - [x] Interactive popup on marker click routing to mosque details
 - [x] Graceful loading skeletons and error state UI
+- [x] Reverse geocoding on pin-drop and map coordinate selection
 
 ---
 
@@ -64,3 +66,17 @@ The Interactive Map Discovery UI provides responsive, browser-based spatial expl
 - **Implementation Files**:
   - Frontend Home View: `frontend/src/app/page.tsx`
   - Map Component: `frontend/src/components/MosqueMap.tsx`
+
+### TK-MAP-03: Pin-Drop Reverse Geocoding & Address Auto-Detection
+- **Status**: `[x] Completed` | **Priority**: High
+- **Description**: Support interactive pin-dropping on OpenStreetMap which reverse geocodes latitude/longitude into human-readable place names, street addresses, and cities to pre-fill mosque submissions.
+- **Acceptance Criteria**:
+  - [x] Map click in pin drop mode places marker and initiates reverse geocoding.
+  - [x] Client reverse geocoder `frontend/src/lib/geocoding.ts` with API caching and OSM Nominatim fallback.
+  - [x] Detected location card displayed in `AddMosqueModal` with road, suburb, and city pre-populated.
+  - [x] One-click place name recommendation button to quickly set mosque name.
+- **Implementation Files**:
+  - Frontend Utility: `frontend/src/lib/geocoding.ts`
+  - Frontend Map: `frontend/src/components/MosqueMap.tsx`
+  - Frontend Modal: `frontend/src/components/AddMosqueModal.tsx`
+

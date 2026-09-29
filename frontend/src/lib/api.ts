@@ -1,6 +1,25 @@
-import { Mosque, DuplicateCandidate, AttendanceSummary } from '@/types/mosque';
+import {
+  Mosque,
+  DuplicateCandidate,
+  AttendanceSummary,
+  MosqueRoleClaim,
+  MosqueStaffMember,
+} from '@/types/mosque';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6733/api/v1';
+
+function getAuthHeaders(): HeadersInit {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  return headers;
+}
 
 // Seed fallback data for graceful degradation or offline state
 export const FALLBACK_MOSQUES: Mosque[] = [
@@ -340,17 +359,90 @@ export async function fetchMosqueStaff(mosqueId: string) {
 
 export async function submitRoleClaim(
   mosqueId: string,
-  data: { role: string; evidence: string },
+  data: { role: string; evidence: string; documentUrl?: string },
 ) {
   try {
     const res = await fetch(`${API_BASE}/mosques/${mosqueId}/role-claims`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const json = await res.json();
     if (!res.ok) {
       return { success: false, error: json.message || 'Failed to submit role claim' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+export async function fetchMosqueRoleClaims(
+  mosqueId: string,
+  status?: string,
+): Promise<MosqueRoleClaim[]> {
+  try {
+    const query = status ? `?status=${status}` : '';
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/role-claims${query}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || json || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function reviewRoleClaim(
+  claimId: string,
+  data: { status: string; resolutionNotes?: string },
+) {
+  try {
+    const res = await fetch(`${API_BASE}/community/role-claims/${claimId}/review`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to review role claim' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+export async function removeMosqueStaff(mosqueId: string, staffId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/staff/${staffId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to remove staff member' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+export async function addMosqueStaff(
+  mosqueId: string,
+  data: { role: string; name: string; contactNumber?: string; userId?: string },
+) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/staff`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to add staff member' };
     }
     return { success: true, data: json.data || json };
   } catch (err: any) {

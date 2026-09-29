@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { PrayerSchedule } from '@/types/mosque';
 import { Clock, Bell, BellRing, Moon } from 'lucide-react';
+import { formatTo12Hour } from '@/lib/time';
 
 interface PrayerCountdownBannerProps {
   schedule?: PrayerSchedule | null;
@@ -111,7 +112,7 @@ export function PrayerCountdownBanner({ schedule, mosqueName }: PrayerCountdownB
         setHasNotificationPermission(true);
         setIsAlertActive(true);
         new Notification('BD Masjid Reminder Activated', {
-          body: `You will be alerted before ${upcoming?.name || 'the next prayer'} (${upcoming?.time})`,
+          body: `You will be alerted before ${upcoming?.name || 'the next prayer'} (${formatTo12Hour(upcoming?.time)})`,
           icon: '/favicon.ico',
         });
       }
@@ -120,7 +121,7 @@ export function PrayerCountdownBanner({ schedule, mosqueName }: PrayerCountdownB
       setIsAlertActive(nextState);
       if (nextState && upcoming) {
         new Notification('BD Masjid Reminder Set', {
-          body: `Alert scheduled for ${upcoming.name} Jamaat at ${upcoming.time}`,
+          body: `Alert scheduled for ${upcoming.name} Jamaat at ${formatTo12Hour(upcoming.time)}`,
           icon: '/favicon.ico',
         });
       }
@@ -155,7 +156,7 @@ export function PrayerCountdownBanner({ schedule, mosqueName }: PrayerCountdownB
               </span>
             </span>
             <span className="text-xs font-bold text-white tracking-tight">
-              {upcoming.time}
+              {formatTo12Hour(upcoming.time)}
             </span>
             <span className="text-[11px] text-zinc-400 font-medium">
               ({formatCountdown(upcoming.diffMinutes)})

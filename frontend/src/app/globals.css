@@ -58,3 +58,9 @@
   background: #d4d4d8;
   border-radius: 3px;
 }
+
+/* Ensure Leaflet stays strictly within its container's stacking context */
+.leaflet-container {
+  z-index: 0 !important;
+  isolation: isolate;
+}

@@ -49,14 +49,17 @@ The Mosque Registry is the core domain of the platform, enabling users to discov
 ## 4. REST API Contracts
 - `POST /api/v1/mosques` — Create a new mosque
 - `POST /api/v1/mosques/check-duplicate` — Check for candidate duplicates within 50m
+- `GET /api/v1/mosques/reverse-geocode` — Reverse geocode lat/lng to place name, road, suburb, and city
 - `GET /api/v1/mosques/:id` — Public mosque profile with facilities and prayer times
 - `PATCH /api/v1/mosques/:id` — Update mosque details (restricted to staff/moderator/admin)
 
 ## 5. Extracted Implementation Checklist
 - [x] Add Mosque UI modal with interactive map pin-drop
+- [x] Reverse geocoding on pin drop (auto-populating place name, street address, landmark, and city)
 - [x] Name validation and coordinate boundary validation
 - [x] Optional address and landmark support
 - [x] Backend creation API (`POST /api/v1/mosques`)
+- [x] Backend reverse geocoding API (`GET /api/v1/mosques/reverse-geocode`) with in-memory caching and OSM Nominatim fallback
 - [x] Server-side actor derivation for creator provenance
 - [x] PostGIS duplicate proximity query (`ST_DWithin` 50m)
 - [x] Interactive pre-flight duplicate warning in modal UI
@@ -127,3 +130,21 @@ The Mosque Registry is the core domain of the platform, enabling users to discov
 - **Implementation Files**:
   - Frontend Component: `frontend/src/components/AddMosqueModal.tsx`
   - Parent View: `frontend/src/app/page.tsx`
+
+### TK-MOSQ-05: Reverse Geocoding & Address Auto-Resolution
+- **Status**: `[x] Completed` | **Priority**: High
+- **Description**: Implement coordinate-to-address reverse geocoding translating map pin coordinates (lat, lng) into place names, street addresses, landmarks, and city details with server-side caching and client fallback.
+- **Acceptance Criteria**:
+  - [x] Backend endpoint `GET /api/v1/mosques/reverse-geocode` querying OpenStreetMap Nominatim with memory cache and timeout guards.
+  - [x] Client reverse geocoding utility `frontend/src/lib/geocoding.ts` with direct Nominatim fallback.
+  - [x] Pin drop on map triggers reverse geocoding and auto-populates `address`, `landmark`, and `city` in `AddMosqueModal`.
+  - [x] Visual detected location banner with one-click "Use as Mosque Name" suggestion chip when place name is resolved.
+  - [x] Unit tests for `reverseGeocode` in `mosques.service.spec.ts`.
+- **Implementation Files**:
+  - Backend Service: `backend-nest-prisma/src/features/mosques/mosques.service.ts`
+  - Backend Controller: `backend-nest-prisma/src/features/mosques/mosques.controller.ts`
+  - Backend Unit Tests: `backend-nest-prisma/src/features/mosques/mosques.service.spec.ts`
+  - Frontend Utility: `frontend/src/lib/geocoding.ts`
+  - Frontend Modal: `frontend/src/components/AddMosqueModal.tsx`
+  - Frontend Map: `frontend/src/components/MosqueMap.tsx`
+

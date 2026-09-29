@@ -211,13 +211,13 @@ export function MosqueMap({
   }, [selectedMosque]);
 
   return (
-    <div className="relative w-full h-full bg-[#f4f4f5] overflow-hidden">
+    <div className="relative w-full h-full bg-[#f4f4f5] overflow-hidden z-0 isolate">
       <div ref={mapContainerRef} className="w-full h-full" />
 
       {/* Pin drop instructional badge */}
       {isPinDropMode && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[400] bg-[#111114] text-white px-4 py-2 rounded-full text-xs font-semibold shadow-lg flex items-center gap-2 animate-bounce">
-          <span>📍 Click on map to place mosque pin</span>
+          <span>📍 Click on map to place pin & detect address</span>
         </div>
       )}
     </div>

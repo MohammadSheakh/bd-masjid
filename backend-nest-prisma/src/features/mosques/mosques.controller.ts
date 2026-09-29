@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   HttpStatus,
   HttpCode,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,6 +18,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import {
   AuthGuard,
@@ -96,6 +98,32 @@ export class MosquesController {
       coords.longitude,
     );
     return { candidates };
+  }
+
+  @Get('reverse-geocode')
+  @Public()
+  @RateLimit({ windowMs: 60 * 1000, max: 40 })
+  @ApiOperation({
+    summary: 'Reverse geocode coordinates into place and street address',
+    description:
+      'Translates latitude and longitude coordinates into place name, road, suburb, and city using OpenStreetMap Nominatim with caching',
+  })
+  @ApiQuery({ name: 'latitude', description: 'WGS84 Latitude', example: 23.75 })
+  @ApiQuery({ name: 'longitude', description: 'WGS84 Longitude', example: 90.39 })
+  @ApiResponse({ status: 200, description: 'Reverse geocoded location details' })
+  @ApiResponse({ status: 400, description: 'Invalid coordinates' })
+  async reverseGeocode(
+    @Query('latitude') lat: string,
+    @Query('longitude') lng: string,
+  ) {
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    if (isNaN(latitude) || isNaN(longitude)) {
+      throw new BadRequestException(
+        'Valid latitude and longitude query parameters are required.',
+      );
+    }
+    return this.mosquesService.reverseGeocode(latitude, longitude);
   }
 
   @Get(':id')

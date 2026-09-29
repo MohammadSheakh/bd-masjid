@@ -64,12 +64,12 @@ export class CommunityController {
   }
 
   @Post(['mosques/:id/staff', 'community/:id/staff'])
-  @Roles('admin', 'moderator')
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 30 })
   @ApiOperation({
     summary: 'Add staff or committee member',
-    description: 'Directly add a staff/committee member (admin/moderator)',
+    description:
+      'Add a staff/committee member (Platform admin or verified local Mosque Admin)',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   async addStaff(
@@ -81,12 +81,12 @@ export class CommunityController {
   }
 
   @Delete(['mosques/:id/staff/:staffId', 'community/:id/staff/:staffId'])
-  @Roles('admin', 'moderator')
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 30 })
   @ApiOperation({
     summary: 'Remove staff or committee member',
-    description: 'Delete a staff/committee entry (admin/moderator)',
+    description:
+      'Delete a staff/committee entry (Platform admin or verified local Mosque Admin)',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiParam({ name: 'staffId', description: 'Staff UUID' })
@@ -124,6 +124,24 @@ export class CommunityController {
     return this.communityService.submitRoleClaim(mosqueId, dto, actor);
   }
 
+  @Get(['mosques/:id/role-claims', 'community/:id/role-claims'])
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 30 })
+  @ApiOperation({
+    summary: 'Get role claims for a specific mosque',
+    description:
+      'Returns pending and past role claims for a specific mosque (Platform admin or verified local Mosque Admin)',
+  })
+  @ApiParam({ name: 'id', description: 'Mosque UUID' })
+  @ApiQuery({ name: 'status', enum: RoleClaimStatus, required: false })
+  async getMosqueRoleClaims(
+    @Param('id') mosqueId: string,
+    @Query('status') status: RoleClaimStatus | undefined,
+    @CurrentUser() actor: UserPayload,
+  ) {
+    return this.communityService.getMosqueRoleClaims(mosqueId, actor, status);
+  }
+
   @Get('admin/role-claims')
   @Roles('admin', 'moderator')
   @ApiBearerAuth()
@@ -150,14 +168,17 @@ export class CommunityController {
     );
   }
 
-  @Patch('admin/role-claims/:claimId/review')
-  @Roles('admin', 'moderator')
+  @Patch([
+    'admin/role-claims/:claimId/review',
+    'community/role-claims/:claimId/review',
+    'mosques/:id/role-claims/:claimId/review',
+  ])
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 30 })
   @ApiOperation({
     summary: 'Approve or reject a role claim',
     description:
-      'Approving automatically assigns verified staff status (admin/moderator)',
+      'Approving automatically assigns verified staff status (Platform admin or verified local Mosque Admin)',
   })
   @ApiParam({ name: 'claimId', description: 'Claim UUID' })
   async reviewRoleClaim(

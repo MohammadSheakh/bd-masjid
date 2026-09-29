@@ -200,6 +200,130 @@ describe('CommunityService', () => {
       );
       expect(mockAudit.record).toHaveBeenCalled();
     });
+
+    it('allows verified local MOSQUE_ADMIN to approve an IMAM role claim', async () => {
+      const claim = {
+        id: 'claim-imam',
+        mosqueId: 'mosque-1',
+        userId: 'user-imam',
+        role: MosqueStaffRole.IMAM,
+        status: RoleClaimStatus.OPEN,
+        user: { name: 'Imam Bashir', phoneNumber: '01700000000' },
+      };
+
+      mockPrisma.mosqueRoleClaim.findUnique.mockResolvedValue(claim);
+      mockPrisma.mosqueStaff.findFirst.mockResolvedValue({
+        id: 'staff-local-admin',
+        mosqueId: 'mosque-1',
+        userId: userActor.userId,
+        isVerified: true,
+        role: MosqueStaffRole.MOSQUE_ADMIN,
+      });
+      mockPrisma.mosqueRoleClaim.update.mockResolvedValue({
+        ...claim,
+        status: RoleClaimStatus.APPROVED,
+      });
+      mockPrisma.mosqueStaff.create.mockResolvedValue({ id: 'staff-created-imam' });
+
+      const result = await service.reviewRoleClaim(
+        'claim-imam',
+        { status: RoleClaimStatus.APPROVED },
+        userActor,
+      );
+
+      expect(result.status).toBe(RoleClaimStatus.APPROVED);
+      expect(mockPrisma.mosqueStaff.create).toHaveBeenCalled();
+    });
+
+    it('throws ForbiddenException if local MOSQUE_ADMIN attempts to approve a MOSQUE_ADMIN claim', async () => {
+      const claim = {
+        id: 'claim-admin-takeover',
+        mosqueId: 'mosque-1',
+        userId: 'user-attacker',
+        role: MosqueStaffRole.MOSQUE_ADMIN,
+        status: RoleClaimStatus.OPEN,
+        user: { name: 'Attacker Admin', phoneNumber: '01799999999' },
+      };
+
+      mockPrisma.mosqueRoleClaim.findUnique.mockResolvedValue(claim);
+
+      await expect(
+        service.reviewRoleClaim(
+          'claim-admin-takeover',
+          { status: RoleClaimStatus.APPROVED },
+          userActor,
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('throws ForbiddenException if unauthorized user attempts to review claim', async () => {
+      const claim = {
+        id: 'claim-khatib',
+        mosqueId: 'mosque-1',
+        userId: 'user-3',
+        role: MosqueStaffRole.KHATIB,
+        status: RoleClaimStatus.OPEN,
+        user: { name: 'Khatib Hasan', phoneNumber: '01711111111' },
+      };
+
+      mockPrisma.mosqueRoleClaim.findUnique.mockResolvedValue(claim);
+      mockPrisma.mosqueStaff.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.reviewRoleClaim(
+          'claim-khatib',
+          { status: RoleClaimStatus.APPROVED },
+          userActor,
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('removeStaff', () => {
+    it('allows verified local MOSQUE_ADMIN to remove a local staff member', async () => {
+      mockPrisma.mosqueStaff.findFirst
+        .mockResolvedValueOnce({
+          id: 'staff-muazzin',
+          mosqueId: 'mosque-1',
+          role: MosqueStaffRole.MUAZZIN,
+        })
+        .mockResolvedValueOnce({
+          id: 'staff-local-admin',
+          mosqueId: 'mosque-1',
+          userId: userActor.userId,
+          isVerified: true,
+          role: MosqueStaffRole.MOSQUE_ADMIN,
+        });
+
+      mockPrisma.mosqueStaff.delete.mockResolvedValue({ id: 'staff-muazzin' });
+
+      const res = await service.removeStaff('mosque-1', 'staff-muazzin', userActor);
+      expect(res.removed).toBe(true);
+      expect(mockPrisma.mosqueStaff.delete).toHaveBeenCalledWith({
+        where: { id: 'staff-muazzin' },
+      });
+      expect(mockAudit.record).toHaveBeenCalled();
+    });
+
+    it('throws ForbiddenException if local MOSQUE_ADMIN attempts to remove another MOSQUE_ADMIN', async () => {
+      mockPrisma.mosqueStaff.findFirst
+        .mockResolvedValueOnce({
+          id: 'staff-target-admin',
+          mosqueId: 'mosque-1',
+          role: MosqueStaffRole.MOSQUE_ADMIN,
+        })
+        .mockResolvedValueOnce({
+          id: 'staff-local-admin',
+          mosqueId: 'mosque-1',
+          userId: userActor.userId,
+          isVerified: true,
+          role: MosqueStaffRole.MOSQUE_ADMIN,
+        });
+
+      await expect(
+        service.removeStaff('mosque-1', 'staff-target-admin', userActor),
+      ).rejects.toThrow(ForbiddenException);
+    });
   });
 
   describe('addDonationMethod', () => {

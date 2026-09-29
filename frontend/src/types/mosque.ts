@@ -53,10 +53,31 @@ export interface AttendanceSummary {
 
 export interface MosqueStaffMember {
   id: string;
+  mosqueId?: string;
+  userId?: string | null;
   role: string;
   name: string;
   contactNumber?: string | null;
   isVerified: boolean;
+  verifiedAt?: string | null;
+}
+
+export interface MosqueRoleClaim {
+  id: string;
+  mosqueId: string;
+  userId: string;
+  role: string;
+  evidence: string;
+  documentUrl?: string | null;
+  status: 'OPEN' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+  resolutionNotes?: string | null;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    phoneNumber?: string | null;
+  };
+  createdAt: string;
 }
 
 export interface MosqueAnnouncement {

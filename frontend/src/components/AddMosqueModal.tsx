@@ -1,9 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { X, MapPin, AlertCircle, Compass, Check, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  X,
+  MapPin,
+  AlertCircle,
+  Compass,
+  Check,
+  ArrowRight,
+  Loader2,
+  Sparkles,
+  RefreshCw,
+} from 'lucide-react';
 import { DuplicateCandidate } from '@/types/mosque';
 import { checkProximityDuplicate, createMosque } from '@/lib/api';
+import { reverseGeocode, ReverseGeocodeResult } from '@/lib/geocoding';
+import { convertTo24Hour } from '@/lib/time';
+import { TimePickerInput } from '@/components/TimePickerInput';
 
 interface AddMosqueModalProps {
   isOpen: boolean;
@@ -26,33 +39,80 @@ export function AddMosqueModal({
   const [city, setCity] = useState('Dhaka');
   const [address, setAddress] = useState('');
   const [landmark, setLandmark] = useState('');
-  const [latitude, setLatitude] = useState<number | ''>(defaultCoords?.lat || 23.75);
-  const [longitude, setLongitude] = useState<number | ''>(defaultCoords?.lng || 90.39);
+  const [latitude, setLatitude] = useState<number | ''>(
+    defaultCoords?.lat || 23.75,
+  );
+  const [longitude, setLongitude] = useState<number | ''>(
+    defaultCoords?.lng || 90.39,
+  );
 
-  // Prayer times
-  const [fajrJamaat, setFajrJamaat] = useState('05:15');
-  const [zuhrJamaat, setZuhrJamaat] = useState('13:30');
-  const [asrJamaat, setAsrJamaat] = useState('16:45');
-  const [maghribJamaat, setMaghribJamaat] = useState('18:15');
-  const [ishaJamaat, setIshaJamaat] = useState('20:00');
-  const [jumuahJamaat, setJumuahJamaat] = useState('13:30');
+  // Reverse geocoding states
+  const [resolvedPlace, setResolvedPlace] =
+    useState<ReverseGeocodeResult | null>(null);
+  const [isResolvingAddress, setIsResolvingAddress] = useState(false);
+  const userEditedRef = useRef({
+    address: false,
+    landmark: false,
+    city: false,
+  });
+
+  // Prayer times (12h format)
+  const [fajrJamaat, setFajrJamaat] = useState('5:15 AM');
+  const [zuhrJamaat, setZuhrJamaat] = useState('1:30 PM');
+  const [asrJamaat, setAsrJamaat] = useState('4:45 PM');
+  const [maghribJamaat, setMaghribJamaat] = useState('6:15 PM');
+  const [ishaJamaat, setIshaJamaat] = useState('8:00 PM');
+  const [jumuahJamaat, setJumuahJamaat] = useState('1:30 PM');
 
   // Duplicate candidate warning
-  const [duplicateCandidates, setDuplicateCandidates] = useState<DuplicateCandidate[]>([]);
+  const [duplicateCandidates, setDuplicateCandidates] = useState<
+    DuplicateCandidate[]
+  >([]);
   const [allowBypass, setAllowBypass] = useState(false);
   const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Sync coords from props
+  // Reverse geocode handler
+  const triggerReverseGeocode = async (
+    lat: number,
+    lng: number,
+    forceOverride = false,
+  ) => {
+    setIsResolvingAddress(true);
+    try {
+      const geo = await reverseGeocode(lat, lng);
+      setResolvedPlace(geo);
+
+      if (geo.city && (forceOverride || !userEditedRef.current.city)) {
+        setCity(geo.city);
+      }
+      if (
+        (geo.road || geo.formattedAddress) &&
+        (forceOverride || !userEditedRef.current.address)
+      ) {
+        setAddress(geo.road || geo.formattedAddress);
+      }
+      if (geo.suburb && (forceOverride || !userEditedRef.current.landmark)) {
+        setLandmark(geo.suburb);
+      }
+    } catch (err) {
+      console.warn('Reverse geocode error:', err);
+    } finally {
+      setIsResolvingAddress(false);
+    }
+  };
+
+  // Sync coords from props and auto-resolve address
   useEffect(() => {
     if (defaultCoords) {
       setLatitude(defaultCoords.lat);
       setLongitude(defaultCoords.lng);
+      triggerReverseGeocode(defaultCoords.lat, defaultCoords.lng, false);
     }
   }, [defaultCoords]);
 
-  // Check duplicate when lat/lng change
+  // Check duplicate and resolve address when lat/lng change
   useEffect(() => {
     if (typeof latitude === 'number' && typeof longitude === 'number') {
       setIsCheckingDuplicate(true);
@@ -74,8 +134,11 @@ export function AddMosqueModal({
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setLatitude(pos.coords.latitude);
-          setLongitude(pos.coords.longitude);
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setLatitude(lat);
+          setLongitude(lng);
+          triggerReverseGeocode(lat, lng, false);
         },
         (err) => {
           setErrorMsg('Unable to retrieve your GPS location: ' + err.message);
@@ -113,12 +176,12 @@ export function AddMosqueModal({
         address: address.trim() || undefined,
         landmark: landmark.trim() || undefined,
         allowDuplicateWarningBypass: allowBypass,
-        fajrJamaat: fajrJamaat || undefined,
-        zuhrJamaat: zuhrJamaat || undefined,
-        asrJamaat: asrJamaat || undefined,
-        maghribJamaat: maghribJamaat || undefined,
-        ishaJamaat: ishaJamaat || undefined,
-        jumuahJamaat: jumuahJamaat || undefined,
+        fajrJamaat: fajrJamaat ? convertTo24Hour(fajrJamaat) : undefined,
+        zuhrJamaat: zuhrJamaat ? convertTo24Hour(zuhrJamaat) : undefined,
+        asrJamaat: asrJamaat ? convertTo24Hour(asrJamaat) : undefined,
+        maghribJamaat: maghribJamaat ? convertTo24Hour(maghribJamaat) : undefined,
+        ishaJamaat: ishaJamaat ? convertTo24Hour(ishaJamaat) : undefined,
+        jumuahJamaat: jumuahJamaat ? convertTo24Hour(jumuahJamaat) : undefined,
       };
 
       const res = await createMosque(payload);
@@ -140,7 +203,7 @@ export function AddMosqueModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-lg max-h-[92vh] flex flex-col bg-white rounded-3xl shadow-2xl border border-[#e8e8ea] overflow-hidden">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-[#e8e8ea] flex items-center justify-between bg-[#fafafa]">
@@ -188,7 +251,10 @@ export function AddMosqueModal({
               <input
                 type="text"
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) => {
+                  userEditedRef.current.city = true;
+                  setCity(e.target.value);
+                }}
                 placeholder="Dhaka"
                 className="w-full px-3.5 py-2 text-sm rounded-xl border border-[#e8e8ea] bg-white focus:outline-none focus:ring-2 focus:ring-[#111114]"
               />
@@ -200,7 +266,10 @@ export function AddMosqueModal({
               <input
                 type="text"
                 value={landmark}
-                onChange={(e) => setLandmark(e.target.value)}
+                onChange={(e) => {
+                  userEditedRef.current.landmark = true;
+                  setLandmark(e.target.value);
+                }}
                 placeholder="e.g. Near Central Park"
                 className="w-full px-3.5 py-2 text-sm rounded-xl border border-[#e8e8ea] bg-white focus:outline-none focus:ring-2 focus:ring-[#111114]"
               />
@@ -214,7 +283,10 @@ export function AddMosqueModal({
             <input
               type="text"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => {
+                userEditedRef.current.address = true;
+                setAddress(e.target.value);
+              }}
               placeholder="Road 4, Sector 7, Uttara"
               className="w-full px-3.5 py-2 text-sm rounded-xl border border-[#e8e8ea] bg-white focus:outline-none focus:ring-2 focus:ring-[#111114]"
             />
@@ -226,7 +298,7 @@ export function AddMosqueModal({
               <span className="text-xs font-bold uppercase tracking-wider text-[#6e6e73]">
                 Geographic Coordinates
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   type="button"
                   onClick={handleUseCurrentLocation}
@@ -234,6 +306,31 @@ export function AddMosqueModal({
                 >
                   <Compass className="w-3 h-3" />
                   GPS Pin
+                </button>
+                <button
+                  type="button"
+                  disabled={
+                    isResolvingAddress ||
+                    typeof latitude !== 'number' ||
+                    typeof longitude !== 'number'
+                  }
+                  onClick={() => {
+                    if (
+                      typeof latitude === 'number' &&
+                      typeof longitude === 'number'
+                    ) {
+                      triggerReverseGeocode(latitude, longitude, true);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200 hover:bg-blue-100 disabled:opacity-50"
+                  title="Detect street address from coordinates"
+                >
+                  {isResolvingAddress ? (
+                    <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
+                  ) : (
+                    <Sparkles className="w-3 h-3 text-blue-600" />
+                  )}
+                  Auto Address
                 </button>
                 {onActivatePinDropMode && (
                   <button
@@ -259,7 +356,11 @@ export function AddMosqueModal({
                   step="any"
                   required
                   value={latitude}
-                  onChange={(e) => setLatitude(e.target.value ? parseFloat(e.target.value) : '')}
+                  onChange={(e) =>
+                    setLatitude(
+                      e.target.value ? parseFloat(e.target.value) : '',
+                    )
+                  }
                   className="w-full px-2.5 py-1.5 text-xs font-mono rounded-lg border border-[#e8e8ea] bg-white"
                 />
               </div>
@@ -270,11 +371,54 @@ export function AddMosqueModal({
                   step="any"
                   required
                   value={longitude}
-                  onChange={(e) => setLongitude(e.target.value ? parseFloat(e.target.value) : '')}
+                  onChange={(e) =>
+                    setLongitude(
+                      e.target.value ? parseFloat(e.target.value) : '',
+                    )
+                  }
                   className="w-full px-2.5 py-1.5 text-xs font-mono rounded-lg border border-[#e8e8ea] bg-white"
                 />
               </div>
             </div>
+
+            {/* Address Resolution Feedback */}
+            {isResolvingAddress && (
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-700 text-xs animate-pulse">
+                <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-blue-600" />
+                <span>Detecting place & street address from OpenStreetMap...</span>
+              </div>
+            )}
+
+            {!isResolvingAddress && resolvedPlace && (resolvedPlace.formattedAddress || resolvedPlace.placeName) && (
+              <div className="p-2.5 rounded-xl bg-white border border-[#e8e8ea] text-xs space-y-1.5 shadow-xs">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-semibold text-emerald-800 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Auto-detected Location</span>
+                  </span>
+                  <span className="text-[10px] text-[#6e6e73]">
+                    {resolvedPlace.city || 'OpenStreetMap'}
+                  </span>
+                </div>
+                {resolvedPlace.formattedAddress && (
+                  <p className="text-[11px] text-zinc-600 leading-snug">
+                    {resolvedPlace.formattedAddress}
+                  </p>
+                )}
+                {resolvedPlace.placeName && !name && (
+                  <div className="pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setName(resolvedPlace.placeName)}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 hover:bg-emerald-100"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      <span>Use Place Name: &ldquo;{resolvedPlace.placeName}&rdquo;</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Proximity Duplicate Warning Banner */}
             {duplicateCandidates.length > 0 && (
@@ -307,67 +451,61 @@ export function AddMosqueModal({
           {/* Initial Prayer Timetable */}
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73] mb-2">
-              Initial Jamaat Times (24h HH:mm)
+              Initial Jamaat Times (12h format e.g. 1:30 PM)
             </h3>
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Fajr</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Fajr</span>
+                <TimePickerInput
                   value={fajrJamaat}
-                  onChange={(e) => setFajrJamaat(e.target.value)}
-                  placeholder="05:15"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setFajrJamaat}
+                  placeholder="5:15"
+                  defaultPeriod="AM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Zuhr</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Zuhr</span>
+                <TimePickerInput
                   value={zuhrJamaat}
-                  onChange={(e) => setZuhrJamaat(e.target.value)}
-                  placeholder="13:30"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setZuhrJamaat}
+                  placeholder="1:30"
+                  defaultPeriod="PM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Asr</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Asr</span>
+                <TimePickerInput
                   value={asrJamaat}
-                  onChange={(e) => setAsrJamaat(e.target.value)}
-                  placeholder="16:45"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setAsrJamaat}
+                  placeholder="4:45"
+                  defaultPeriod="PM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Maghrib</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Maghrib</span>
+                <TimePickerInput
                   value={maghribJamaat}
-                  onChange={(e) => setMaghribJamaat(e.target.value)}
-                  placeholder="18:15"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setMaghribJamaat}
+                  placeholder="6:15"
+                  defaultPeriod="PM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Isha</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Isha</span>
+                <TimePickerInput
                   value={ishaJamaat}
-                  onChange={(e) => setIshaJamaat(e.target.value)}
-                  placeholder="20:00"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setIshaJamaat}
+                  placeholder="8:00"
+                  defaultPeriod="PM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Jumu'ah</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Jumu'ah</span>
+                <TimePickerInput
                   value={jumuahJamaat}
-                  onChange={(e) => setJumuahJamaat(e.target.value)}
-                  placeholder="13:30"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setJumuahJamaat}
+                  placeholder="1:30"
+                  defaultPeriod="PM"
                 />
               </div>
             </div>

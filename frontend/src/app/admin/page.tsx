@@ -21,6 +21,7 @@ import {
   Terminal,
   Key,
 } from 'lucide-react';
+import { formatTo12Hour } from '@/lib/time';
 
 interface PendingMosque {
   id: string;
@@ -61,6 +62,7 @@ interface RoleClaimItem {
   user?: { name: string; email: string; phoneNumber: string | null };
   role: string;
   evidence: string;
+  documentUrl?: string | null;
   status: string;
   createdAt: string;
 }
@@ -650,23 +652,23 @@ export default function AdminPage() {
                     <div className="p-3 rounded-2xl bg-[#fafafa] border border-[#e8e8ea] grid grid-cols-5 gap-2 text-center text-xs">
                       <div>
                         <span className="text-[10px] text-[#6e6e73]">Fajr</span>
-                        <p className="font-semibold">{m.prayerSchedule.fajrJamaat || '—'}</p>
+                        <p className="font-semibold">{formatTo12Hour(m.prayerSchedule.fajrJamaat)}</p>
                       </div>
                       <div>
                         <span className="text-[10px] text-[#6e6e73]">Zuhr</span>
-                        <p className="font-semibold">{m.prayerSchedule.zuhrJamaat || '—'}</p>
+                        <p className="font-semibold">{formatTo12Hour(m.prayerSchedule.zuhrJamaat)}</p>
                       </div>
                       <div>
                         <span className="text-[10px] text-[#6e6e73]">Asr</span>
-                        <p className="font-semibold">{m.prayerSchedule.asrJamaat || '—'}</p>
+                        <p className="font-semibold">{formatTo12Hour(m.prayerSchedule.asrJamaat)}</p>
                       </div>
                       <div>
                         <span className="text-[10px] text-[#6e6e73]">Maghrib</span>
-                        <p className="font-semibold">{m.prayerSchedule.maghribJamaat || '—'}</p>
+                        <p className="font-semibold">{formatTo12Hour(m.prayerSchedule.maghribJamaat)}</p>
                       </div>
                       <div>
                         <span className="text-[10px] text-[#6e6e73]">Isha</span>
-                        <p className="font-semibold">{m.prayerSchedule.ishaJamaat || '—'}</p>
+                        <p className="font-semibold">{formatTo12Hour(m.prayerSchedule.ishaJamaat)}</p>
                       </div>
                     </div>
                   )}
@@ -753,7 +755,7 @@ export default function AdminPage() {
                       {Object.entries(s.suggestedTimes).map(([k, v]) => (
                         <div key={k}>
                           <span className="text-[10px] uppercase text-[#6e6e73] block">{k}</span>
-                          <span className="font-bold">{String(v)}</span>
+                          <span className="font-bold">{formatTo12Hour(String(v))}</span>
                         </div>
                       ))}
                     </div>
@@ -854,6 +856,20 @@ export default function AdminPage() {
                       Submitted Evidence
                     </span>
                     <p className="leading-relaxed">"{claim.evidence}"</p>
+                    {claim.documentUrl && (
+                      <div className="mt-2.5 pt-2 border-t border-[#ececed]">
+                        <a
+                          href={claim.documentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:underline"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>View Supporting Document / Appointment Proof</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-end gap-2 pt-1 border-t border-[#f0f0f2]">
@@ -1138,7 +1154,7 @@ export default function AdminPage() {
 
       {/* Admin Token Modal */}
       {showTokenPrompt && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-[#e8e8ea]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

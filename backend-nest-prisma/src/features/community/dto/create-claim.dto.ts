@@ -1,6 +1,7 @@
 import {
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
@@ -29,4 +30,14 @@ export class CreateRoleClaimDto {
   @MinLength(15)
   @MaxLength(1000)
   evidence: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'Optional URL or reference to supporting appointment document or certificate',
+    example: 'https://example.com/uploads/appointment.pdf',
+  })
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
+  documentUrl?: string;
 }

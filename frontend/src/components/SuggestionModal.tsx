@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { X, Check, Edit3, ArrowRight, Moon } from 'lucide-react';
 import { Mosque } from '@/types/mosque';
 import { submitScheduleSuggestion } from '@/lib/api';
+import { formatTo12Hour, convertTo24Hour } from '@/lib/time';
+import { TimePickerInput } from '@/components/TimePickerInput';
 
 interface SuggestionModalProps {
   mosque: Mosque | null;
@@ -16,18 +18,18 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
 
   const schedule = mosque.prayerSchedule;
 
-  const [fajr, setFajr] = useState(schedule?.fajrJamaat || '');
-  const [zuhr, setZuhr] = useState(schedule?.zuhrJamaat || '');
-  const [asr, setAsr] = useState(schedule?.asrJamaat || '');
-  const [maghrib, setMaghrib] = useState(schedule?.maghribJamaat || '');
-  const [isha, setIsha] = useState(schedule?.ishaJamaat || '');
-  const [jumuah, setJumuah] = useState(schedule?.jumuahJamaat || '');
-  const [jumuahSecond, setJumuahSecond] = useState(schedule?.jumuahSecondJamaat || '');
+  const [fajr, setFajr] = useState(formatTo12Hour(schedule?.fajrJamaat, ''));
+  const [zuhr, setZuhr] = useState(formatTo12Hour(schedule?.zuhrJamaat, ''));
+  const [asr, setAsr] = useState(formatTo12Hour(schedule?.asrJamaat, ''));
+  const [maghrib, setMaghrib] = useState(formatTo12Hour(schedule?.maghribJamaat, ''));
+  const [isha, setIsha] = useState(formatTo12Hour(schedule?.ishaJamaat, ''));
+  const [jumuah, setJumuah] = useState(formatTo12Hour(schedule?.jumuahJamaat, ''));
+  const [jumuahSecond, setJumuahSecond] = useState(formatTo12Hour(schedule?.jumuahSecondJamaat, ''));
 
   // Ramadan timings
-  const [taraweeh, setTaraweeh] = useState(schedule?.taraweehJamaat || '');
-  const [sahri, setSahri] = useState(schedule?.sahriEnd || '');
-  const [iftar, setIftar] = useState(schedule?.iftarStart || '');
+  const [taraweeh, setTaraweeh] = useState(formatTo12Hour(schedule?.taraweehJamaat, ''));
+  const [sahri, setSahri] = useState(formatTo12Hour(schedule?.sahriEnd, ''));
+  const [iftar, setIftar] = useState(formatTo12Hour(schedule?.iftarStart, ''));
   const [showRamadan, setShowRamadan] = useState(
     Boolean(schedule?.taraweehJamaat || schedule?.sahriEnd || schedule?.iftarStart),
   );
@@ -42,16 +44,16 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
     try {
       await submitScheduleSuggestion(mosque.id, {
         suggestedTimes: {
-          fajrJamaat: fajr,
-          zuhrJamaat: zuhr,
-          asrJamaat: asr,
-          maghribJamaat: maghrib,
-          ishaJamaat: isha,
-          jumuahJamaat: jumuah,
-          jumuahSecondJamaat: jumuahSecond.trim() || undefined,
-          taraweehJamaat: taraweeh.trim() || undefined,
-          sahriEnd: sahri.trim() || undefined,
-          iftarStart: iftar.trim() || undefined,
+          fajrJamaat: fajr ? convertTo24Hour(fajr) : undefined,
+          zuhrJamaat: zuhr ? convertTo24Hour(zuhr) : undefined,
+          asrJamaat: asr ? convertTo24Hour(asr) : undefined,
+          maghribJamaat: maghrib ? convertTo24Hour(maghrib) : undefined,
+          ishaJamaat: isha ? convertTo24Hour(isha) : undefined,
+          jumuahJamaat: jumuah ? convertTo24Hour(jumuah) : undefined,
+          jumuahSecondJamaat: jumuahSecond ? convertTo24Hour(jumuahSecond) : undefined,
+          taraweehJamaat: taraweeh ? convertTo24Hour(taraweeh) : undefined,
+          sahriEnd: sahri ? convertTo24Hour(sahri) : undefined,
+          iftarStart: iftar ? convertTo24Hour(iftar) : undefined,
         },
         description: description.trim() || undefined,
       });
@@ -72,7 +74,7 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-[#e8e8ea] overflow-hidden">
         <div className="p-4 sm:p-5 border-b border-[#e8e8ea] flex items-center justify-between bg-[#fafafa]">
           <div className="flex items-center gap-2">
@@ -102,80 +104,75 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
         ) : (
           <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4">
             <p className="text-xs text-[#6e6e73]">
-              Enter the updated Jamaat times announced by the mosque committee.
+              Enter the updated Jamaat times announced by the mosque committee (e.g. 5:15 AM, 1:30 PM).
             </p>
 
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Fajr</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Fajr</span>
+                <TimePickerInput
                   value={fajr}
-                  onChange={(e) => setFajr(e.target.value)}
-                  placeholder="05:15"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setFajr}
+                  placeholder="5:15"
+                  defaultPeriod="AM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Zuhr</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Zuhr</span>
+                <TimePickerInput
                   value={zuhr}
-                  onChange={(e) => setZuhr(e.target.value)}
-                  placeholder="13:30"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setZuhr}
+                  placeholder="1:30"
+                  defaultPeriod="PM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Asr</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Asr</span>
+                <TimePickerInput
                   value={asr}
-                  onChange={(e) => setAsr(e.target.value)}
-                  placeholder="16:45"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setAsr}
+                  placeholder="4:45"
+                  defaultPeriod="PM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Maghrib</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Maghrib</span>
+                <TimePickerInput
                   value={maghrib}
-                  onChange={(e) => setMaghrib(e.target.value)}
-                  placeholder="18:15"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setMaghrib}
+                  placeholder="6:15"
+                  defaultPeriod="PM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Isha</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Isha</span>
+                <TimePickerInput
                   value={isha}
-                  onChange={(e) => setIsha(e.target.value)}
-                  placeholder="20:00"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setIsha}
+                  placeholder="8:00"
+                  defaultPeriod="PM"
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#6e6e73]">Jumu'ah 1st</span>
-                <input
-                  type="text"
+                <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Jumu'ah 1st</span>
+                <TimePickerInput
                   value={jumuah}
-                  onChange={(e) => setJumuah(e.target.value)}
-                  placeholder="13:30"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea]"
+                  onChange={setJumuah}
+                  placeholder="1:30"
+                  defaultPeriod="PM"
                 />
               </div>
             </div>
 
             <div className="pt-0.5">
-              <span className="text-[10px] text-[#6e6e73]">Jumu'ah 2nd Session (Optional, for large capacity mosques)</span>
-              <input
-                type="text"
+              <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">
+                Jumu'ah 2nd Session (Optional, for large capacity mosques)
+              </span>
+              <TimePickerInput
                 value={jumuahSecond}
-                onChange={(e) => setJumuahSecond(e.target.value)}
-                placeholder="14:15"
-                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[#e8e8ea] mt-0.5"
+                onChange={setJumuahSecond}
+                placeholder="2:15"
+                defaultPeriod="PM"
               />
             </div>
 
@@ -196,35 +193,32 @@ export function SuggestionModal({ mosque, onClose, onSuccess }: SuggestionModalP
               </button>
 
               {showRamadan && (
-                <div className="grid grid-cols-3 gap-2 text-xs mt-2.5 p-2.5 bg-emerald-50/30 rounded-xl border border-emerald-100/60 animate-in fade-in duration-150">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs mt-2.5 p-2.5 bg-emerald-50/30 rounded-xl border border-emerald-100/60 animate-in fade-in duration-150">
                   <div>
-                    <span className="text-[10px] text-[#6e6e73]">Taraweeh</span>
-                    <input
-                      type="text"
+                    <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Taraweeh</span>
+                    <TimePickerInput
                       value={taraweeh}
-                      onChange={(e) => setTaraweeh(e.target.value)}
-                      placeholder="20:45"
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea] bg-white"
+                      onChange={setTaraweeh}
+                      placeholder="8:45"
+                      defaultPeriod="PM"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#6e6e73]">Sahri End</span>
-                    <input
-                      type="text"
+                    <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Sahri End</span>
+                    <TimePickerInput
                       value={sahri}
-                      onChange={(e) => setSahri(e.target.value)}
-                      placeholder="04:40"
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea] bg-white"
+                      onChange={setSahri}
+                      placeholder="4:30"
+                      defaultPeriod="AM"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#6e6e73]">Iftar Start</span>
-                    <input
-                      type="text"
+                    <span className="text-[10px] text-[#6e6e73] font-medium block mb-1">Iftar Start</span>
+                    <TimePickerInput
                       value={iftar}
-                      onChange={(e) => setIftar(e.target.value)}
-                      placeholder="18:25"
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8e8ea] bg-white"
+                      onChange={setIftar}
+                      placeholder="6:15"
+                      defaultPeriod="PM"
                     />
                   </div>
                 </div>

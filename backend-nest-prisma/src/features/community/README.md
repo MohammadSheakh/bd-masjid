@@ -51,22 +51,24 @@ flowchart TD
 sequenceDiagram
     autonumber
     actor User as Registered User
-    actor Moderator as Moderator / Admin
+    actor MosqueAdmin as Mosque Admin / Platform Admin
     participant Controller as CommunityController
     participant Service as CommunityService
     participant DB as PostgreSQL ($transaction)
 
-    User->>Controller: POST /mosques/:id/role-claims (role, evidence)
+    User->>Controller: POST /mosques/:id/role-claims (role, evidence, documentUrl?)
     Controller->>Service: submitRoleClaim(mosqueId, dto, user)
-    Service->>DB: Check for existing OPEN claim
-    Service->>DB: Create MosqueRoleClaim (status=OPEN)
+    Service->>DB: Check for existing OPEN/UNDER_REVIEW claim
+    Service->>DB: Create MosqueRoleClaim (status=OPEN, documentUrl)
+    Service->>DB: Insert AuditLog (ROLE_CLAIM_SUBMITTED)
     Service-->>Controller: 201 Created (Claim)
 
-    Moderator->>Controller: PATCH /admin/role-claims/:id/review (status=APPROVED)
-    Controller->>Service: reviewRoleClaim(claimId, dto, moderator)
+    MosqueAdmin->>Controller: PATCH /community/role-claims/:id/review (status=APPROVED)
+    Controller->>Service: reviewRoleClaim(claimId, dto, actor)
+    Service->>Service: Tiered RBAC: Platform admin for MOSQUE_ADMIN; Local admin for staff
     Service->>DB: BEGIN TRANSACTION
     Service->>DB: Update MosqueRoleClaim (status=APPROVED, reviewedById)
-    Service->>DB: Upsert MosqueStaff (isVerified=true, verifiedById)
+    Service->>DB: Create MosqueStaff (isVerified=true, verifiedById)
     Service->>DB: Insert AuditLog (ROLE_CLAIM_REVIEWED)
     Service->>DB: COMMIT TRANSACTION
     Service-->>Controller: 200 OK (Approved Claim & Verified Staff)
@@ -76,10 +78,12 @@ sequenceDiagram
 
 ## Domain Invariants
 
-1. **Anti-Duplication Claim Barrier**: A user cannot have multiple simultaneous `OPEN` or `UNDER_REVIEW` claims for the same role at the same mosque.
-2. **Atomic Verification Elevation**: Approving a role claim MUST automatically provision or promote a verified `MosqueStaff` record and record an audit log within the same database transaction (`$transaction`).
-3. **Mosque-Scoped Announcement Authorization**: Non-admin users can ONLY publish announcements for a mosque if they are a verified staff member (`isVerified: true`) for that specific mosque.
-4. **Cascade Safety**: Deleting a mosque cascades to delete associated staff directory entries, pending role claims, and announcements.
+1. **Anti-Duplication Claim Barrier**: A user cannot have multiple simultaneous `OPEN` or `UNDER_REVIEW` claims for the same mosque.
+2. **Tiered Verification Authority**: `MOSQUE_ADMIN` and `COMMITTEE_PRESIDENT` claims can ONLY be approved by global platform admins/moderators. Once verified, local `MOSQUE_ADMIN` can review and approve local staff (`IMAM`, `MUAZZIN`, `KHATIB`, `KHADEM`, `COMMITTEE_MEMBER`) for their mosque.
+3. **Atomic Verification Elevation**: Approving a role claim MUST automatically provision a verified `MosqueStaff` record and record an audit log within the same database transaction (`$transaction`).
+4. **Mosque-Scoped Operations**: Non-admin users can ONLY publish announcements or update prayer schedules if they hold an active verified `MosqueStaff` assignment for that specific mosque.
+5. **Staff Revocation Integrity**: Revoking a staff member immediately terminates mutation rights while preserving author attribution on past schedules, announcements, and audit records.
+6. **Cascade Safety**: Deleting a mosque cascades to delete associated staff directory entries, pending role claims, and announcements.
 
 ---
 

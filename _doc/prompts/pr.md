@@ -19,3 +19,12 @@ does ticket and implementation respect this documents ?
 
 =======================>
 
+in my codebase .. where we are .. what document help us to get that ? 
+
+======================>
+
+read related things about release 2 section from [01-PRD-PRODUCTION.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/_doc/mosque-platform-production-docs/01-PRD-PRODUCTION.md) 
+so that you can understand what we need to do next for release 2
+another thing is .. then [/grill-me](slashCommand;grill-me)  .. and create spec ( [SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/feature-spec-metadata/SKILL.md)  ), adr about this 
+keep in mind other related 02 to 08 docs also 
+=======================>

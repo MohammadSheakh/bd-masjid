@@ -118,4 +118,47 @@ describe('MosquesService', () => {
       expect(audit.record).toHaveBeenCalled();
     });
   });
+
+  describe('reverseGeocode', () => {
+    it('should throw BadRequestException if latitude is out of bounds', async () => {
+      await expect(service.reverseGeocode(95, 90)).rejects.toThrow();
+    });
+
+    it('should return location details when Nominatim responds', async () => {
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          name: 'Central Mosque',
+          display_name: 'Central Mosque, Dhanmondi, Dhaka, Bangladesh',
+          address: {
+            road: 'Road 27',
+            suburb: 'Dhanmondi',
+            city: 'Dhaka',
+            country: 'Bangladesh',
+          },
+        }),
+      } as any);
+
+      const result = await service.reverseGeocode(23.7465, 90.376);
+      expect(result.road).toBe('Road 27');
+      expect(result.suburb).toBe('Dhanmondi');
+      expect(result.city).toBe('Dhaka');
+      expect(result.placeName).toBe('Central Mosque');
+
+      global.fetch = originalFetch;
+    });
+
+    it('should return fallback object gracefully if fetch throws', async () => {
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+      const result = await service.reverseGeocode(23.75, 90.39);
+      expect(result.city).toBe('Dhaka');
+      expect(result.country).toBe('Bangladesh');
+
+      global.fetch = originalFetch;
+    });
+  });
 });
+

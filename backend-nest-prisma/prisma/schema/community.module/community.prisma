@@ -1,4 +1,5 @@
 enum MosqueStaffRole {
+  MOSQUE_ADMIN
   IMAM
   MUAZZIN
   KHATIB
@@ -34,6 +35,8 @@ model MosqueStaff {
   updatedAt     DateTime        @updatedAt
 
   @@index([mosqueId, role])
+  @@index([mosqueId, role, isVerified])
+  @@index([userId, isVerified])
   @@index([userId])
 }
 
@@ -47,6 +50,7 @@ model MosqueRoleClaim {
 
   role            MosqueStaffRole
   evidence        String
+  documentUrl     String?
   status          RoleClaimStatus @default(OPEN)
 
   reviewedById    String?
@@ -57,6 +61,7 @@ model MosqueRoleClaim {
   updatedAt       DateTime        @updatedAt
 
   @@index([mosqueId, status])
+  @@index([userId, status])
   @@index([userId])
 }
 

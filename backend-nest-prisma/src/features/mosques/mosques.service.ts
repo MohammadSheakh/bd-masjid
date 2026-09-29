@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import {
@@ -20,6 +21,18 @@ import {
   MOSQUE_CONSTANTS,
   FRESHNESS_THRESHOLDS_DAYS,
 } from './mosques.constants';
+
+export interface ReverseGeocodeResult {
+  displayName: string;
+  placeName: string;
+  road: string;
+  suburb: string;
+  city: string;
+  state: string;
+  postcode: string;
+  country: string;
+  formattedAddress: string;
+}
 
 export interface DuplicateCandidate {
   mosqueId: string;
@@ -520,5 +533,125 @@ export class MosquesService {
     });
 
     return updated;
+  }
+
+  private geocodeCache = new Map<
+    string,
+    { data: ReverseGeocodeResult; expiresAt: number }
+  >();
+
+  /**
+   * Reverse geocode coordinates to place name, road, suburb, and city
+   * using OpenStreetMap Nominatim with memory caching and timeout fallback.
+   */
+  async reverseGeocode(
+    latitude: number,
+    longitude: number,
+  ): Promise<ReverseGeocodeResult> {
+    if (
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      throw new BadRequestException(
+        'Latitude must be between -90 and 90, and longitude between -180 and 180',
+      );
+    }
+
+    // Cache key rounded to ~4 decimal places (~11m resolution)
+    const cacheKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+    const cached = this.geocodeCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=en,bn`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent':
+            'BD-Masjid-Platform/1.0 (contact: info@bd-masjid.org)',
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const raw = (await response.json()) as any;
+        const address = raw.address || {};
+        const road =
+          address.road ||
+          address.pedestrian ||
+          address.highway ||
+          address.path ||
+          '';
+        const suburb =
+          address.suburb ||
+          address.neighbourhood ||
+          address.quarter ||
+          address.residential ||
+          '';
+        const city =
+          address.city ||
+          address.town ||
+          address.village ||
+          address.state_district ||
+          address.county ||
+          'Dhaka';
+        const state = address.state || address.region || '';
+        const postcode = address.postcode || '';
+        const country = address.country || 'Bangladesh';
+        const placeName =
+          raw.name || address.amenity || address.building || '';
+
+        const addressParts = [road, suburb, city].filter(Boolean);
+        const formattedAddress =
+          addressParts.length > 0
+            ? addressParts.join(', ')
+            : raw.display_name || '';
+
+        const result: ReverseGeocodeResult = {
+          displayName: raw.display_name || formattedAddress,
+          placeName,
+          road,
+          suburb,
+          city,
+          state,
+          postcode,
+          country,
+          formattedAddress,
+        };
+
+        if (this.geocodeCache.size > 1000) {
+          this.geocodeCache.clear();
+        }
+        this.geocodeCache.set(cacheKey, {
+          data: result,
+          expiresAt: Date.now() + 30 * 60 * 1000,
+        });
+        return result;
+      }
+    } catch (err: any) {
+      this.logger.warn(
+        `Reverse geocode failed for ${latitude},${longitude}: ${err.message}`,
+      );
+    }
+
+    return {
+      displayName: `Location (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`,
+      placeName: '',
+      road: '',
+      suburb: '',
+      city: 'Dhaka',
+      state: '',
+      postcode: '',
+      country: 'Bangladesh',
+      formattedAddress: '',
+    };
   }
 }

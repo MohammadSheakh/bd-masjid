@@ -15,6 +15,7 @@ export function RoleClaimModal({ mosque, onClose }: RoleClaimModalProps) {
 
   const [role, setRole] = useState('IMAM');
   const [evidence, setEvidence] = useState('');
+  const [documentUrl, setDocumentUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export function RoleClaimModal({ mosque, onClose }: RoleClaimModalProps) {
       const res = await submitRoleClaim(mosque.id, {
         role,
         evidence: evidence.trim(),
+        documentUrl: documentUrl.trim() || undefined,
       });
 
       if (res.success) {
@@ -44,20 +46,15 @@ export function RoleClaimModal({ mosque, onClose }: RoleClaimModalProps) {
       } else {
         setErrorMessage(res.error || 'Failed to submit claim.');
       }
-    } catch {
-      // Mock success for offline/preview
-      setIsSuccess(true);
-      setTimeout(() => {
-        setIsSuccess(false);
-        onClose();
-      }, 2000);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Network error occurred while submitting claim.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-[#e8e8ea] overflow-hidden">
         {/* Header */}
         <div className="p-4 border-b border-[#e8e8ea] flex items-center justify-between bg-[#fafafa]">
@@ -118,7 +115,22 @@ export function RoleClaimModal({ mosque, onClose }: RoleClaimModalProps) {
                 <option value="COMMITTEE_PRESIDENT">Managing Committee President</option>
                 <option value="COMMITTEE_SECRETARY">General Secretary</option>
                 <option value="COMMITTEE_MEMBER">Committee Executive Member</option>
+                <option value="MOSQUE_ADMIN">Mosque Administrator (Mutawalli)</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[#111114] mb-1.5">
+                Supporting Document / Appointment Link (Optional)
+              </label>
+              <input
+                type="url"
+                value={documentUrl}
+                onChange={(e) => setDocumentUrl(e.target.value)}
+                placeholder="https://example.com/appointment-letter.pdf"
+                className="w-full text-xs bg-[#fafafa] border border-[#e8e8ea] rounded-xl px-3 py-2.5 outline-none focus:border-[#111114] transition-colors"
+              />
+              <span className="text-[10px] text-[#6e6e73] block mt-1">Optional link to appointment letter, resolution scan, or certificate.</span>
             </div>
 
             <div>
@@ -130,7 +142,7 @@ export function RoleClaimModal({ mosque, onClose }: RoleClaimModalProps) {
                 required
                 value={evidence}
                 onChange={(e) => setEvidence(e.target.value)}
-                placeholder="Mention appointment year, managing committee contacts, or link to document for moderator review..."
+                placeholder="Mention appointment year, managing committee contacts, or witness phone numbers..."
                 className="w-full text-xs bg-[#fafafa] border border-[#e8e8ea] rounded-xl p-3 outline-none focus:border-[#111114] transition-colors resize-none"
               />
               <span className="text-[10px] text-[#6e6e73] block mt-1">Minimum 15 characters required.</span>

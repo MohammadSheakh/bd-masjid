@@ -147,11 +147,21 @@ Recommended:
 
 ```http
 POST   /api/v1/mosques
+GET    /api/v1/mosques/reverse-geocode
 GET    /api/v1/mosques/:id
 GET    /api/v1/mosques
 GET    /api/v1/mosques/nearby
 PATCH  /api/v1/mosques/:id
 ```
+
+### Reverse geocode endpoint
+
+```http
+GET /api/v1/mosques/reverse-geocode?latitude=23.75&longitude=90.39
+```
+
+Translates WGS84 coordinates into human-readable place name, road, suburb, and city using OpenStreetMap Nominatim with local memory caching and resilient fallback. Returned fields: `displayName`, `placeName`, `road`, `suburb`, `city`, `state`, `postcode`, `country`, and `formattedAddress`.
+
 
 Do not expose unrestricted update permissions through `PATCH`.
 

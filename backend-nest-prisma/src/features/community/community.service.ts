@@ -5,7 +5,7 @@ import {
   ConflictException,
   Logger,
 } from '@nestjs/common';
-import { RoleClaimStatus, Prisma } from '@prisma/client';
+import { RoleClaimStatus, MosqueStaffRole, Prisma } from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
 import type { UserPayload } from '@app/common';
@@ -59,6 +59,39 @@ export class CommunityService {
       throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
     }
 
+    const isPlatformAdmin = actor.role === 'admin' || actor.role === 'moderator';
+
+    if (!isPlatformAdmin) {
+      const isMosqueAdmin = await this.prisma.mosqueStaff.findFirst({
+        where: {
+          mosqueId,
+          userId: actor.userId,
+          isVerified: true,
+          role: {
+            in: [
+              MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.COMMITTEE_PRESIDENT,
+            ],
+          },
+        },
+      });
+
+      if (!isMosqueAdmin) {
+        throw new ForbiddenException(
+          'You do not have permission to manage staff for this mosque',
+        );
+      }
+
+      if (
+        dto.role === MosqueStaffRole.MOSQUE_ADMIN ||
+        dto.role === MosqueStaffRole.COMMITTEE_PRESIDENT
+      ) {
+        throw new ForbiddenException(
+          'Only platform administrators can appoint Mosque Administrators and Committee Presidents',
+        );
+      }
+    }
+
     const staff = await this.prisma.mosqueStaff.create({
       data: {
         mosqueId,
@@ -66,15 +99,9 @@ export class CommunityService {
         name: dto.name.trim(),
         userId: dto.userId || null,
         contactNumber: dto.contactNumber?.trim() || null,
-        isVerified: actor.role === 'admin' || actor.role === 'moderator',
-        verifiedAt:
-          actor.role === 'admin' || actor.role === 'moderator'
-            ? new Date()
-            : null,
-        verifiedById:
-          actor.role === 'admin' || actor.role === 'moderator'
-            ? actor.userId
-            : null,
+        isVerified: isPlatformAdmin || true,
+        verifiedAt: new Date(),
+        verifiedById: actor.userId,
       },
     });
 
@@ -101,6 +128,39 @@ export class CommunityService {
       );
     }
 
+    const isPlatformAdmin = actor.role === 'admin' || actor.role === 'moderator';
+
+    if (!isPlatformAdmin) {
+      const isMosqueAdmin = await this.prisma.mosqueStaff.findFirst({
+        where: {
+          mosqueId,
+          userId: actor.userId,
+          isVerified: true,
+          role: {
+            in: [
+              MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.COMMITTEE_PRESIDENT,
+            ],
+          },
+        },
+      });
+
+      if (!isMosqueAdmin) {
+        throw new ForbiddenException(
+          'You do not have permission to remove staff for this mosque',
+        );
+      }
+
+      if (
+        staff.role === MosqueStaffRole.MOSQUE_ADMIN ||
+        staff.role === MosqueStaffRole.COMMITTEE_PRESIDENT
+      ) {
+        throw new ForbiddenException(
+          'Only platform administrators can revoke Mosque Administrator or Committee President status',
+        );
+      }
+    }
+
     await this.prisma.mosqueStaff.delete({
       where: { id: staffId },
     });
@@ -111,7 +171,7 @@ export class CommunityService {
       entityId: staffId,
       actor,
       previousValue: staff,
-      metadata: { mosqueId },
+      metadata: { mosqueId, role: staff.role },
     });
 
     return { removed: true, staffId };
@@ -134,19 +194,18 @@ export class CommunityService {
       throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
     }
 
-    // Check for open duplicate claim
+    // Invariant: Max 1 active pending claim (OPEN or UNDER_REVIEW) per user per mosque
     const existing = await this.prisma.mosqueRoleClaim.findFirst({
       where: {
         mosqueId,
         userId: actor.userId,
-        role: dto.role,
         status: { in: [RoleClaimStatus.OPEN, RoleClaimStatus.UNDER_REVIEW] },
       },
     });
 
     if (existing) {
       throw new ConflictException(
-        'You already have an open claim for this role at this mosque',
+        'You already have a pending role claim under review for this mosque',
       );
     }
 
@@ -156,8 +215,18 @@ export class CommunityService {
         userId: actor.userId,
         role: dto.role,
         evidence: dto.evidence.trim(),
+        documentUrl: dto.documentUrl?.trim() || null,
         status: RoleClaimStatus.OPEN,
       },
+    });
+
+    await this.audit.record({
+      action: 'ROLE_CLAIM_SUBMITTED',
+      entityType: 'MosqueRoleClaim',
+      entityId: claim.id,
+      actor,
+      newValue: claim,
+      metadata: { mosqueId, role: dto.role },
     });
 
     this.logger.log(
@@ -206,6 +275,49 @@ export class CommunityService {
     };
   }
 
+  async getMosqueRoleClaims(
+    mosqueId: string,
+    actor: UserPayload,
+    status?: RoleClaimStatus,
+  ) {
+    const isPlatformAdmin = actor.role === 'admin' || actor.role === 'moderator';
+
+    if (!isPlatformAdmin) {
+      const isMosqueAdmin = await this.prisma.mosqueStaff.findFirst({
+        where: {
+          mosqueId,
+          userId: actor.userId,
+          isVerified: true,
+          role: {
+            in: [
+              MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.COMMITTEE_PRESIDENT,
+            ],
+          },
+        },
+      });
+
+      if (!isMosqueAdmin) {
+        throw new ForbiddenException(
+          'You do not have permission to view role claims for this mosque',
+        );
+      }
+    }
+
+    const where: Prisma.MosqueRoleClaimWhereInput = { mosqueId };
+    if (status) where.status = status;
+
+    return this.prisma.mosqueRoleClaim.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, phoneNumber: true },
+        },
+      },
+    });
+  }
+
   async reviewRoleClaim(
     claimId: string,
     dto: ReviewRoleClaimDto,
@@ -218,6 +330,40 @@ export class CommunityService {
 
     if (!claim) {
       throw new NotFoundException(`Role claim with ID ${claimId} not found`);
+    }
+
+    const isPlatformAdmin = actor.role === 'admin' || actor.role === 'moderator';
+
+    // Tiered Authorization check
+    if (
+      claim.role === MosqueStaffRole.MOSQUE_ADMIN ||
+      claim.role === MosqueStaffRole.COMMITTEE_PRESIDENT
+    ) {
+      if (!isPlatformAdmin) {
+        throw new ForbiddenException(
+          'Only platform administrators can review Mosque Admin and Committee President claims',
+        );
+      }
+    } else if (!isPlatformAdmin) {
+      const isMosqueAdmin = await this.prisma.mosqueStaff.findFirst({
+        where: {
+          mosqueId: claim.mosqueId,
+          userId: actor.userId,
+          isVerified: true,
+          role: {
+            in: [
+              MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.COMMITTEE_PRESIDENT,
+            ],
+          },
+        },
+      });
+
+      if (!isMosqueAdmin) {
+        throw new ForbiddenException(
+          'You do not have permission to review role claims for this mosque',
+        );
+      }
     }
 
     const result = await this.prisma.$transaction(async (tx) => {

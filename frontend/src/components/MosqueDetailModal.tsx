@@ -21,6 +21,7 @@ import {
   Moon,
 } from 'lucide-react';
 import { toggleAttendance, toggleMosqueBookmark, getLocalBookmarks } from '@/lib/api';
+import { formatTo12Hour } from '@/lib/time';
 
 interface MosqueDetailModalProps {
   mosque: Mosque | null;
@@ -99,16 +100,43 @@ export function MosqueDetailModal({
 
   // Timetable entries
   const prayerRows = [
-    { name: 'Fajr', start: schedule?.fajrStart, jamaat: schedule?.fajrJamaat },
-    { name: 'Sunrise', start: schedule?.sunrise, jamaat: null, isSunrise: true },
-    { name: 'Zuhr', start: schedule?.zuhrStart, jamaat: schedule?.zuhrJamaat },
-    { name: 'Asr', start: schedule?.asrStart, jamaat: schedule?.asrJamaat },
-    { name: 'Maghrib', start: schedule?.maghribStart, jamaat: schedule?.maghribJamaat },
-    { name: 'Isha', start: schedule?.ishaStart, jamaat: schedule?.ishaJamaat },
+    {
+      name: 'Fajr',
+      start: schedule?.fajrStart ? formatTo12Hour(schedule.fajrStart) : null,
+      jamaat: schedule?.fajrJamaat ? formatTo12Hour(schedule.fajrJamaat) : null,
+    },
+    {
+      name: 'Sunrise',
+      start: schedule?.sunrise ? formatTo12Hour(schedule.sunrise) : null,
+      jamaat: null,
+      isSunrise: true,
+    },
+    {
+      name: 'Zuhr',
+      start: schedule?.zuhrStart ? formatTo12Hour(schedule.zuhrStart) : null,
+      jamaat: schedule?.zuhrJamaat ? formatTo12Hour(schedule.zuhrJamaat) : null,
+    },
+    {
+      name: 'Asr',
+      start: schedule?.asrStart ? formatTo12Hour(schedule.asrStart) : null,
+      jamaat: schedule?.asrJamaat ? formatTo12Hour(schedule.asrJamaat) : null,
+    },
+    {
+      name: 'Maghrib',
+      start: schedule?.maghribStart ? formatTo12Hour(schedule.maghribStart) : null,
+      jamaat: schedule?.maghribJamaat ? formatTo12Hour(schedule.maghribJamaat) : null,
+    },
+    {
+      name: 'Isha',
+      start: schedule?.ishaStart ? formatTo12Hour(schedule.ishaStart) : null,
+      jamaat: schedule?.ishaJamaat ? formatTo12Hour(schedule.ishaJamaat) : null,
+    },
     {
       name: 'Jumu\'ah (Friday)',
-      start: schedule?.jumuahSecondJamaat ? `2nd: ${schedule.jumuahSecondJamaat}` : null,
-      jamaat: schedule?.jumuahJamaat || '13:30',
+      start: schedule?.jumuahSecondJamaat
+        ? `2nd: ${formatTo12Hour(schedule.jumuahSecondJamaat)}`
+        : null,
+      jamaat: formatTo12Hour(schedule?.jumuahJamaat || '13:30'),
       isFriday: true,
     },
   ];
@@ -123,7 +151,7 @@ export function MosqueDetailModal({
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${mosque.latitude},${mosque.longitude}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-lg max-h-[90vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[#e8e8ea] overflow-hidden">
         {/* Modal Header */}
         <div className="p-4 sm:p-5 border-b border-[#e8e8ea] flex items-start justify-between gap-3 bg-[#fafafa]">
@@ -243,19 +271,19 @@ export function MosqueDetailModal({
                   <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
                     <span className="block text-[10px] text-[#6e6e73]">Sahri End</span>
                     <span className="font-bold text-sm text-[#111114]">
-                      {schedule.sahriEnd || '—'}
+                      {formatTo12Hour(schedule.sahriEnd)}
                     </span>
                   </div>
                   <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
                     <span className="block text-[10px] text-[#6e6e73]">Iftar Start</span>
                     <span className="font-bold text-sm text-[#111114]">
-                      {schedule.iftarStart || '—'}
+                      {formatTo12Hour(schedule.iftarStart)}
                     </span>
                   </div>
                   <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
                     <span className="block text-[10px] text-[#6e6e73]">Taraweeh</span>
                     <span className="font-bold text-sm text-emerald-700">
-                      {schedule.taraweehJamaat || '—'}
+                      {formatTo12Hour(schedule.taraweehJamaat)}
                     </span>
                   </div>
                 </div>

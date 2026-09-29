@@ -20,6 +20,8 @@ import {
   Moon,
 } from 'lucide-react';
 import { PrayerCountdownBanner } from '@/components/PrayerCountdownBanner';
+import { MosqueStaffManager } from '@/components/MosqueStaffManager';
+import { formatTo12Hour } from '@/lib/time';
 
 interface MosquePageProps {
   params: Promise<{ id: string }>;
@@ -58,16 +60,43 @@ export default async function MosquePage({ params }: MosquePageProps) {
   }[freshness.level || 'FRESH'];
 
   const prayerRows = [
-    { name: 'Fajr', start: schedule?.fajrStart, jamaat: schedule?.fajrJamaat },
-    { name: 'Sunrise', start: schedule?.sunrise, jamaat: null, isSunrise: true },
-    { name: 'Zuhr', start: schedule?.zuhrStart, jamaat: schedule?.zuhrJamaat },
-    { name: 'Asr', start: schedule?.asrStart, jamaat: schedule?.asrJamaat },
-    { name: 'Maghrib', start: schedule?.maghribStart, jamaat: schedule?.maghribJamaat },
-    { name: 'Isha', start: schedule?.ishaStart, jamaat: schedule?.ishaJamaat },
+    {
+      name: 'Fajr',
+      start: schedule?.fajrStart ? formatTo12Hour(schedule.fajrStart) : null,
+      jamaat: schedule?.fajrJamaat ? formatTo12Hour(schedule.fajrJamaat) : null,
+    },
+    {
+      name: 'Sunrise',
+      start: schedule?.sunrise ? formatTo12Hour(schedule.sunrise) : null,
+      jamaat: null,
+      isSunrise: true,
+    },
+    {
+      name: 'Zuhr',
+      start: schedule?.zuhrStart ? formatTo12Hour(schedule.zuhrStart) : null,
+      jamaat: schedule?.zuhrJamaat ? formatTo12Hour(schedule.zuhrJamaat) : null,
+    },
+    {
+      name: 'Asr',
+      start: schedule?.asrStart ? formatTo12Hour(schedule.asrStart) : null,
+      jamaat: schedule?.asrJamaat ? formatTo12Hour(schedule.asrJamaat) : null,
+    },
+    {
+      name: 'Maghrib',
+      start: schedule?.maghribStart ? formatTo12Hour(schedule.maghribStart) : null,
+      jamaat: schedule?.maghribJamaat ? formatTo12Hour(schedule.maghribJamaat) : null,
+    },
+    {
+      name: 'Isha',
+      start: schedule?.ishaStart ? formatTo12Hour(schedule.ishaStart) : null,
+      jamaat: schedule?.ishaJamaat ? formatTo12Hour(schedule.ishaJamaat) : null,
+    },
     {
       name: 'Jumu\'ah (Friday)',
-      start: schedule?.jumuahSecondJamaat ? `2nd: ${schedule.jumuahSecondJamaat}` : null,
-      jamaat: schedule?.jumuahJamaat || '13:30',
+      start: schedule?.jumuahSecondJamaat
+        ? `2nd: ${formatTo12Hour(schedule.jumuahSecondJamaat)}`
+        : null,
+      jamaat: formatTo12Hour(schedule?.jumuahJamaat || '13:30'),
       isFriday: true,
     },
   ];
@@ -179,19 +208,19 @@ export default async function MosquePage({ params }: MosquePageProps) {
                   <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
                     <span className="block text-[10px] text-[#6e6e73]">Sahri End</span>
                     <span className="font-bold text-sm text-[#111114]">
-                      {schedule.sahriEnd || '—'}
+                      {formatTo12Hour(schedule.sahriEnd)}
                     </span>
                   </div>
                   <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
                     <span className="block text-[10px] text-[#6e6e73]">Iftar Start</span>
                     <span className="font-bold text-sm text-[#111114]">
-                      {schedule.iftarStart || '—'}
+                      {formatTo12Hour(schedule.iftarStart)}
                     </span>
                   </div>
                   <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
                     <span className="block text-[10px] text-[#6e6e73]">Taraweeh</span>
                     <span className="font-bold text-sm text-emerald-700">
-                      {schedule.taraweehJamaat || '—'}
+                      {formatTo12Hour(schedule.taraweehJamaat)}
                     </span>
                   </div>
                 </div>
@@ -254,52 +283,11 @@ export default async function MosquePage({ params }: MosquePageProps) {
             </div>
           </div>
 
-          {/* Imams & Committee */}
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73] mb-2.5">
-              Imams & Managing Committee
-            </h3>
-            <div className="p-3.5 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl divide-y divide-[#ececed] text-xs">
-              {mosque.staffMembers && mosque.staffMembers.length > 0 ? (
-                mosque.staffMembers.map((staff) => (
-                  <div key={staff.id} className="flex items-center justify-between py-2">
-                    <div>
-                      <span className="font-semibold text-[#111114] block">
-                        {staff.name}
-                      </span>
-                      <span className="text-[11px] text-[#6e6e73]">
-                        {staff.role.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                      Verified
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <span className="font-semibold text-[#111114] block">Pesh Imam</span>
-                      <span className="text-[11px] text-[#6e6e73]">Appointed Religious Scholar</span>
-                    </div>
-                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                      Verified
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <span className="font-semibold text-[#111114] block">Muazzin</span>
-                      <span className="text-[11px] text-[#6e6e73]">Regular Caller to Prayer</span>
-                    </div>
-                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                      Verified
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          {/* Imams & Committee / Staff Governance */}
+          <MosqueStaffManager
+            mosqueId={mosque.id}
+            initialStaff={mosque.staffMembers || []}
+          />
 
           {/* Community Notices & Announcements */}
           {mosque.announcements && mosque.announcements.length > 0 && (
