@@ -1,3 +1,27 @@
+---
+id: F-003
+name: Authorization & Role-Based Access Control (RBAC)
+phase: 1
+status: completed
+
+depends_on:
+  - F-001
+  - F-002
+
+blocks:
+  - F-006
+  - F-008
+  - F-010
+
+parallel_with:
+  - F-005
+
+source:
+  - 02-SYSTEM-ARCHITECTURE.md#authorization-model
+  - 04-SECURITY-RELIABILITY-OPERATIONS.md#authorization-and-roles
+  - 06-IMPLEMENTATION-CHECKLIST.md#d-authorization
+---
+
 # Feature Specification: Authorization & Role-Based Access Control (RBAC)
 
 ## 1. Overview
@@ -15,5 +39,18 @@ The Authorization & RBAC feature guarantees that only permitted actors execute s
 - [x] Default-deny privileged operations
 - [x] Unit test matrix for authorization permissions (`permissions.guard.spec.ts`)
 
-## 4. Associated Tickets
-- [TK-RBAC-01: Permissions Guard & Server Actor Derivation](tickets/TK-RBAC-01-guards-and-derivation.md)
+---
+
+## 4. Implementation Slices & Proof of Completion
+
+### TK-RBAC-01: Permissions Guard & Server Actor Derivation
+- **Status**: `[x] Completed` | **Priority**: Critical
+- **Description**: Enforce role-based access control across all controllers and extract caller identity into the execution context using custom NestJS decorators.
+- **Acceptance Criteria**:
+  - [x] Decorator `@CurrentUser()` cleanly provides the typed `UserPayload` to controller methods.
+  - [x] Guard `PermissionsGuard` verifies `@Roles()` against actor role.
+  - [x] Unauthenticated or unauthorized callers receive HTTP 401 or 403.
+  - [x] Unit test suite verifies permission grant and denial scenarios (`permissions.guard.spec.ts`).
+- **Implementation Files**:
+  - Core Security: `backend-nest-prisma/src/core/security/permissions.guard.ts`
+  - Tests: `backend-nest-prisma/src/core/security/permissions.guard.spec.ts`

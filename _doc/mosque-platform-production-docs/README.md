@@ -15,6 +15,8 @@ Use the documents in this order when there is ambiguity:
 6. `06-IMPLEMENTATION-CHECKLIST.md` — implementation sequence and production readiness gates
 7. `07-RELEASE-PLAN.md` — staged feature delivery; every released feature remains production-grade
 8. `08-PRODUCTION-ENGINEERING-STANDARD.md` — reusable engineering quality bar
+9. `FEATURE-DEPENDENCY-MAP.md` — build/data integrity DAG and parallel development matrix
+10. `IMPLEMENTATION-SEQUENCE.md` — phased execution plan, concurrent development tracks, and stage gates
 
 ## Core architectural decision
 

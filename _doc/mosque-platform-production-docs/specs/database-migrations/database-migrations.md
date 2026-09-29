@@ -1,3 +1,30 @@
+---
+id: F-001
+name: Database Architecture & Migrations
+phase: 1
+status: completed
+
+depends_on: []
+
+blocks:
+  - F-002
+  - F-003
+  - F-004
+  - F-005
+  - F-006
+  - F-007
+  - F-008
+  - F-010
+
+parallel_with:
+  - F-011
+
+source:
+  - 02-SYSTEM-ARCHITECTURE.md#database-architecture
+  - 03-DATA-API-CONTRACTS.md#database-schema
+  - 06-IMPLEMENTATION-CHECKLIST.md#b-database-and-migrations
+---
+
 # Feature Specification: Database Architecture & Migrations
 
 ## 1. Overview
@@ -16,5 +43,18 @@ The Database Architecture & Migrations feature establishes the PostgreSQL + Post
 - [x] Foreign key cascade and delete semantics reviewed
 - [ ] Automated backup & restore exercise completed on staging/prod infrastructure
 
-## 4. Associated Tickets
-- [TK-DB-01: Modular Prisma Schema Builder & PostGIS Migrations](tickets/TK-DB-01-schema-builder-and-migrations.md)
+---
+
+## 4. Implementation Slices & Proof of Completion
+
+### TK-DB-01: Modular Prisma Schema Builder & PostGIS Migrations
+- **Status**: `[x] Completed` | **Priority**: Critical
+- **Description**: Provide the multi-module schema structure that allows each feature folder to declare its own Prisma models, which are compiled by a pre-generate build script into the root `schema.prisma`.
+- **Acceptance Criteria**:
+  - [x] Schema builder combines module `.prisma` files into `backend-nest-prisma/prisma/schema.prisma`.
+  - [x] PostGIS extension initialized in PostgreSQL setup.
+  - [x] Models configured with proper relational integrity, indexes, and nullability semantics.
+  - [x] Zero drift between TypeScript types and database schema.
+- **Implementation Files**:
+  - Base Schemas: `backend-nest-prisma/prisma/`
+  - Schema Script: `backend-nest-prisma/package.json`

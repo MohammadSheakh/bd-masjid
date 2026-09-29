@@ -1,0 +1,124 @@
+name: bd-masjid
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: bd-masjid-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_BIND_IP:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - bd_masjid_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - bd-masjid-network
+
+  backend:
+    build:
+      context: ./backend-nest-prisma
+      dockerfile: Dockerfile
+    container_name: bd-masjid-backend
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "${BACKEND_BIND_IP:-127.0.0.1}:${BACKEND_PORT:-6733}:6733"
+    environment:
+      NODE_ENV: production
+      PORT: 6733
+      API_PREFIX: api/v1
+      DATABASE_URL: ${DATABASE_URL:-postgresql://neondb_owner:npg_d3JEBqQonbh0@ep-empty-king-b3mrbn98-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require}
+      DIRECT_URL: ${DIRECT_URL:-postgresql://neondb_owner:npg_d3JEBqQonbh0@ep-empty-king-b3mrbn98.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-13b52e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e8}
+      CUSTOMER_WEB_URL: ${CUSTOMER_WEB_URL:-http://localhost:3000}
+      ADMIN_WEB_URL: ${ADMIN_WEB_URL:-http://localhost:3001}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      TZ: ${TZ:-Asia/Dhaka}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:6733/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - bd-masjid-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:6733/api/v1}
+    container_name: bd-masjid-frontend
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "${FRONTEND_BIND_IP:-127.0.0.1}:${FRONTEND_PORT:-3005}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:6733/api/v1}
+      TZ: ${TZ:-Asia/Dhaka}
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - bd-masjid-network
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: bd-masjid-cloudflared
+    restart: unless-stopped
+    profiles:
+      - tunnel
+    command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - bd-masjid-network
+
+volumes:
+  bd_masjid_redisdata:
+
+networks:
+  bd-masjid-network:
+    driver: bridge

@@ -1,3 +1,27 @@
+---
+id: F-002
+name: Authentication & Credential Security
+phase: 1
+status: completed
+
+depends_on:
+  - F-001
+
+blocks:
+  - F-003
+  - F-005
+  - F-006
+  - F-010
+
+parallel_with:
+  - F-004
+
+source:
+  - 01-PRD-PRODUCTION.md#accounts-and-identity
+  - 04-SECURITY-RELIABILITY-OPERATIONS.md#authentication-security
+  - 06-IMPLEMENTATION-CHECKLIST.md#c-authentication
+---
+
 # Feature Specification: Authentication & Credential Security
 
 ## 1. Overview
@@ -26,6 +50,31 @@ The Authentication & Credential Security feature provides identity lifecycle man
 - [x] Credential logging prohibited via `LogSanitizer`
 - [x] Auth unit and controller test suites (`auth.service.spec.ts`, `auth.controller.spec.ts`)
 
-## 5. Associated Tickets
-- [TK-AUTH-01: Authentication Service & JWT Tokens](tickets/TK-AUTH-01-auth-service-and-jwt.md)
-- [TK-AUTH-02: 2FA & Brute Force Lockout Defense](tickets/TK-AUTH-02-2fa-and-lockout-defense.md)
+---
+
+## 5. Implementation Slices & Proof of Completion
+
+### TK-AUTH-01: Authentication Service & JWT Tokens
+- **Status**: `[x] Completed` | **Priority**: Critical
+- **Description**: Implement the core authentication lifecycle, including user registration, password hashing, token issuance, refresh token rotation, and rate-limited login endpoints.
+- **Acceptance Criteria**:
+  - [x] Passwords hashed using bcrypt/argon2 with salt.
+  - [x] Endpoints `register`, `login`, `refresh-token`, `logout`.
+  - [x] Sliding-window rate limit guard protects endpoints from dictionary attacks.
+  - [x] Tests cover token issuance, incorrect password rejection, and refresh logic (`auth.service.spec.ts`).
+- **Implementation Files**:
+  - Service: `backend-nest-prisma/src/features/authentication/auth/auth.service.ts`
+  - Controller: `backend-nest-prisma/src/features/authentication/auth/auth.controller.ts`
+  - Tests: `backend-nest-prisma/src/features/authentication/auth/auth.service.spec.ts`
+
+### TK-AUTH-02: 2FA & Brute Force Lockout Defense
+- **Status**: `[x] Completed` | **Priority**: High
+- **Description**: Provide account protection via consecutive failed attempt lockouts and TOTP two-factor authentication (2FA).
+- **Acceptance Criteria**:
+  - [x] Tracking `failedLoginAttempts` on `User` entity; locks account for 15m upon reaching limit.
+  - [x] TOTP secret generation, QR uri export, and token verification (`TwoFactorService`).
+  - [x] Recovery code hashing and validation.
+  - [x] Unit tests cover lockout thresholds and TOTP validation (`two-factor.service.spec.ts`).
+- **Implementation Files**:
+  - Service: `backend-nest-prisma/src/features/authentication/two-factor/two-factor.service.ts`
+  - Tests: `backend-nest-prisma/src/features/authentication/two-factor/two-factor.service.spec.ts`

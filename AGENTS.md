@@ -15,6 +15,7 @@ Always consult the production documentation in [_doc/mosque-platform-production-
 6. [06-IMPLEMENTATION-CHECKLIST.md](_doc/mosque-platform-production-docs/06-IMPLEMENTATION-CHECKLIST.md) — Implementation sequence and production readiness gates
 7. [07-RELEASE-PLAN.md](_doc/mosque-platform-production-docs/07-RELEASE-PLAN.md) — Staged feature delivery (Release 1 to Release 4)
 8. [08-PRODUCTION-ENGINEERING-STANDARD.md](_doc/mosque-platform-production-docs/08-PRODUCTION-ENGINEERING-STANDARD.md) — Reusable engineering quality bar and Definition of Done
+9. [IMPLEMENTATION-SEQUENCE.md](_doc/mosque-platform-production-docs/IMPLEMENTATION-SEQUENCE.md) — Phased execution plan, parallel tracks, and stage gates
 
 ## Load context for the task
 
@@ -32,6 +33,8 @@ Always consult the production documentation in [_doc/mosque-platform-production-
    - Frontend architecture rules: [.agents/rules/frontend-architecture.md](.agents/rules/frontend-architecture.md)
    - Frontend security rules: [.agents/rules/frontend-security.md](.agents/rules/frontend-security.md)
    - NestJS Best Practices: [.agents/skills/nestjs-best-practices/SKILL.md](.agents/skills/nestjs-best-practices/SKILL.md)
+   - Feature Spec Metadata skill: [.agents/skills/feature-spec-metadata/SKILL.md](.agents/skills/feature-spec-metadata/SKILL.md)
+   - Implementation Sequence skill: [.agents/skills/implementation-sequence/SKILL.md](.agents/skills/implementation-sequence/SKILL.md)
    - Delivery skill: [.agents/skills/git-commit-push/SKILL.md](.agents/skills/git-commit-push/SKILL.md)
 4. Trace the affected caller, authorization, persistence, and consumers. Inspect installed versions and package scripts before using external examples.
 

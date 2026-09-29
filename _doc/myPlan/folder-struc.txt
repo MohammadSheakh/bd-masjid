@@ -1,0 +1,329 @@
+bd-moshjid-project
+|-- .agents
+|   |-- rules
+|   |   |-- backend-api.md
+|   |   |-- backend-database-multi-tenant.md
+|   |   |-- backend-database.md
+|   |   |-- backend-transactions.md
+|   |   |-- frontend-architecture.md
+|   |   |-- frontend-security.md
+|   |   |-- reliability-capacity.md
+|   |-- skills
+|       |-- backend-feature-readme
+|       |   |-- examples
+|       |   |   |-- candidate-portal-readme.md
+|       |   |-- SKILL.md
+|       |-- ferio-frontend-design
+|       |   |-- agents
+|       |   |   |-- openai.yaml
+|       |   |-- SKILL.md
+|       |-- git-commit-push
+|       |   |-- SKILL.md
+|       |-- nestjs-best-practices
+|           |-- rules
+|           |   |-- _sections.md
+|           |   |-- _template.md
+|           |   |-- api-use-dto-serialization.md
+|           |   |-- api-use-interceptors.md
+|           |   |-- api-use-pipes.md
+|           |   |-- api-versioning.md
+|           |   |-- arch-avoid-circular-deps.md
+|           |   |-- arch-feature-modules.md
+|           |   |-- arch-module-sharing.md
+|           |   |-- arch-single-responsibility.md
+|           |   |-- arch-use-events.md
+|           |   |-- arch-use-repository-pattern.md
+|           |   |-- db-avoid-n-plus-one.md
+|           |   |-- db-use-migrations.md
+|           |-- SKILL.md
+|-- .github
+|   |-- workflows
+|       |-- ci.yml
+|-- .gitignore
+|-- .kilo
+|   |-- .gitignore
+|   |-- worktrees
+|       |-- silicon-judo  [DUPLICATE WORKTREE: full cloned copy of repo created by Kilo CLI]
+|-- AGENTS.md
+|-- README.md
+|-- admin-dashboard  [EMPTY DIRECTORY]
+|-- diagram
+|   |-- sequence  [EMPTY DIRECTORY]
+|-- _doc
+|   |-- _.excalidraw
+|   |-- api-integration-document-by-feature
+|   |   |-- feature  [EMPTY DIRECTORY]
+|   |-- bugFixDoc  [EMPTY DIRECTORY]
+|   |-- commands
+|   |   |-- _.md
+|   |-- mermaid
+|   |   |-- 01-customer-purchase-and-tracking.mermaid  [E-COMMERCE LEFTOVER]
+|   |   |-- 02-order-fulfillment-delivery-and-returns.mermaid  [E-COMMERCE LEFTOVER]
+|   |   |-- 02-order-fulfillment-delivery-and-returns-v2.mermaid  [E-COMMERCE LEFTOVER]
+|   |   |-- 03-admin-platform-crm-and-growth.mermaid  [E-COMMERCE LEFTOVER]
+|   |   |-- ChatGPT Image Aug 27, 2026, 05_46_56 PM.png
+|   |-- mosque-platform-production-docs
+|   |   |-- 01-PRD-PRODUCTION.md
+|   |   |-- 02-SYSTEM-ARCHITECTURE.md
+|   |   |-- 03-DATA-API-CONTRACTS.md
+|   |   |-- 04-SECURITY-RELIABILITY-OPERATIONS.md
+|   |   |-- 05-TESTING-STRATEGY.md
+|   |   |-- 06-IMPLEMENTATION-CHECKLIST.md
+|   |   |-- 07-RELEASE-PLAN.md
+|   |   |-- 08-PRODUCTION-ENGINEERING-STANDARD.md
+|   |   |-- README.md
+|   |-- myPlan  [EMPTY DIRECTORY]
+|-- backend-nest-prisma
+|   |-- .env
+|   |-- .env.example
+|   |-- .gitignore
+|   |-- .prettierrc
+|   |-- AGENTS.md
+|   |-- README.md
+|   |-- eslint.config.mjs
+|   |-- fix_imports.js  [SCRATCH REPAIR SCRIPT]
+|   |-- imports_to_fix.txt  [SCRATCH FILE]
+|   |-- nest-cli.json
+|   |-- package.json
+|   |-- pnpm-lock.yaml
+|   |-- prisma.config.ts
+|   |-- skills-lock.json
+|   |-- tsconfig.build.json
+|   |-- tsconfig.json
+|   |-- typings.d.ts
+|   |-- docs
+|   |   |-- nest-architecture
+|   |       |-- arch-01.png
+|   |       |-- arch-02.png
+|   |       |-- arch-03.png
+|   |       |-- arch-04.png
+|   |-- libs
+|   |   |-- common
+|   |   |   |-- tsconfig.lib.json
+|   |   |   |-- src
+|   |   |       |-- index.ts
+|   |   |       |-- base
+|   |   |       |   |-- base.entity.ts
+|   |   |       |-- constants
+|   |   |       |   |-- permissions.constants.ts
+|   |   |       |   |-- rate-limit.constants.ts
+|   |   |       |   |-- redis.constants.ts
+|   |   |       |-- decorators
+|   |   |       |   |-- FILE_UPLOAD_PIPELINE_COMPARISON-17-03-26.md
+|   |   |       |   |-- permissions.decorator.ts
+|   |   |       |   |-- public.decorator.ts
+|   |   |       |   |-- rate-limit.decorator.ts
+|   |   |       |   |-- roles.decorator.ts
+|   |   |       |   |-- use-file-upload-pipeline.decorator.ts
+|   |   |       |   |-- user.decorator.ts
+|   |   |       |-- filters
+|   |   |       |   |-- http-exception.filter.ts
+|   |   |       |   |-- mongoose-exception.filter.ts  [MONGOOSE IN PRISMA PROJECT]
+|   |   |       |-- generic
+|   |   |       |   |-- README.md
+|   |   |       |   |-- generic.controller.ts
+|   |   |       |   |-- generic.service.ts
+|   |   |       |-- guards
+|   |   |       |   |-- auth.guard.ts
+|   |   |       |   |-- permissions.guard.ts
+|   |   |       |   |-- roles.guard.ts
+|   |   |       |   |-- secondary-user.guard.ts
+|   |   |       |   |-- sliding-window-rate-limit.guard.ts
+|   |   |       |-- interceptors
+|   |   |       |   |-- file-upload-processing.interceptor.ts
+|   |   |       |   |-- logging.interceptor.ts
+|   |   |       |   |-- transform-response.interceptor.ts
+|   |   |       |-- pipes
+|   |   |       |   |-- file-upload-validation.pipe.ts
+|   |   |       |   |-- parse-object-id.pipe.ts  [MONGOOSE/MONGODB OBJECTID IN POSTGRES]
+|   |   |       |-- shared
+|   |   |       |   |-- types
+|   |   |       |       |-- paginate.ts
+|   |   |       |-- types
+|   |   |       |   |-- user-payload.type.ts
+|   |   |       |   |-- user-service.interface.ts
+|   |   |       |-- utils
+|   |   |           |-- error-code.ts
+|   |   |           |-- log-sanitizer.ts
+|   |   |           |-- prisma.utils.ts
+|   |   |           |-- request-context.ts
+|   |   |           |-- request-metrics.ts
+|   |   |           |-- structured-logger.ts
+|   |   |-- database
+|   |   |   |-- tsconfig.lib.json
+|   |   |   |-- src
+|   |   |       |-- index.ts
+|   |   |       |-- prisma.module.ts
+|   |   |       |-- prisma.service.ts
+|   |   |-- notification
+|   |   |   |-- tsconfig.lib.json
+|   |   |   |-- src
+|   |   |       |-- firebase.module.ts
+|   |   |       |-- firebase.service.ts
+|   |   |       |-- index.ts
+|   |   |-- queue
+|   |   |   |-- tsconfig.lib.json
+|   |   |   |-- src
+|   |   |       |-- bullmq.constants.ts
+|   |   |       |-- bullmq.module.ts
+|   |   |       |-- bullmq.provider.ts
+|   |   |       |-- index.ts
+|   |   |       |-- processors
+|   |   |           |-- conversation-last-message.processor.ts
+|   |   |           |-- email.processor.ts
+|   |   |           |-- notification.processor.ts
+|   |   |           |-- notify-participants.processor.ts
+|   |   |-- redis
+|   |       |-- tsconfig.lib.json
+|   |       |-- src
+|   |           |-- index.ts
+|   |           |-- redis.constants.ts
+|   |           |-- redis.module.ts
+|   |           |-- redis.provider.ts
+|   |           |-- redis.service.ts
+|   |-- prisma
+|   |   |-- AGENTS.md
+|   |   |-- _doc.md
+|   |   |-- mongo_db_compatible.md
+|   |   |-- schema.prisma
+|   |   |-- seed.ts
+|   |   |-- migrations
+|   |   |   |-- 20260515053712_bismillah
+|   |   |   |   |-- migration.sql
+|   |   |   |-- migration_lock.toml
+|   |   |-- schema
+|   |   |   |-- attendance.module
+|   |   |   |   |-- attendance.prisma
+|   |   |   |-- audit.module
+|   |   |   |   |-- audit.prisma
+|   |   |   |-- base
+|   |   |   |   |-- datasource.prisma
+|   |   |   |   |-- generator.prisma
+|   |   |   |-- community.module
+|   |   |   |   |-- community.prisma
+|   |   |   |-- mosque.module
+|   |   |   |   |-- mosque.prisma
+|   |   |   |-- prayer-schedule.module
+|   |   |   |   |-- prayerSchedule.prisma
+|   |   |   |-- settings.module
+|   |   |   |   |-- settings.prisma
+|   |   |   |-- shared
+|   |   |   |   |-- attachment.prisma
+|   |   |   |-- suggestions.module
+|   |   |   |   |-- suggestions.prisma
+|   |   |   |-- user
+|   |   |       |-- _enums.prisma
+|   |   |       |-- user.prisma
+|   |   |       |-- userDevices.prisma
+|   |   |-- scripts
+|   |   |   |-- build-prisma-schema.js
+|   |   |   |-- build-prisma-schemaV2.js
+|   |   |-- seeds
+|   |       |-- category.seed.ts  [E-COMMERCE LEFTOVER]
+|   |       |-- item.seed.ts  [E-COMMERCE LEFTOVER]
+|   |       |-- role.seed.ts
+|   |       |-- user.seed.ts
+|   |       |-- data
+|   |           |-- bakery.ts  [GROCERY STORE SEED DATA]
+|   |           |-- dairy.ts  [GROCERY STORE SEED DATA]
+|   |           |-- fruits.ts  [GROCERY STORE SEED DATA]
+|   |           |-- meat-seafood.ts  [GROCERY STORE SEED DATA]
+|   |           |-- vegetables.ts  [GROCERY STORE SEED DATA]
+|   |-- src
+|   |   |-- app.controller.spec.ts
+|   |   |-- app.controller.ts
+|   |   |-- app.module.ts
+|   |   |-- app.service.ts
+|   |   |-- main.ts
+|   |   |-- config
+|   |   |   |-- app.config.ts
+|   |   |   |-- config.module.ts
+|   |   |   |-- config.service.ts
+|   |   |   |-- database.config.ts
+|   |   |-- core
+|   |   |   |-- database
+|   |   |   |   |-- mongo
+|   |   |   |   |   |-- mongodb.module.ts  [MONGODB IN POSTGRES PROJECT]
+|   |   |   |   |-- redis
+|   |   |   |       |-- redis.constants.ts
+|   |   |   |       |-- redis.module.ts
+|   |   |   |       |-- redis.provider.ts
+|   |   |   |-- queue
+|   |   |   |   |-- bullmq.constants.ts
+|   |   |   |   |-- bullmq.module.ts
+|   |   |   |   |-- bullmq.provider.ts
+|   |   |   |   |-- processors
+|   |   |   |       |-- conversation-last-message.processor.ts
+|   |   |   |       |-- email.processor.ts
+|   |   |   |       |-- notification.processor.ts
+|   |   |   |       |-- notify-participants.processor.ts
+|   |   |   |-- security
+|   |   |       |-- error-contract.spec.ts
+|   |   |       |-- log-sanitizer.spec.ts
+|   |   |       |-- permissions.guard.spec.ts
+|   |   |       |-- rate-limit-security-events.spec.ts
+|   |   |       |-- request-context.spec.ts
+|   |   |       |-- request-metrics.spec.ts
+|   |   |       |-- structured-logger.spec.ts
+|   |   |-- features
+|   |   |   |-- attachments
+|   |   |   |   |-- ATTACHMENT_MODULE_MIGRATION_COMPLETE-17-03-26.md
+|   |   |   |   |-- attachment.controller.ts
+|   |   |   |   |-- attachment.module.ts
+|   |   |   |   |-- attachment.service.ts
+|   |   |   |   |-- doc
+|   |   |   |   |   |-- dia
+|   |   |   |   |       |-- component-architecture.mermaid
+|   |   |   |   |       |-- data-flow.mermaid
+|   |   |   |   |       |-- sequence.mermaid
+|   |   |   |   |-- dto
+|   |   |   |   |   |-- attachment.dto.ts
+|   |   |   |   |-- strategies
+|   |   |   |       |-- STRATEGY_PATTERN_IMPLEMENTATION-17-03-26.md
+|   |   |   |       |-- cloudinary.strategy.ts
+|   |   |   |       |-- file-upload.strategy.factory.ts
+|   |   |   |       |-- file-upload.strategy.interface.ts
+|   |   |   |       |-- s3.strategy.ts
+|   |   |   |-- attendance
+|   |   |   |   |-- README.md
+|   |   |   |   |-- attendance.controller.ts
+|   |   |   |   |-- attendance.module.ts
+|   |   |   |   |-- attendance.service.spec.ts
+
+|   |   |-- infrastructure
+|   |   |   |-- readme.md
+|   |   |   |-- file-storage
+|   |   |       |-- readme.md
+|   |   |-- shared
+|   |       |-- types
+|   |           |-- paginate.ts
+|   |-- test
+|   |   |-- app.e2e-spec.ts
+|   |   |-- jest-e2e.json
+|   |   |-- jest-integration.json
+|   |   |-- jest-queue-smoke.json
+|   |   |-- mosques.e2e-spec.ts
+|   |   |-- fixtures  [EMPTY DIRECTORY]
+
+|-- frontend
+    |-- AGENTS.md
+    |-- package.json
+    |-- src
+        |-- app
+        |   |-- globals.css
+        |   |-- layout.tsx
+        |   |-- page.tsx
+        |   |-- admin
+        |   |   |-- page.tsx
+        |   |-- mosques
+        |       |-- [id]
+        |           |-- page.tsx
+        |-- components
+        |   |-- AddMosqueModal.tsx
+
+
+SYSTEM-ARCHITECTURE.md
+DATA-API-CONTRACTS.md 
+SECURITY-RELIABILITY-OPERATIONS.md
+ TESTING-STRATEGY.md RELEASE-PLAN.md
+  PRODUCTION-ENGINEERING-STANDARD.md

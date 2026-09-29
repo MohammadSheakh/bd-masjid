@@ -1,3 +1,25 @@
+---
+id: F-005
+name: Nearby Discovery & Search
+phase: 1
+status: completed
+
+depends_on:
+  - F-001
+  - F-004
+
+blocks:
+  - F-009
+
+parallel_with:
+  - F-007
+
+source:
+  - 01-PRD-PRODUCTION.md#nearby-and-discovery
+  - 03-DATA-API-CONTRACTS.md#search-endpoints
+  - 06-IMPLEMENTATION-CHECKLIST.md#f-nearby-and-search
+---
+
 # Feature Specification: Nearby Discovery & Search
 
 ## 1. Overview
@@ -24,7 +46,46 @@ The Nearby Discovery & Search feature enables users to locate mosques around the
 - [x] Pagination with page and limit parameters
 - [ ] Automated k6 load benchmark under high concurrent query load
 
-## 5. Associated Tickets
-- [TK-SRCH-01: PostGIS Spherical Radial Search API](tickets/TK-SRCH-01-postgis-radial-search-api.md)
-- [TK-SRCH-02: Text Search & Multi-Criteria Filtering](tickets/TK-SRCH-02-text-search-and-filtering.md)
-- [TK-SRCH-03: Frontend Search Bar & Realtime Filtering](tickets/TK-SRCH-03-frontend-search-and-filter.md)
+---
+
+## 5. Implementation Slices & Proof of Completion
+
+### TK-SRCH-01: PostGIS Spherical Radial Search API
+- **Status**: `[x] Completed` | **Priority**: Critical
+- **Description**: Implement the high-performance `/api/v1/mosques/nearby` endpoint utilizing PostGIS spatial queries to find mosques within a bounded radius.
+- **Acceptance Criteria**:
+  - [x] Input query parameters: `latitude` (float), `longitude` (float), `radius` (integer, max 50000m, default 5000m), `limit` (integer, max 100, default 20).
+  - [x] Spatial math performed using `ST_DWithin` on geography coordinates.
+  - [x] Returns results ordered by distance ascending.
+  - [x] Computes distance in meters and returns as `distance` field.
+  - [x] Includes active prayer schedule summary for immediate display.
+- **Implementation Files**:
+  - DTO: `backend-nest-prisma/src/features/mosques/dto/nearby-mosques.dto.ts`
+  - Service: `backend-nest-prisma/src/features/mosques/mosques.service.ts`
+  - Controller: `backend-nest-prisma/src/features/mosques/mosques.controller.ts`
+
+### TK-SRCH-02: Text Search & Multi-Criteria Filtering
+- **Status**: `[x] Completed` | **Priority**: High
+- **Description**: Provide a text-based search endpoint allowing queries across mosque name, landmark, address, and city, supporting pagination and status filters.
+- **Acceptance Criteria**:
+  - [x] Endpoint `GET /api/v1/mosques` accepts `search`, `city`, `verificationStatus`, `operationalStatus`, `page`, `limit`.
+  - [x] Performs case-insensitive matching across `name`, `address`, and `landmark`.
+  - [x] Returns standard pagination envelope: `data`, `meta: { total, page, limit, totalPages }`.
+  - [x] Protects against unbounded queries by enforcing `limit <= 100`.
+- **Implementation Files**:
+  - DTO: `backend-nest-prisma/src/features/mosques/dto/mosque-query.dto.ts`
+  - Service: `backend-nest-prisma/src/features/mosques/mosques.service.ts`
+  - Controller: `backend-nest-prisma/src/features/mosques/mosques.controller.ts`
+
+### TK-SRCH-03: Frontend Search Bar & Realtime Filtering
+- **Status**: `[x] Completed` | **Priority**: Medium
+- **Description**: Integrate the search input into the frontend Navbar and home page, supporting real-time debounced filtering, radius adjustment, and synchronized map viewport updates.
+- **Acceptance Criteria**:
+  - [x] Search bar in `Navbar.tsx` and main hero in `app/page.tsx`.
+  - [x] Debounced user input to prevent excessive API requests.
+  - [x] Filtering options for verified-only, facilities (wudu, AC, women's prayer area).
+  - [x] Synchronizes with `MosqueMap.tsx` and list view `MosqueCard.tsx`.
+- **Implementation Files**:
+  - Frontend Component: `frontend/src/components/Navbar.tsx`
+  - Home View: `frontend/src/app/page.tsx`
+  - Card Component: `frontend/src/components/MosqueCard.tsx`

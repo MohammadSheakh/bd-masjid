@@ -1,31 +1,37 @@
-# Feature Specifications & Implementation Tickets
+# Feature Specifications & Implementation Proof Matrix
 
-This directory contains the feature-wise specifications extracted from the [Production PRD](../01-PRD-PRODUCTION.md) and [Implementation Checklist](../06-IMPLEMENTATION-CHECKLIST.md). Each feature folder contains a detailed feature specification (`<feature>.md`) and a `tickets/` directory containing actionable, reviewable tickets.
+This directory contains the feature-wise specifications extracted from the [Production PRD](../01-PRD-PRODUCTION.md) and [Implementation Checklist](../06-IMPLEMENTATION-CHECKLIST.md).
 
-## Master Feature & Ticket Index
+Each feature has a dedicated, self-contained specification file (`<feature>.md`) that embeds agentic frontmatter metadata, business invariants, API contracts, and **Implementation Slices & Proof of Completion** (acceptance criteria, concrete code file links, and verification status) in one unified place.
 
-| Feature ID & Name | Specification | Active Tickets | Status |
-| :--- | :--- | :--- | :--- |
-| **01. Mosque Registry** | [mosques-registry.md](mosques-registry/mosques-registry.md) | [TK-MOSQ-01](mosques-registry/tickets/TK-MOSQ-01-schema-and-indexing.md), [TK-MOSQ-02](mosques-registry/tickets/TK-MOSQ-02-creation-and-duplicate-api.md), [TK-MOSQ-03](mosques-registry/tickets/TK-MOSQ-03-profile-endpoint-and-page.md), [TK-MOSQ-04](mosques-registry/tickets/TK-MOSQ-04-add-mosque-modal-ui.md) | `[x] Implemented` |
-| **02. Nearby & Search** | [nearby-search.md](nearby-search/nearby-search.md) | [TK-SRCH-01](nearby-search/tickets/TK-SRCH-01-postgis-radial-search-api.md), [TK-SRCH-02](nearby-search/tickets/TK-SRCH-02-text-search-and-filtering.md), [TK-SRCH-03](nearby-search/tickets/TK-SRCH-03-frontend-search-and-filter.md) | `[x] Implemented` |
-| **03. Prayer Schedules** | [prayer-schedules.md](prayer-schedules/prayer-schedules.md) | [TK-PRAY-01](prayer-schedules/tickets/TK-PRAY-01-schema-and-history.md), [TK-PRAY-02](prayer-schedules/tickets/TK-PRAY-02-atomic-update-api.md), [TK-PRAY-03](prayer-schedules/tickets/TK-PRAY-03-live-countdown-banner.md) | `[x] Implemented` |
-| **04. Attendance Tracking** | [attendance-tracking.md](attendance-tracking/attendance-tracking.md) | [TK-ATTN-01](attendance-tracking/tickets/TK-ATTN-01-schema-and-idempotent-service.md), [TK-ATTN-02](attendance-tracking/tickets/TK-ATTN-02-attendance-ui-and-counts.md) | `[x] Implemented` |
-| **05. Suggestions & Reports** | [suggestions-reports.md](suggestions-reports/suggestions-reports.md) | [TK-SUGG-01](suggestions-reports/tickets/TK-SUGG-01-persistence-and-api.md), [TK-SUGG-02](suggestions-reports/tickets/TK-SUGG-02-frontend-modals.md) | `[x] Implemented` |
-| **06. Mosque Verification** | [mosque-verification.md](mosque-verification/mosque-verification.md) | [TK-VERF-01](mosque-verification/tickets/TK-VERF-01-service-and-state-machine.md), [TK-VERF-02](mosque-verification/tickets/TK-VERF-02-admin-dashboard-view.md) | `[x] Implemented` |
-| **07. Authentication & Security** | [authentication-security.md](authentication-security/authentication-security.md) | [TK-AUTH-01](authentication-security/tickets/TK-AUTH-01-auth-service-and-jwt.md), [TK-AUTH-02](authentication-security/tickets/TK-AUTH-02-2fa-and-lockout-defense.md) | `[x] Implemented` |
-| **08. Authorization & RBAC** | [authorization-rbac.md](authorization-rbac/authorization-rbac.md) | [TK-RBAC-01](authorization-rbac/tickets/TK-RBAC-01-guards-and-derivation.md) | `[x] Implemented` |
-| **09. Map Discovery UI** | [map-discovery-ui.md](map-discovery-ui/map-discovery-ui.md) | [TK-MAP-01](map-discovery-ui/tickets/TK-MAP-01-leaflet-dynamic-integration.md), [TK-MAP-02](map-discovery-ui/tickets/TK-MAP-02-geolocation-and-viewport.md) | `[x] Implemented` |
-| **10. Community Engagement** | [community-engagement.md](community-engagement/community-engagement.md) | [TK-COMM-01](community-engagement/tickets/TK-COMM-01-backend-service-and-schemas.md), [TK-COMM-02](community-engagement/tickets/TK-COMM-02-engagement-frontend-modals.md) | `[x] Implemented` |
-| **11. Observability & Health** | [observability-health.md](observability-health/observability-health.md) | [TK-OBS-01](observability-health/tickets/TK-OBS-01-structured-logging-and-tracing.md), [TK-OBS-02](observability-health/tickets/TK-OBS-02-health-probes-and-metrics.md) | `[x] Implemented` |
-| **12. Database & Migrations** | [database-migrations.md](database-migrations/database-migrations.md) | [TK-DB-01](database-migrations/tickets/TK-DB-01-schema-builder-and-migrations.md) | `[x] Implemented` |
+## Master Feature & Proof Index
+
+| ID | Feature Name | Specification | Embedded Work Slices / Proof | Depends On | Phase | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **F-001** | Database Architecture & Migrations | [database-migrations.md](database-migrations/database-migrations.md) | [TK-DB-01](database-migrations/database-migrations.md#tk-db-01-modular-prisma-schema-builder--postgis-migrations) | *(None)* | 1 | `[x] Completed` |
+| **F-002** | Authentication & Credential Security | [authentication-security.md](authentication-security/authentication-security.md) | [TK-AUTH-01](authentication-security/authentication-security.md#tk-auth-01-authentication-service--jwt-tokens), [TK-AUTH-02](authentication-security/authentication-security.md#tk-auth-02-2fa--brute-force-lockout-defense) | `F-001` | 1 | `[x] Completed` |
+| **F-003** | Authorization & RBAC | [authorization-rbac.md](authorization-rbac/authorization-rbac.md) | [TK-RBAC-01](authorization-rbac/authorization-rbac.md#tk-rbac-01-permissions-guard--server-actor-derivation) | `F-001, F-002` | 1 | `[x] Completed` |
+| **F-004** | Mosque Registry & Creation | [mosques-registry.md](mosques-registry/mosques-registry.md) | [TK-MOSQ-01](mosques-registry/mosques-registry.md#tk-mosq-01-mosque-database-schema--spatial-indexing), [TK-MOSQ-02](mosques-registry/mosques-registry.md#tk-mosq-02-mosque-creation--duplicate-detection-api), [TK-MOSQ-03](mosques-registry/mosques-registry.md#tk-mosq-03-mosque-profile-endpoint--standalone-page), [TK-MOSQ-04](mosques-registry/mosques-registry.md#tk-mosq-04-add-mosque-modal--pin-drop-ui) | `F-001` | 1 | `[x] Completed` |
+| **F-005** | Nearby Discovery & Search | [nearby-search.md](nearby-search/nearby-search.md) | [TK-SRCH-01](nearby-search/nearby-search.md#tk-srch-01-postgis-spherical-radial-search-api), [TK-SRCH-02](nearby-search/nearby-search.md#tk-srch-02-text-search--multi-criteria-filtering), [TK-SRCH-03](nearby-search/nearby-search.md#tk-srch-03-frontend-search-bar--realtime-filtering) | `F-001, F-004` | 1 | `[x] Completed` |
+| **F-006** | Crowdsourced Suggestions & Reports | [suggestions-reports.md](suggestions-reports/suggestions-reports.md) | [TK-SUGG-01](suggestions-reports/suggestions-reports.md#tk-sugg-01-suggestions--reports-persistence-api), [TK-SUGG-02](suggestions-reports/suggestions-reports.md#tk-sugg-02-suggestion--report-frontend-modals) | `F-001, F-004` | 1 | `[x] Completed` |
+| **F-007** | Prayer Schedules & History | [prayer-schedules.md](prayer-schedules/prayer-schedules.md) | [TK-PRAY-01](prayer-schedules/prayer-schedules.md#tk-pray-01-prayer-schedule-schema--history-tracking), [TK-PRAY-02](prayer-schedules/prayer-schedules.md#tk-pray-02-atomic-update--rollback-service-api), [TK-PRAY-03](prayer-schedules/prayer-schedules.md#tk-pray-03-live-prayer-countdown--display-banner) | `F-001, F-004` | 1 | `[x] Completed` |
+| **F-008** | Mosque Attendance Tracking | [attendance-tracking.md](attendance-tracking/attendance-tracking.md) | [TK-ATTN-01](attendance-tracking/attendance-tracking.md#tk-attn-01-attendance-schema--idempotent-service), [TK-ATTN-02](attendance-tracking/attendance-tracking.md#tk-attn-02-attendance-ui-toggle--aggregate-badge) | `F-001, F-002, F-004` | 1 | `[x] Completed` |
+| **F-009** | Interactive Map Discovery UI | [map-discovery-ui.md](map-discovery-ui/map-discovery-ui.md) | [TK-MAP-01](map-discovery-ui/map-discovery-ui.md#tk-map-01-leaflet-integration--dynamic-ssr-handling), [TK-MAP-02](map-discovery-ui/map-discovery-ui.md#tk-map-02-geolocation--responsive-viewport-controller) | `F-004, F-005, F-007` | 1 | `[x] Completed` |
+| **F-010** | Mosque Verification & Moderation | [mosque-verification.md](mosque-verification/mosque-verification.md) | [TK-VERF-01](mosque-verification/mosque-verification.md#tk-verf-01-verification-service--state-machine), [TK-VERF-02](mosque-verification/mosque-verification.md#tk-verf-02-admin-moderation-dashboard-view) | `F-001, F-002, F-003, F-004, F-006` | 1 | `[x] Completed` |
+| **F-011** | Observability, Health & Reliability | [observability-health.md](observability-health/observability-health.md) | [TK-OBS-01](observability-health/observability-health.md#tk-obs-01-structured-logging--correlation-tracing), [TK-OBS-02](observability-health/observability-health.md#tk-obs-02-health-probes--operational-metrics) | *(None)* | 1 | `[x] Completed` |
+| **F-012** | Community Engagement & Operations | [community-engagement.md](community-engagement/community-engagement.md) | [TK-COMM-01](community-engagement/community-engagement.md#tk-comm-01-community-backend-service--schemas), [TK-COMM-02](community-engagement/community-engagement.md#tk-comm-02-community-engagement-frontend-modals) | `F-001, F-002, F-004` | 1 | `[x] Completed` |
 
 ---
 
-## Ticket Structure Standard
-Every ticket file in a feature's `tickets/` folder adheres to this standard template:
-1. **Spec Link**: Pointer to parent feature spec.
-2. **Status**: `[x] Completed` or `[ ] Pending`.
-3. **Priority**: Critical / High / Medium / Low.
-4. **Description**: Concise summary of ticket purpose.
-5. **Acceptance Criteria**: Verifiable checkboxes matching implementation requirements.
-6. **Implementation Files**: Concrete paths in the codebase implementing this ticket.
+## Unified Feature Specification Standard
+Every feature specification in this directory adheres to this unified agentic standard:
+1. **Frontmatter Metadata**: Machine-readable DAG dependencies, lifecycle status, release phase, and PRD/Architecture source anchors.
+2. **Overview & Business Invariants**: Core rules, state transitions, and constraints.
+3. **REST API Contracts**: Methods, routes, DTOs, and error envelopes.
+4. **Extracted Implementation Checklist**: High-level capability checklist.
+5. **Implementation Slices & Proof of Completion**:
+   - Ticket ID & Title
+   - Status & Priority
+   - Description
+   - Acceptance Criteria (verifiable checkboxes)
+   - Concrete Implementation Files (exact paths in `backend-nest-prisma` and `frontend`)
