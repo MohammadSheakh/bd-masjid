@@ -2,7 +2,7 @@
 id: F-031
 name: Mosque Follow Subscriptions & Real-Time In-App Notifications
 phase: 3
-status: planned
+status: completed
 
 depends_on:
   - F-001
@@ -150,22 +150,22 @@ model UserNotification {
 ## 6. Actionable Implementation Checklist
 
 ### Slice 1: Database Schema & Migration (Prisma)
-- [ ] Add `MosqueFollower` model to `backend-nest-prisma/prisma/schema/` with composite unique constraint `[userId, mosqueId]`.
-- [ ] Add `NotificationType` enum and `UserNotification` model with composite index `[userId, isRead, createdAt]`.
-- [ ] Run `pnpm run prisma:sync` to compile schema and update generated client.
+- [x] Add `MosqueFollower` model to `backend-nest-prisma/prisma/schema/` with composite unique constraint `[userId, mosqueId]`.
+- [x] Add `NotificationType` enum and `UserNotification` model with composite index `[userId, isRead, createdAt]`.
+- [x] Run `pnpm run prisma:sync` to compile schema and update generated client.
 
 ### Slice 2: Backend Notifications & Follow Service
-- [ ] Create `NotificationsModule` in `backend-nest-prisma/src/features/notifications/`.
-- [ ] Implement `NotificationsGateway` with JWT handshake authentication and room management.
-- [ ] Implement `NotificationsService` with fan-out generation, unread counters, and pagination.
-- [ ] Implement `MosqueFollowService` and controller for `/mosques/:id/follow` and `/mosques/followed`.
-- [ ] Wire hooks in `AnnouncementsService`, `PrayerSchedulesService`, and `DonationsService` to emit notifications on create/update.
-- [ ] Write unit tests for `NotificationsService`, `MosqueFollowService`, and `NotificationsGateway`.
+- [x] Create `NotificationsModule` in `backend-nest-prisma/src/features/notifications/`.
+- [x] Implement `NotificationsGateway` with JWT handshake authentication and room management.
+- [x] Implement `NotificationsService` with fan-out generation, unread counters, and pagination.
+- [x] Implement `MosqueFollowService` and controller for `/mosques/:id/follow` and `/mosques/followed`.
+- [x] Wire hooks in `AnnouncementsService`, `PrayerSchedulesService`, and `DonationsService` to emit notifications on create/update.
+- [x] Write unit tests for `NotificationsService`, `MosqueFollowService`, and `NotificationsGateway`.
 
 ### Slice 3: Frontend Navbar Notification Center & Follow Interaction
-- [ ] Install `socket.io-client` in `frontend/`.
-- [ ] Add typed API client functions for follow status, notification queries, and read operations in `frontend/src/lib/api.ts`.
-- [ ] Implement `useNotifications` React hook managing WebSocket connection, unread badge, and real-time toast alerts.
-- [ ] Add Notification Bell with unread counter pill and dropdown popover to `Navbar.tsx`.
-- [ ] Add `[+ Follow]` / `[✓ Following]` button to `MosqueCard.tsx` and `/mosques/[id]/page.tsx`.
-- [ ] Run full test suite (`backend-nest-prisma && npm test`) and frontend production build (`frontend && npm run build`).
+- [x] Install `socket.io-client` in `frontend/`.
+- [x] Add typed API client functions for follow status, notification queries, and read operations in `frontend/src/lib/api.ts`.
+- [x] Implement `useNotifications` React hook managing WebSocket connection, unread badge, and real-time toast alerts.
+- [x] Add Notification Bell with unread counter pill and dropdown popover to `Navbar.tsx`.
+- [x] Add `[+ Follow]` / `[✓ Following]` button to `MosqueCard.tsx` and `/mosques/[id]/page.tsx`.
+- [x] Run full test suite (`backend-nest-prisma && npm test`) and frontend production build (`frontend && npm run build`).
