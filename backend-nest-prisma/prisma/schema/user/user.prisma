@@ -33,6 +33,10 @@ model User {
   roleClaims          MosqueRoleClaim[]
   announcements       MosqueAnnouncement[]
   bookmarks           MosqueBookmark[]
+  submittedDonations  MosqueDonationChannel[] @relation("SubmittedDonations")
+  verifiedDonations   MosqueDonationChannel[] @relation("VerifiedDonations")
+  donationReports     DonationReport[]
+
 
   @@index([email, isDeleted])
   @@index([role, isDeleted])

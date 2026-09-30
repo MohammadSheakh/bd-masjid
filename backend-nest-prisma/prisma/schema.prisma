@@ -105,6 +105,10 @@ model User {
   roleClaims          MosqueRoleClaim[]
   announcements       MosqueAnnouncement[]
   bookmarks           MosqueBookmark[]
+  submittedDonations  MosqueDonationChannel[] @relation("SubmittedDonations")
+  verifiedDonations   MosqueDonationChannel[] @relation("VerifiedDonations")
+  donationReports     DonationReport[]
+
 
   @@index([email, isDeleted])
   @@index([role, isDeleted])
@@ -356,6 +360,88 @@ model MosqueBookmark {
 
 
 
+// Source: donations.module/donations.prisma
+enum DonationChannelType {
+  BKASH
+  NAGAD
+  ROCKET
+  UPAY
+  BANK_TRANSFER
+}
+
+enum DonationChannelAccountType {
+  MERCHANT
+  PERSONAL
+  AGENT
+}
+
+enum DonationPurpose {
+  GENERAL_FUND
+  CONSTRUCTION_EXPANSION
+  ORPHAN_MADRASAH
+  RAMADAN_IFTAR
+  ZAKAT_SADAQAH
+  JANAZA_FUND
+}
+
+enum DonationChannelStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+  FLAGGED
+  ARCHIVED
+}
+
+model MosqueDonationChannel {
+  id                   String                      @id @default(cuid())
+  mosqueId             String
+  channelType          DonationChannelType
+  accountType          DonationChannelAccountType  @default(PERSONAL)
+  purpose              DonationPurpose             @default(GENERAL_FUND)
+  accountNumber        String                      @db.VarChar(50)
+  accountTitle         String                      @db.VarChar(100)
+  bankName             String?                     @db.VarChar(100)
+  branchName           String?                     @db.VarChar(100)
+  routingNumber        String?                     @db.VarChar(50)
+  paymentInstructions  String?                     @db.Text
+  qrCodeImageUrl       String?                     @db.VarChar(255)
+  status               DonationChannelStatus       @default(PENDING_VERIFICATION)
+  disputeCount         Int                         @default(0)
+
+  // Governance Provenance
+  createdById          String
+  verifiedById         String?
+  verifiedAt           DateTime?
+  rejectionReason      String?                     @db.VarChar(255)
+
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
+
+  mosque               Mosque                      @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+  createdBy            User                        @relation("SubmittedDonations", fields: [createdById], references: [id])
+  verifiedBy           User?                       @relation("VerifiedDonations", fields: [verifiedById], references: [id])
+  reports              DonationReport[]
+
+  @@index([mosqueId, status])
+  @@index([channelType, status])
+}
+
+model DonationReport {
+  id           String                @id @default(cuid())
+  channelId    String
+  reportedById String
+  reason       String                @db.VarChar(100)
+  description  String                @db.Text
+  status       String                @default("OPEN")
+  createdAt    DateTime              @default(now())
+
+  channel      MosqueDonationChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  reportedBy   User                  @relation(fields: [reportedById], references: [id], onDelete: Cascade)
+
+  @@index([channelId, status])
+}
+
+
 // Source: facilities.module/facilities.prisma
 model MosqueFacility {
   id                    String    @id @default(cuid())
@@ -459,6 +545,7 @@ model Mosque {
   roleClaims              MosqueRoleClaim[]
   announcements           MosqueAnnouncement[]
   donationMethods         MosqueDonationMethod[]
+  donationChannels        MosqueDonationChannel[]
   bookmarks               MosqueBookmark[]
 
   @@index([latitude, longitude])
