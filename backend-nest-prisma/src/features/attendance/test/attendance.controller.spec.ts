@@ -1,7 +1,21 @@
+import request from 'supertest';
+import {
+  INestApplication,
+  ValidationPipe,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Reflector } from '@nestjs/core';
 import { AttendanceController } from '../attendance.controller';
 import { AttendanceService } from '../attendance.service';
 import { SetAttendanceDto } from '../dto/set-attendance.dto';
-import { UserPayload } from '@app/common';
+import {
+  IS_PUBLIC_KEY,
+  AuthGuard,
+  SlidingWindowRateLimitGuard,
+  UserPayload,
+} from '@app/common';
 import { AttendanceStatus, UserRole } from '@prisma/client';
 
 describe('AttendanceController', () => {
@@ -95,4 +109,134 @@ describe('AttendanceController', () => {
       expect(result).toEqual(attended);
     });
   });
+
+  describe('HTTP Route Integration (Supertest)', () => {
+    let app: INestApplication;
+    let mockAttendanceService: {
+      setAttendance: jest.Mock;
+      removeAttendance: jest.Mock;
+      getSummary: jest.Mock;
+      getMyMosques: jest.Mock;
+    };
+
+    beforeAll(async () => {
+      mockAttendanceService = {
+        setAttendance: jest.fn().mockResolvedValue(mockAttendance),
+        removeAttendance: jest.fn().mockResolvedValue({ success: true }),
+        getSummary: jest.fn().mockResolvedValue({ regularCount: 15, occasionalCount: 4, myStatus: null }),
+        getMyMosques: jest.fn().mockResolvedValue([{ mosqueId: 'mosque-1', status: AttendanceStatus.REGULAR }]),
+      };
+
+      const moduleRef: TestingModule = await Test.createTestingModule({
+        controllers: [AttendanceController],
+        providers: [
+          { provide: AttendanceService, useValue: mockAttendanceService },
+        ],
+      })
+        .overrideGuard(SlidingWindowRateLimitGuard)
+        .useValue({ canActivate: () => true })
+        .overrideGuard(AuthGuard)
+        .useValue({
+          canActivate: (context: ExecutionContext) => {
+            const req = context.switchToHttp().getRequest();
+            const reflector = new Reflector();
+            const isPublic = reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+              context.getHandler(),
+              context.getClass(),
+            ]);
+            if (isPublic) return true;
+
+            const authHeader = req.headers['authorization'];
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+              throw new UnauthorizedException('Authentication token missing or invalid');
+            }
+
+            req.user = mockUser;
+            return true;
+          },
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      app.useGlobalPipes(
+        new ValidationPipe({
+          whitelist: true,
+          transform: true,
+          forbidNonWhitelisted: true,
+        }),
+      );
+      await app.init();
+    });
+
+    afterAll(async () => {
+      await app.close();
+    });
+
+    it('GET /mosques/:id/attendance-summary - allows public access with 200', async () => {
+      const res = await request(app.getHttpServer()).get('/mosques/mosque-1/attendance-summary');
+      expect(res.status).toBe(200);
+      const data = res.body.data ?? res.body;
+      expect(data.regularCount).toBe(15);
+    });
+
+    it('PUT /mosques/:id/attendance - rejects unauthenticated requests with 401', async () => {
+      const res = await request(app.getHttpServer())
+        .put('/mosques/mosque-1/attendance')
+        .send({ status: AttendanceStatus.REGULAR });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('PUT /mosques/:id/attendance - rejects invalid status enum with 400', async () => {
+      const res = await request(app.getHttpServer())
+        .put('/mosques/mosque-1/attendance')
+        .set('Authorization', 'Bearer valid-jwt')
+        .send({ status: 'INVALID_ATTENDANCE' });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('PUT /mosques/:id/attendance - accepts valid payload with 200 when authenticated', async () => {
+      const res = await request(app.getHttpServer())
+        .put('/mosques/mosque-1/attendance')
+        .set('Authorization', 'Bearer valid-jwt')
+        .send({ status: AttendanceStatus.REGULAR });
+
+      expect(res.status).toBe(200);
+      const data = res.body.data ?? res.body;
+      expect(data.status).toBe(AttendanceStatus.REGULAR);
+    });
+
+    it('DELETE /mosques/:id/attendance - rejects unauthenticated requests with 401', async () => {
+      const res = await request(app.getHttpServer()).delete('/mosques/mosque-1/attendance');
+      expect(res.status).toBe(401);
+    });
+
+    it('DELETE /mosques/:id/attendance - succeeds with 200 when authenticated', async () => {
+      const res = await request(app.getHttpServer())
+        .delete('/mosques/mosque-1/attendance')
+        .set('Authorization', 'Bearer valid-jwt');
+
+      expect(res.status).toBe(200);
+      const data = res.body.data ?? res.body;
+      expect(data.success).toBe(true);
+    });
+
+    it('GET /attendance/my-mosques - rejects unauthenticated requests with 401', async () => {
+      const res = await request(app.getHttpServer()).get('/attendance/my-mosques');
+      expect(res.status).toBe(401);
+    });
+
+    it('GET /attendance/my-mosques - succeeds with 200 when authenticated', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/attendance/my-mosques')
+        .set('Authorization', 'Bearer valid-jwt');
+
+      expect(res.status).toBe(200);
+      const data = res.body.data ?? res.body;
+      expect(Array.isArray(data)).toBe(true);
+      expect(data[0].mosqueId).toBe('mosque-1');
+    });
+  });
 });
+
