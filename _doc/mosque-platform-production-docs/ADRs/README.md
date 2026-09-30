@@ -16,6 +16,8 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-008](ADR-008-infrastructure-stack-and-mongoose-removal.md) | Infrastructure Retentions (Redis, BullMQ, Cloudinary, Firebase Admin) and Complete Removal of Mongoose | Accepted | 2026-09-28 | Infrastructure & Persistence |
 | [ADR-009](ADR-009-staff-delegation.md) | Mosque Staff Delegation & Tiered Role Claim Governance | Accepted | 2026-09-29 | Authorization & Staff Governance |
 | [ADR-010](ADR-010-facilities-taxonomy.md) | Mosque Facilities & Accessibility Taxonomy | Accepted | 2026-09-30 | Domain Model & Spatial Search Filters |
+| [ADR-011](ADR-011-announcements.md) | Official Mosque Announcements Channel & Broadcast Governance | Accepted | 2026-09-30 | Community Broadcasts & Expiration |
+| [ADR-012](ADR-012-mosque-donations.md) | Verified Mosque Donation Information & Fraud Prevention | Accepted | 2026-09-30 | Finance & Two-Person Verification |
 
 ---
 
