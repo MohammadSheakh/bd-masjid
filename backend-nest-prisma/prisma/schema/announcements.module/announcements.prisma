@@ -1,0 +1,35 @@
+enum AnnouncementCategory {
+  GENERAL
+  JUMUAH_KHUTBAH
+  EMERGENCY_ALERT
+  RAMADAN
+  JANAZA
+  EID
+  MAINTENANCE
+}
+
+model MosqueAnnouncement {
+  id          String                @id @default(cuid())
+  mosqueId    String
+  mosque      Mosque                @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  title       String
+  content     String
+  category    AnnouncementCategory  @default(GENERAL)
+  isPinned    Boolean               @default(false)
+
+  // Scheduling and Expiration
+  expiresAt   DateTime?
+
+  // Author and Historical Provenance
+  authorId    String
+  author      User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorRole  String?
+
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([mosqueId, isPinned, createdAt])
+  @@index([category, createdAt])
+  @@index([expiresAt])
+}

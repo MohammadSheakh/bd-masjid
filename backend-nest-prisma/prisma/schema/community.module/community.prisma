@@ -65,23 +65,6 @@ model MosqueRoleClaim {
   @@index([userId])
 }
 
-model MosqueAnnouncement {
-  id        String   @id @default(cuid())
-  mosqueId  String
-  mosque    Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
-
-  title     String
-  content   String
-  isPinned  Boolean  @default(false)
-
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([mosqueId, isPinned, createdAt])
-}
 
 enum DonationMethodType {
   BKASH
