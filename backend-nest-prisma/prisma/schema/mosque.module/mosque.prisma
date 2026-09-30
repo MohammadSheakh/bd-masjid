@@ -61,6 +61,8 @@ model Mosque {
   donationMethods         MosqueDonationMethod[]
   donationChannels        MosqueDonationChannel[]
   bookmarks               MosqueBookmark[]
+  followers               MosqueFollower[]
+  notifications           UserNotification[]
 
   @@index([latitude, longitude])
   @@index([verificationStatus, operationalStatus, isDeleted])

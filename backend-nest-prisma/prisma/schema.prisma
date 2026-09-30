@@ -108,6 +108,8 @@ model User {
   submittedDonations  MosqueDonationChannel[] @relation("SubmittedDonations")
   verifiedDonations   MosqueDonationChannel[] @relation("VerifiedDonations")
   donationReports     DonationReport[]
+  followedMosques     MosqueFollower[]
+  notifications       UserNotification[]
 
 
   @@index([email, isDeleted])
@@ -547,12 +549,55 @@ model Mosque {
   donationMethods         MosqueDonationMethod[]
   donationChannels        MosqueDonationChannel[]
   bookmarks               MosqueBookmark[]
+  followers               MosqueFollower[]
+  notifications           UserNotification[]
 
   @@index([latitude, longitude])
   @@index([verificationStatus, operationalStatus, isDeleted])
   @@index([name, isDeleted])
   @@index([createdById])
   @@index([createdAt])
+}
+
+
+// Source: notifications.module/notifications.prisma
+enum NotificationType {
+  ANNOUNCEMENT
+  SCHEDULE_CHANGE
+  DONATION_UPDATE
+  PRAYER_REMINDER
+}
+
+model MosqueFollower {
+  id        String   @id @default(cuid())
+  mosqueId  String
+  mosque    Mosque   @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, mosqueId])
+  @@index([userId, createdAt])
+  @@index([mosqueId, createdAt])
+}
+
+model UserNotification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mosqueId  String
+  mosque    Mosque           @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String           @db.VarChar(150)
+  body      String           @db.Text
+  entityId  String?          @db.VarChar(100)
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead, createdAt])
+  @@index([userId, createdAt])
+  @@index([mosqueId, createdAt])
 }
 
 
