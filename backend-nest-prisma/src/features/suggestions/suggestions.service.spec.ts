@@ -100,7 +100,7 @@ describe('SuggestionsService', () => {
 
       await expect(
         service.createReport('nonexistent', {
-          type: ReportType.INCORRECT_LOCATION,
+          type: ReportType.LOCATION,
           description: 'Pin is 200m off',
         }),
       ).rejects.toThrow(NotFoundException);
@@ -111,14 +111,14 @@ describe('SuggestionsService', () => {
       mockPrisma.mosqueReport.create.mockResolvedValue({
         id: 'rep-1',
         mosqueId: 'mosque-1',
-        type: ReportType.INCORRECT_LOCATION,
+        type: ReportType.LOCATION,
         status: SuggestionStatus.OPEN,
       });
 
       const res = await service.createReport(
         'mosque-1',
         {
-          type: ReportType.INCORRECT_LOCATION,
+          type: ReportType.LOCATION,
           description: 'Pin is 200m off',
           contactEmail: 'reporter@example.com',
         },
@@ -129,7 +129,7 @@ describe('SuggestionsService', () => {
       expect(mockPrisma.mosqueReport.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           mosqueId: 'mosque-1',
-          type: ReportType.INCORRECT_LOCATION,
+          type: ReportType.LOCATION,
           status: SuggestionStatus.OPEN,
         }),
       });
