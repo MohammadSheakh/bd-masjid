@@ -6,16 +6,40 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend:
-    name: Backend — build & unit tests
+    name: Backend — PostGIS Migration Replay, Build & Tests
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: bd_masjid_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     defaults:
       run:
         working-directory: backend-nest-prisma
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
@@ -29,23 +53,37 @@ jobs:
           npm run prisma:schema:build
           npx prisma generate
         env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/bd_masjid_test"
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
 
-      - name: Production build
+      - name: Disposable PostGIS Migration Replay Check
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
+
+      - name: Production build (NestJS)
         run: npm run build
 
-      - name: Unit tests
-        run: npm test
+      - name: Automated test suites
+        run: npm test -- --coverage=false --forceExit
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
+          JWT_SECRET: "test-jwt-secret-for-ci-pipeline-min-32-chars-long"
+          NODE_ENV: test
 
   frontend:
-    name: Frontend — build & static optimization
+    name: Frontend — Turbopack Production Build & Typecheck
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: frontend
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
@@ -54,7 +92,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Production build
+      - name: Production build (Next.js Turbopack)
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:6733/api/v1
+          NODE_ENV: production

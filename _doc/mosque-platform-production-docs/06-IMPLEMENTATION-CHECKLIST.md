@@ -25,7 +25,7 @@ This checklist reflects the implementation progress against production requireme
 ## B. Database and migrations
 
 - [x] migration workflow established
-- [ ] migrations replay on disposable PostgreSQL/PostGIS
+- [x] migrations replay on disposable PostgreSQL/PostGIS
 - [x] no `db push` production repair workflow
 - [x] Mosque schema
 - [x] User schema
@@ -226,14 +226,14 @@ This checklist reflects the implementation progress against production requireme
 - [x] Jest
 - [x] `@nestjs/testing`
 - [x] Supertest
-- [ ] real disposable PostgreSQL/PostGIS
+- [x] real disposable PostgreSQL/PostGIS
 - [ ] Playwright
 - [x] unit
 - [x] integration
 - [ ] database
 - [x] HTTP E2E
 - [ ] browser E2E
-- [ ] migration tests
+- [x] migration tests
 - [x] authorization tests
 - [x] concurrency tests
 - [x] rollback tests
@@ -250,7 +250,7 @@ This checklist reflects the implementation progress against production requireme
 - [ ] integration tests
 - [ ] database tests
 - [x] build
-- [ ] migration validation
+- [x] migration validation
 - [ ] selected E2E
 - [ ] deploy strategy
 - [ ] smoke test
