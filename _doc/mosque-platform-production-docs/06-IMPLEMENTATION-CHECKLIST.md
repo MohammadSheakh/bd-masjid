@@ -95,7 +95,7 @@ This checklist reflects the implementation progress against production requireme
 - [x] created mosque marker visible
 - [x] created mosque profile accessible
 - [x] HTTP E2E
-- [ ] browser E2E
+- [x] browser E2E
 
 ## G. Nearby/search
 
@@ -227,12 +227,12 @@ This checklist reflects the implementation progress against production requireme
 - [x] `@nestjs/testing`
 - [x] Supertest
 - [x] real disposable PostgreSQL/PostGIS
-- [ ] Playwright
+- [x] Playwright
 - [x] unit
 - [x] integration
 - [ ] database
 - [x] HTTP E2E
-- [ ] browser E2E
+- [x] browser E2E
 - [x] migration tests
 - [x] authorization tests
 - [x] concurrency tests
@@ -251,9 +251,9 @@ This checklist reflects the implementation progress against production requireme
 - [ ] database tests
 - [x] build
 - [x] migration validation
-- [ ] selected E2E
+- [x] selected E2E
 - [ ] deploy strategy
-- [ ] smoke test
+- [x] smoke test
 - [ ] rollback strategy
 - [x] old/new app schema compatibility considered
 
@@ -282,7 +282,7 @@ Before first production release:
 - [x] operational logs/metrics exist
 - [x] health/readiness configured
 - [x] rollback documented
-- [ ] production smoke test passes
+- [x] production smoke test passes
 
 ## T. Definition of Done for every feature
 

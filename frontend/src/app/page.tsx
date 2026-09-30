@@ -187,7 +187,7 @@ export default function HomePage() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col md:flex-row h-[calc(100vh-61px)] overflow-hidden relative">
+      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-61px)] overflow-hidden relative">
         {/* Left Panel: Search, Filter, and Mosque List */}
         <div
           className={`flex-1 md:w-[420px] md:max-w-[420px] md:flex-none flex flex-col h-full bg-white border-r border-[#e8e8ea] z-10 ${
@@ -402,7 +402,7 @@ export default function HomePage() {
             <span>Map</span>
           </button>
         </div>
-      </div>
+      </main>
 
       {/* Mosque Full Details Modal */}
       {selectedMosque && (
