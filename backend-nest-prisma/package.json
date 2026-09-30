@@ -27,7 +27,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:integration": "jest --config ./test/jest-integration.json --runInBand",
-    "test:queue-smoke": "jest --config ./test/jest-queue-smoke.json --runInBand"
+    "test:queue-smoke": "jest --config ./test/jest-queue-smoke.json --runInBand",
+    "test:load": "node scripts/load-benchmark.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1050.0",
@@ -79,6 +80,7 @@
     "@types/node": "^24.0.0",
     "@types/pg": "^8.20.0",
     "@types/supertest": "^7.0.0",
+    "autocannon": "^8.0.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",

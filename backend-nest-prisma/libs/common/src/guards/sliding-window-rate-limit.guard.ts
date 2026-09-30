@@ -69,9 +69,24 @@ export class SlidingWindowRateLimitGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
 
+    // Allow authorized internal load benchmarks to test database connection pool saturation
+    const bypassToken = process.env.BENCHMARK_BYPASS_TOKEN;
+    if (
+      bypassToken &&
+      request.headers &&
+      request.headers['x-benchmark-bypass'] === bypassToken
+    ) {
+      return true;
+    }
+
     // Generate unique identifier
     const userId = request.user?.userId;
-    const ip = request.ip || request.connection.remoteAddress || 'unknown';
+    const forwarded = request.headers?.['x-forwarded-for'];
+    const ip =
+      (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : null) ||
+      request.ip ||
+      request.connection?.remoteAddress ||
+      'unknown';
     const identifier = userId ? `user:${userId}` : `ip:${ip}`;
 
     const keyPrefix = options.keyPrefix || 'default';

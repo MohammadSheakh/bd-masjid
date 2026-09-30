@@ -27,6 +27,7 @@ import { TwoFactorService } from './two-factor/two-factor.service';
   imports: [
     // JWT Module
     JwtModule.registerAsync({
+      global: true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

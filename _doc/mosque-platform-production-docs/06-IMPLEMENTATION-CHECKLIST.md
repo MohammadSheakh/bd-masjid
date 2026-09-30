@@ -109,7 +109,7 @@ This checklist reflects the implementation progress against production requireme
 - [x] search endpoint
 - [x] pagination
 - [x] index/query-plan review
-- [ ] representative load test
+- [x] representative load test
 
 ## H. Mosque profile
 
@@ -202,7 +202,7 @@ This checklist reflects the implementation progress against production requireme
 - [x] 4xx/5xx metrics
 - [x] auth failure metrics
 - [x] rate-limit metrics
-- [ ] DB pool/connection metrics
+- [x] DB pool/connection metrics
 - [x] query latency visibility
 - [x] PostGIS query latency
 - [ ] alert thresholds
@@ -219,7 +219,7 @@ This checklist reflects the implementation progress against production requireme
 - [x] idempotency defined for retryable mutations
 - [x] shutdown behavior tested
 - [x] DB unavailable behavior understood
-- [ ] DB pool saturation behavior tested
+- [x] DB pool saturation behavior tested
 
 ## P. Testing
 
@@ -239,7 +239,7 @@ This checklist reflects the implementation progress against production requireme
 - [x] rollback tests
 - [x] idempotency tests
 - [x] failure tests
-- [ ] load/performance baseline
+- [x] load/performance baseline
 
 ## Q. CI/CD
 
