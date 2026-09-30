@@ -34,7 +34,6 @@ import { CommunityService } from './community.service';
 import { AddStaffDto } from './dto/add-staff.dto';
 import { CreateRoleClaimDto } from './dto/create-claim.dto';
 import { ReviewRoleClaimDto } from './dto/review-claim.dto';
-import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { CreateDonationMethodDto } from './dto/create-donation.dto';
 import { ReviewDonationMethodDto } from './dto/review-donation.dto';
 
@@ -187,59 +186,6 @@ export class CommunityController {
     @CurrentUser() actor: UserPayload,
   ) {
     return this.communityService.reviewRoleClaim(claimId, dto, actor);
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // Announcements
-  // ──────────────────────────────────────────────────────────────────────────
-
-  @Get(['mosques/:id/announcements', 'community/:id/announcements'])
-  @Public()
-  @RateLimit({ windowMs: 60 * 1000, max: 60 })
-  @ApiOperation({
-    summary: 'List announcements for a mosque',
-    description: 'Public list of official announcements and notices',
-  })
-  @ApiParam({ name: 'id', description: 'Mosque UUID' })
-  async getAnnouncements(@Param('id') mosqueId: string) {
-    return this.communityService.getAnnouncements(mosqueId);
-  }
-
-  @Post(['mosques/:id/announcements', 'community/:id/announcements'])
-  @ApiBearerAuth()
-  @RateLimit({ windowMs: 60 * 1000, max: 15 })
-  @ApiOperation({
-    summary: 'Post an official announcement',
-    description: 'Allowed for verified mosque staff/committee or admins',
-  })
-  @ApiParam({ name: 'id', description: 'Mosque UUID' })
-  async createAnnouncement(
-    @Param('id') mosqueId: string,
-    @Body() dto: CreateAnnouncementDto,
-    @CurrentUser() actor: UserPayload,
-  ) {
-    return this.communityService.createAnnouncement(mosqueId, dto, actor);
-  }
-
-  @Delete(['mosques/:id/announcements/:announcementId', 'community/:id/announcements/:announcementId'])
-  @ApiBearerAuth()
-  @RateLimit({ windowMs: 60 * 1000, max: 15 })
-  @ApiOperation({
-    summary: 'Delete an announcement',
-    description: 'Author or admin can delete an announcement',
-  })
-  @ApiParam({ name: 'id', description: 'Mosque UUID' })
-  @ApiParam({ name: 'announcementId', description: 'Announcement UUID' })
-  async deleteAnnouncement(
-    @Param('id') mosqueId: string,
-    @Param('announcementId') announcementId: string,
-    @CurrentUser() actor: UserPayload,
-  ) {
-    return this.communityService.deleteAnnouncement(
-      mosqueId,
-      announcementId,
-      actor,
-    );
   }
 
   // ──────────────────────────────────────────────────────────────────────────
