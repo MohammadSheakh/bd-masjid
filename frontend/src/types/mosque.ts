@@ -80,12 +80,35 @@ export interface MosqueRoleClaim {
   createdAt: string;
 }
 
+export type AnnouncementCategory =
+  | 'GENERAL'
+  | 'JUMUAH_KHUTBAH'
+  | 'EMERGENCY_ALERT'
+  | 'RAMADAN'
+  | 'JANAZA'
+  | 'EID'
+  | 'MAINTENANCE';
+
 export interface MosqueAnnouncement {
   id: string;
+  mosqueId?: string;
+  mosqueName?: string;
+  city?: string;
+  distanceMeters?: number;
   title: string;
   content: string;
+  category: AnnouncementCategory;
   isPinned: boolean;
+  expiresAt?: string | null;
+  authorId?: string;
+  authorRole?: string | null;
+  author?: {
+    id: string;
+    name: string;
+  };
+  authorName?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export type DonationMethodType =

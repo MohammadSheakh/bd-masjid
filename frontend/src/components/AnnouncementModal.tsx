@@ -75,9 +75,9 @@ export function AnnouncementModal({
         type: 'success',
         text: 'Announcement posted successfully!',
       });
-      setAnnouncements((prev) => [result.data, ...prev]);
+      setAnnouncements((prev) => [result.data as MosqueAnnouncement, ...prev]);
       if (onAnnouncementCreated) {
-        onAnnouncementCreated(result.data);
+        onAnnouncementCreated(result.data as MosqueAnnouncement);
       }
       setTitle('');
       setContent('');

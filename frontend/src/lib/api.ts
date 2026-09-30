@@ -1,6 +1,8 @@
 import {
   Mosque,
   MosqueFacility,
+  MosqueAnnouncement,
+  AnnouncementCategory,
   DuplicateCandidate,
   AttendanceSummary,
   MosqueRoleClaim,
@@ -480,9 +482,26 @@ export async function addMosqueStaff(
   }
 }
 
-export async function fetchMosqueAnnouncements(mosqueId: string) {
+export async function fetchMosqueAnnouncements(
+  mosqueId: string,
+  options?: { category?: string; includeExpired?: boolean },
+): Promise<MosqueAnnouncement[]> {
   try {
-    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/announcements`);
+    const params = new URLSearchParams();
+    if (options?.category) params.set('category', options.category);
+    if (options?.includeExpired) params.set('includeExpired', 'true');
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+
+    const headers: Record<string, string> = {};
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/announcements${queryString}`, {
+      headers,
+    });
     if (!res.ok) return [];
     const json = await res.json();
     return json.data || json || [];
@@ -493,12 +512,29 @@ export async function fetchMosqueAnnouncements(mosqueId: string) {
 
 export async function createMosqueAnnouncement(
   mosqueId: string,
-  data: { title: string; content: string; isPinned?: boolean },
-) {
+  data: {
+    title: string;
+    content: string;
+    category?: AnnouncementCategory;
+    isPinned?: boolean;
+    expiresAt?: string;
+  },
+  token?: string,
+): Promise<{ success: boolean; data?: MosqueAnnouncement; error?: string }> {
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const activeToken =
+      token ||
+      (typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null);
+    if (activeToken) {
+      headers['Authorization'] = `Bearer ${activeToken}`;
+    }
+
     const res = await fetch(`${API_BASE}/mosques/${mosqueId}/announcements`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
     });
     const json = await res.json();
@@ -511,18 +547,101 @@ export async function createMosqueAnnouncement(
   }
 }
 
+export async function updateMosqueAnnouncement(
+  announcementId: string,
+  data: {
+    title?: string;
+    content?: string;
+    category?: AnnouncementCategory;
+    isPinned?: boolean;
+    expiresAt?: string | null;
+  },
+  token?: string,
+): Promise<{ success: boolean; data?: MosqueAnnouncement; error?: string }> {
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const activeToken =
+      token ||
+      (typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null);
+    if (activeToken) {
+      headers['Authorization'] = `Bearer ${activeToken}`;
+    }
+
+    const res = await fetch(`${API_BASE}/announcements/${announcementId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to update announcement' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
 export async function deleteMosqueAnnouncement(
   mosqueId: string,
   announcementId: string,
-) {
+  token?: string,
+): Promise<boolean> {
   try {
+    const headers: Record<string, string> = {};
+    const activeToken =
+      token ||
+      (typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null);
+    if (activeToken) {
+      headers['Authorization'] = `Bearer ${activeToken}`;
+    }
+
     const res = await fetch(
-      `${API_BASE}/mosques/${mosqueId}/announcements/${announcementId}`,
-      { method: 'DELETE' },
+      `${API_BASE}/announcements/${announcementId}`,
+      { method: 'DELETE', headers },
     );
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+export async function fetchAnnouncementsFeed(options?: {
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+  category?: AnnouncementCategory;
+  emergencyOnly?: boolean;
+  bookmarkedOnly?: boolean;
+}): Promise<MosqueAnnouncement[]> {
+  try {
+    const params = new URLSearchParams();
+    if (options?.lat !== undefined) params.set('lat', options.lat.toString());
+    if (options?.lng !== undefined) params.set('lng', options.lng.toString());
+    if (options?.radiusKm !== undefined) params.set('radiusKm', options.radiusKm.toString());
+    if (options?.category) params.set('category', options.category);
+    if (options?.emergencyOnly) params.set('emergencyOnly', 'true');
+    if (options?.bookmarkedOnly) params.set('bookmarkedOnly', 'true');
+
+    const headers: Record<string, string> = {};
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/announcements/feed?${params.toString()}`, {
+      headers,
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || json || [];
+  } catch {
+    return [];
   }
 }
 
