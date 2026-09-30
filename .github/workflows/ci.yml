@@ -38,35 +38,48 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Setup Node.js 20 LTS
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: backend-nest-prisma/package-lock.json
+          cache: pnpm
+          cache-dependency-path: backend-nest-prisma/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build Prisma schema & generate client
         run: |
-          npm run prisma:schema:build
-          npx prisma generate
+          pnpm run prisma:schema:build
+          pnpm run prisma:generate
         env:
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
 
       - name: Disposable PostGIS Migration Replay Check
-        run: npx prisma migrate deploy
+        run: pnpm run prisma:migrate:deploy
         env:
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
 
       - name: Production build (NestJS)
-        run: npm run build
+        run: pnpm run build
 
-      - name: Automated test suites
-        run: npm test -- --coverage=false --forceExit
+      - name: Automated unit test suites
+        run: pnpm test -- --coverage=false --forceExit
         env:
           DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
+          JWT_SECRET: "test-jwt-secret-for-ci-pipeline-min-32-chars-long"
+          NODE_ENV: test
+
+      - name: Disposable PostGIS integration & database tests
+        run: pnpm run test:integration --forceExit
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
+          TEST_DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
           JWT_SECRET: "test-jwt-secret-for-ci-pipeline-min-32-chars-long"
           NODE_ENV: test
 

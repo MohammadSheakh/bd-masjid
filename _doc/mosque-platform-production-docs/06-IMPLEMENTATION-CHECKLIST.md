@@ -230,7 +230,7 @@ This checklist reflects the implementation progress against production requireme
 - [x] Playwright
 - [x] unit
 - [x] integration
-- [ ] database
+- [x] database
 - [x] HTTP E2E
 - [x] browser E2E
 - [x] migration tests
@@ -247,8 +247,8 @@ This checklist reflects the implementation progress against production requireme
 - [x] typecheck
 - [x] lint
 - [x] unit tests
-- [ ] integration tests
-- [ ] database tests
+- [x] integration tests
+- [x] database tests
 - [x] build
 - [x] migration validation
 - [x] selected E2E
