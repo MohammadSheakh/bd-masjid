@@ -2,7 +2,7 @@
 id: F-022
 name: Official Mosque Announcements Channel
 phase: 2
-status: planned
+status: completed
 
 depends_on:
   - F-001
@@ -273,48 +273,62 @@ Every mutation writes an `AuditLog` row in the same transaction:
 ## 6. Actionable Implementation Checklist
 
 ### Backend Engineering (`backend-nest-prisma/`)
-- [ ] Create `prisma/schema/announcements.module/announcements.prisma` with `AnnouncementCategory` enum and expanded fields (`category`, `expiresAt`, `authorRole`).
-- [ ] Remove legacy `MosqueAnnouncement` from `community.prisma` and execute clean Prisma migration (`announcements_channel_release2`).
-- [ ] Create `AnnouncementsModule`, `AnnouncementsService`, and `AnnouncementsController` in `src/features/announcements/`.
-- [ ] Implement DTOs: `CreateAnnouncementDto`, `UpdateAnnouncementDto`, `GetAnnouncementsQueryDto`, `AnnouncementsFeedQueryDto` with `class-validator`.
-- [ ] Enforce RBAC permissions: verify staff active status, restrict `EMERGENCY_ALERT`, authorize owner/admin mutations.
-- [ ] Enforce max 3 pinned announcements business invariant.
-- [ ] Implement zero-extra-infra PostgreSQL queries for lazy expiration and PostGIS nearby spatial feed.
-- [ ] Add route aliases ensuring backward compatibility for `/mosques/:id/announcements` and `/community/:id/announcements`.
-- [ ] Implement unit tests in `announcements.service.spec.ts` covering happy paths, unauthorized attempts, emergency restriction, pin limits, and lazy expiration.
+- [x] Create `prisma/schema/announcements.module/announcements.prisma` with `AnnouncementCategory` enum and expanded fields (`category`, `expiresAt`, `authorRole`).
+- [x] Remove legacy `MosqueAnnouncement` from `community.prisma` and execute clean Prisma migration (`announcements_channel_release2`).
+- [x] Create `AnnouncementsModule`, `AnnouncementsService`, and `AnnouncementsController` in `src/features/announcements/`.
+- [x] Implement DTOs: `CreateAnnouncementDto`, `UpdateAnnouncementDto`, `GetAnnouncementsQueryDto`, `AnnouncementsFeedQueryDto` with `class-validator`.
+- [x] Enforce RBAC permissions: verify staff active status, restrict `EMERGENCY_ALERT`, authorize owner/admin mutations.
+- [x] Enforce max 3 pinned announcements business invariant.
+- [x] Implement zero-extra-infra PostgreSQL queries for lazy expiration and PostGIS nearby spatial feed.
+- [x] Add route aliases ensuring backward compatibility for `/mosques/:id/announcements` and `/community/:id/announcements`.
+- [x] Implement unit tests in `announcements.service.spec.ts` covering happy paths, unauthorized attempts, emergency restriction, pin limits, and lazy expiration.
 
 ### Frontend Engineering (`frontend/`)
-- [ ] Update TypeScript definitions in `frontend/src/types/mosque.ts` with `AnnouncementCategory` and new fields.
-- [ ] Update API client in `frontend/src/lib/api.ts` with typed methods (`fetchMosqueAnnouncements`, `createMosqueAnnouncement`, `updateMosqueAnnouncement`, `deleteMosqueAnnouncement`, `fetchAnnouncementsFeed`).
-- [ ] Build `MosqueAnnouncementsCard` on `/mosques/[id]` adhering to Ferio visual tokens:
+- [x] Update TypeScript definitions in `frontend/src/types/mosque.ts` with `AnnouncementCategory` and new fields.
+- [x] Update API client in `frontend/src/lib/api.ts` with typed methods (`fetchMosqueAnnouncements`, `createMosqueAnnouncement`, `updateMosqueAnnouncement`, `deleteMosqueAnnouncement`, `fetchAnnouncementsFeed`).
+- [x] Build `MosqueAnnouncementsCard` on `/mosques/[id]` adhering to Ferio visual tokens:
   - High-visibility red emergency banner for active `EMERGENCY_ALERT`.
   - Distinct color-coded pills for categories (`JUMUAH_KHUTBAH`, `JANAZA`, `MAINTENANCE`, `RAMADAN`, `EID`, `GENERAL`).
   - Author attribution badge ("Posted by Imam", "Posted by Mosque Admin").
   - Filter tabs by category.
-- [ ] Upgrade `AnnouncementModal` for verified staff to support category selection, expiration date picker, and edit capabilities.
-- [ ] Add unit/build verification ensuring zero TypeScript or Next.js build errors.
+- [x] Upgrade `AnnouncementModal` for verified staff to support category selection, expiration date picker, and edit capabilities.
+- [x] Add unit/build verification ensuring zero TypeScript or Next.js build errors.
 
 ---
 
 ## 7. Implementation Slices & Proof Matrix
 
 ### TK-ANN-01: Announcements Backend Domain, Schema, RBAC & Geospatial Feed
-- **Status**: `[ ] Planned` | **Priority**: Critical
+- **Status**: `[x] Completed` | **Priority**: Critical
 - **Description**: Modularize announcement schema, add migration, implement `AnnouncementsModule`, enforce role-governed mutation & pin constraints, and build the PostGIS discovery feed.
 - **Acceptance Criteria**:
-  - [ ] Migration applies cleanly and updates `MosqueAnnouncement` table with `category`, `expiresAt`, and `authorRole`.
-  - [ ] `POST /api/v1/mosques/:id/announcements` forbids unverified users and restricts `EMERGENCY_ALERT` to admins/presidents.
-  - [ ] Maximum 3 pinned announcements constraint enforced.
-  - [ ] Expired announcements automatically excluded from public reads.
-  - [ ] PostGIS spatial feed query returns nearby announcements within sub-50ms latency.
-  - [ ] Full automated test suite passes (`npm test`).
+  - [x] Migration applies cleanly and updates `MosqueAnnouncement` table with `category`, `expiresAt`, and `authorRole`.
+  - [x] `POST /api/v1/mosques/:id/announcements` forbids unverified users and restricts `EMERGENCY_ALERT` to admins/presidents.
+  - [x] Maximum 3 pinned announcements constraint enforced.
+  - [x] Expired announcements automatically excluded from public reads.
+  - [x] PostGIS spatial feed query returns nearby announcements within sub-50ms latency.
+  - [x] Full automated test suite passes (`pnpm test`).
+- **Implementation Files**:
+  - Schema: `backend-nest-prisma/prisma/schema/announcements.module/announcements.prisma`
+  - Migration: `backend-nest-prisma/prisma/migrations/20260930160000_announcements_channel_release2/migration.sql`
+  - DTOs: `backend-nest-prisma/src/features/announcements/dto/`
+  - Service: `backend-nest-prisma/src/features/announcements/announcements.service.ts`
+  - Controller: `backend-nest-prisma/src/features/announcements/announcements.controller.ts`
+  - Module: `backend-nest-prisma/src/features/announcements/announcements.module.ts`
+  - Tests: `backend-nest-prisma/src/features/announcements/announcements.service.spec.ts`
 
 ### TK-ANN-02: Ferio Frontend Announcements Feed, Emergency Banner & Staff Modal
-- **Status**: `[ ] Planned` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Build rich, accessible announcements card on the mosque profile with category tabs, emergency alert styling, verified author badge, and staff management interface.
 - **Acceptance Criteria**:
-  - [ ] Mosque page displays pinned announcements and categorized feed clearly.
-  - [ ] Emergency alerts display high-visibility alert banner.
-  - [ ] Verified staff see "Post Notice" / "Manage" controls opening updated modal.
-  - [ ] Responsive across mobile and desktop viewports with zero layout shift.
-  - [ ] Production build passes (`npm run build`).
+  - [x] Mosque page displays pinned announcements and categorized feed clearly.
+  - [x] Emergency alerts display high-visibility alert banner.
+  - [x] Verified staff see "Post Notice" / "Manage" controls opening updated modal.
+  - [x] Responsive across mobile and desktop viewports with zero layout shift.
+  - [x] Production build passes (`pnpm build`).
+- **Implementation Files**:
+  - Types: `frontend/src/types/mosque.ts`
+  - API: `frontend/src/lib/api.ts`
+  - Card: `frontend/src/components/MosqueAnnouncementsCard.tsx`
+  - Modal: `frontend/src/components/AnnouncementModal.tsx`
+  - Profile Page: `frontend/src/app/mosques/[id]/page.tsx`
