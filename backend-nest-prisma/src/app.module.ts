@@ -17,6 +17,7 @@ import { CommunityModule } from './features/community/community.module';
 import { FacilitiesModule } from './features/facilities/facilities.module';
 import { AnnouncementsModule } from './features/announcements/announcements.module';
 import { DonationsModule } from './features/donations/donations.module';
+import { NotificationsModule } from './features/notifications/notifications.module';
 
 /**
  * Application Root Module - Mosque Information & Community Platform
@@ -39,6 +40,7 @@ import { DonationsModule } from './features/donations/donations.module';
     FacilitiesModule,
     AnnouncementsModule,
     DonationsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
