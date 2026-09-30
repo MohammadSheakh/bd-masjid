@@ -23,6 +23,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-015](ADR-015-database-backup-retention-and-disaster-recovery.md) | Database Backup, Retention Policy, and Disaster Recovery Architecture | Accepted | 2026-09-30 | Backups, Disaster Recovery, RPO/RTO & Drills |
 | [ADR-016](ADR-016-browser-end-to-end-testing-with-playwright.md) | Browser End-to-End Testing with Playwright | Accepted | 2026-09-30 | Testing, Browser Automation & Playwright |
 | [ADR-017](ADR-017-spatial-search-and-api-performance-baseline.md) | PostGIS Spatial Search and API Load Performance Baseline | Accepted | 2026-09-30 | Performance, Load Testing & PostGIS Baseline |
+| [ADR-018](ADR-018-production-deployment-and-zero-downtime-rollback.md) | Production Deployment and Zero-Downtime Rollback Strategy | Accepted | 2026-09-30 | Operations, Deployments, Docker & Rollback |
 
 ---
 

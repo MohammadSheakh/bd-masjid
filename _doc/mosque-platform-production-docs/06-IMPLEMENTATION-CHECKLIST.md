@@ -252,9 +252,9 @@ This checklist reflects the implementation progress against production requireme
 - [x] build
 - [x] migration validation
 - [x] selected E2E
-- [ ] deploy strategy
+- [x] deploy strategy
 - [x] smoke test
-- [ ] rollback strategy
+- [x] rollback strategy
 - [x] old/new app schema compatibility considered
 
 ## R. Backup/recovery

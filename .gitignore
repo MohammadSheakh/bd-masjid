@@ -54,3 +54,6 @@ test-results/
 backups/*.dump
 backups/*.sql
 
+# Deployment state
+.last_successful_deployment
+

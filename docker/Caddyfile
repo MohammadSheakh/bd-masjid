@@ -1,0 +1,46 @@
+# ==============================================================================
+# Mosque Information & Community Platform — Production Caddy Reverse Proxy
+# ADR-018 & Feature F-017
+# ==============================================================================
+
+{$DOMAIN:localhost} {
+    # Automated Let's Encrypt TLS (managed natively by Caddy)
+    encode zstd gzip
+
+    # Security Headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+    }
+
+    # REST API & Health Probes -> NestJS Backend
+    handle /api/* {
+        reverse_proxy 127.0.0.1:6733 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Real-Time WebSockets -> Socket.IO Gateway
+    handle /socket.io/* {
+        reverse_proxy 127.0.0.1:6733 {
+            header_up Upgrade {>Upgrade}
+            header_up Connection {>Connection}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+        }
+    }
+
+    # Frontend Web Application -> Next.js
+    handle {
+        reverse_proxy 127.0.0.1:3005 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+}
