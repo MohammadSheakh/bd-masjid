@@ -2,7 +2,7 @@
 id: F-030
 name: Verified Mosque Donation Information & Fraud Prevention
 phase: 3
-status: planned
+status: completed
 
 depends_on:
   - F-001
@@ -221,31 +221,31 @@ model DonationReport {
 
 ## 5. Extracted Implementation Checklist
 
-- [ ] Modular Prisma schema (`donations.prisma`) and build script sync (`prisma:schema:build`)
-- [ ] Backend feature module (`src/features/donations/`) with strict `class-validator` DTOs
-- [ ] Two-person verification service enforcing `createdById !== verifiedById`
-- [ ] Atomic audit logging for all channel state transitions
-- [ ] Community fraud report submission and dispute counter increment
-- [ ] Unit tests covering submission, two-person approval, self-approval blockage (403), and report logging
-- [ ] Ferio frontend donation cards with 1-click copy, brand color badges, and purpose tags
-- [ ] Verification provenance pill (`Verified by Imam [Name] on [Date]`)
-- [ ] Staff submission and Imam approval console with pending queues
-- [ ] Community fraud report modal
+- [x] Modular Prisma schema (`donations.prisma`) and build script sync (`prisma:schema:build`)
+- [x] Backend feature module (`src/features/donations/`) with strict `class-validator` DTOs
+- [x] Two-person verification service enforcing `createdById !== verifiedById`
+- [x] Atomic audit logging for all channel state transitions
+- [x] Community fraud report submission and dispute counter increment
+- [x] Unit tests covering submission, two-person approval, self-approval blockage (403), and report logging
+- [x] Ferio frontend donation cards with 1-click copy, brand color badges, and purpose tags
+- [x] Verification provenance pill (`Verified by Imam [Name] on [Date]`)
+- [x] Staff submission and Imam approval console with pending queues
+- [x] Community fraud report modal
 
 ---
 
 ## 6. Implementation Slices & Proof Matrix
 
 ### TK-DON-01: Donations Backend Schema, Two-Person Verification Service, RBAC & APIs
-- **Status**: `[ ] Pending` | **Priority**: Critical
+- **Status**: `[x] Completed` | **Priority**: Critical
 - **Description**: Implement PostgreSQL/Prisma persistence, two-person verification service invariants, role governance, and REST endpoints.
 - **Acceptance Criteria**:
-  - [ ] `MosqueDonationChannel` and `DonationReport` tables migrated cleanly in PostgreSQL.
-  - [ ] Draft channel created in `PENDING_VERIFICATION` status.
-  - [ ] Only verified Imam or Mosque Admin can approve (`VERIFIED`), and cannot be the submitter.
-  - [ ] Public endpoint exclusively lists `VERIFIED` channels unless caller is authorized staff.
-  - [ ] Community report submission increments `disputeCount` and records `DonationReport`.
-  - [ ] Comprehensive unit & integration tests passing with 100% assertion coverage.
+  - [x] `MosqueDonationChannel` and `DonationReport` tables migrated cleanly in PostgreSQL.
+  - [x] Draft channel created in `PENDING_VERIFICATION` status.
+  - [x] Only verified Imam or Mosque Admin can approve (`VERIFIED`), and cannot be the submitter.
+  - [x] Public endpoint exclusively lists `VERIFIED` channels unless caller is authorized staff.
+  - [x] Community report submission increments `disputeCount` and records `DonationReport`.
+  - [x] Comprehensive unit & integration tests passing with 100% assertion coverage.
 - **Implementation Files**:
   - Schema: `backend-nest-prisma/prisma/schema/donations.module/donations.prisma`
   - Module: `backend-nest-prisma/src/features/donations/donations.module.ts`
@@ -254,18 +254,18 @@ model DonationReport {
   - Tests: `backend-nest-prisma/src/features/donations/donations.service.spec.ts`
 
 ### TK-DON-02: Ferio Frontend Donation Directory, 1-Click Copy Cards, Submit/Approve Modals & Fraud Reporting
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Deliver accessible, responsive Ferio UI components for displaying official donation accounts, copying account numbers, reviewing verification provenance, and handling staff submission and approvals.
 - **Acceptance Criteria**:
-  - [ ] Mosque profile displays an interactive "Donations" tab with branded channel cards.
-  - [ ] Channel cards display 1-click copy button with toast feedback and purpose badge.
-  - [ ] Cards display explicit verification provenance pill (`Verified by Imam [Name] on [Date]`).
-  - [ ] Disputed accounts display an "Under Investigation" warning banner.
-  - [ ] Authorized staff can submit draft accounts via modal; Imams can review and approve pending drafts.
-  - [ ] Zero TypeScript or build errors in Next.js (`pnpm build`).
+  - [x] Mosque profile displays an interactive "Donations" tab with branded channel cards.
+  - [x] Channel cards display 1-click copy button with toast feedback and purpose badge.
+  - [x] Cards display explicit verification provenance pill (`Verified by Imam [Name] on [Date]`).
+  - [x] Disputed accounts display an "Under Investigation" warning banner.
+  - [x] Authorized staff can submit draft accounts via modal; Imams can review and approve pending drafts.
+  - [x] Zero TypeScript or build errors in Next.js (`pnpm build`).
 - **Implementation Files**:
   - Component: `frontend/src/components/donations/DonationChannelCard.tsx`
   - Component: `frontend/src/components/donations/AddDonationModal.tsx`
-  - Component: `frontend/src/components/donations/PendingDonationApprovalList.tsx`
+  - Component: `frontend/src/components/donations/MosqueDonationsDirectory.tsx`
   - Component: `frontend/src/components/donations/ReportDonationModal.tsx`
   - API Client: `frontend/src/lib/api/donations.ts`
