@@ -87,17 +87,14 @@ Donation information receives additional fraud/security review.
 
 ---
 
-## Release 4 — Mobile
+## Release 4 — Mobile (Deferred — Develop Later)
 
-Use the same versioned NestJS API where appropriate.
+> [!NOTE]
+> **Status**: **Deferred — Develop Later**.
+> Mobile application clients (Android/iOS) and mobile-specific client generation are explicitly scheduled for development in a future phase after the web platform reaches complete operational maturity (backups, recovery drills, and browser E2E testing).
+> AI agents MUST NOT suggest or initiate mobile development work during current milestones.
 
-Add Android/iOS clients without moving business authorization/invariants into the
-mobile application.
-
-Review:
-
-- mobile token/session handling
-- push notifications
-- location permissions
-- background location policy
-- offline/degraded behavior
+When scheduled for future development:
+- Use the same versioned NestJS API where appropriate.
+- Add Android/iOS clients without moving business authorization/invariants into the mobile application.
+- Review mobile token/session handling, push notifications, location permissions, background location policy, and offline/degraded behavior.

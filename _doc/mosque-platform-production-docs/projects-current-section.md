@@ -19,30 +19,30 @@ All primary Release 1 feature verticals, Release 2 governance & facilities verti
 
 ## 2. Explicitly Excluded / Deferred Scope (AI Agent Notice)
 > [!IMPORTANT]
-> The following items are explicitly **excluded from the active roadmap and deferred indefinitely**:
+> The following items are explicitly **excluded from current work / deferred for later**:
+> - **Mobile Application (Release 4 Android/iOS)**: **Deferred — To be developed later** after the web platform is production-hardened.
 > - **Volunteer Roster Coordination (`F-023`)**: Not needed.
 > - **Multiple Jamaat Shifts / Timetables**: Standard single Jamaat per Waqt (`F-007`) is sufficient.
 > - **Jumu'ah Special Schedule Tables**: Covered via standard prayer times and announcements.
 > - **Ramadan Schedules & Timetables**: Handled via standard announcements (`F-022`).
 > - **External Push Worker Daemons (BullMQ / Redis)**: Not needed; in-app notifications (`F-031`) suffice.
 >
-> AI agents MUST NOT suggest, propose, or initiate development tasks for the items above.
+> AI agents MUST NOT suggest, propose, or initiate development tasks for the items above during the current phase.
 
 ---
 
 ## 3. Test & Verification Baseline
-- **Backend Test Suites**: Passing automated unit, service, controller, and gateway test suites (`npm test` in `backend-nest-prisma/`).
+- **Backend Test Suites**: 26 test suites, 130 tests passing (`npm test` in `backend-nest-prisma/`).
 - **Backend Production Build**: Clean build (`npm run build` succeeds).
 - **Frontend Production Build**: Clean Turbopack production build (`npm run build` succeeds).
 - **Frontend Routes**: Home (`/`), Standalone Mosque Profile (`/mosques/[id]`), Admin Dashboard (`/admin`), Profile (`/profile`).
+- **CI/CD Pipeline**: GitHub Actions with ephemeral PostGIS container, migration replay check (`prisma migrate deploy`), automated tests, and Turbopack build (`F-013`).
 
 ---
 
 ## 4. Immediate Next Milestones
-1. **Automated CI/CD Integration**:
-   - Disposable PostgreSQL + PostGIS test container in GitHub Actions workflow.
-   - Database migration replay check (`prisma migrate deploy`).
-2. **Browser End-to-End Testing**:
+1. **Automated Database Backup, Retention & Disaster Recovery Drill**:
+   - Automated `pg_dump` snapshot script (`scripts/backup-db.sh`), compression, retention rotation.
+   - Restoration script (`scripts/restore-db.sh`) and verified disaster recovery drill exercising RPO/RTO.
+2. **Browser End-to-End Testing (Playwright)**:
    - Playwright automated smoke suite covering the full user flow (Pin-drop creation -> Search -> Profile inspection -> Suggestion submission -> Admin verification -> Follow & Notification).
-3. **Staging Environment & Backup Drill**:
-   - Automated `pg_dump` snapshot script, offsite upload, and restoration drill.
