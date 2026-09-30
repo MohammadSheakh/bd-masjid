@@ -35,3 +35,11 @@ what is the next task then ? is spec is already created for that ?
 
 
 option A .. implement and dont generate huge 1000 line code then commit .. lets say 100 line code then commit [SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/git-commit-push/SKILL.md)  . make sure about production grade work . [02-SYSTEM-ARCHITECTURE.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/_doc/mosque-platform-production-docs/02-SYSTEM-ARCHITECTURE.md)  to [08-PRODUCTION-ENGINEERING-STANDARD.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/_doc/mosque-platform-production-docs/08-PRODUCTION-ENGINEERING-STANDARD.md)  . keep in mind these docs 
+
+======================>
+
+we dont need volunteer roster coordiation , multi-jamat, jumua'h and ramadan schedule now .. so .. add this point to those document .. so that ai agent will not talking these point again to develop
+
+=========================>
+
+

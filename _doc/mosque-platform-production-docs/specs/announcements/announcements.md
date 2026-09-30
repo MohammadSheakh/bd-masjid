@@ -14,7 +14,6 @@ blocks: []
 
 parallel_with:
   - F-021
-  - F-023
 
 source:
   - 01-PRD-PRODUCTION.md#verified-mosque-community-roles

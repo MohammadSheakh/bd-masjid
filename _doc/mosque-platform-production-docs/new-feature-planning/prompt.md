@@ -153,13 +153,12 @@ Please execute our production release gate:
 
 ---
 
-## Ready-to-Paste Kickoff Prompts for Release 2
+## Release 2 & 3 Completed Features
+- **Mosque Staff Delegation & Role Claim Governance** (`F-020`, `ADR-009`) — Completed
+- **Enhanced Mosque Facilities & Capacity Taxonomy** (`F-021`, `ADR-010`) — Completed
+- **Official Mosque Announcements Channel** (`F-022`, `ADR-011`) — Completed
+- **Verified Mosque Donations** (`F-030`, `ADR-012`) — Completed
+- **Mosque Follows & Real-time Notifications** (`F-031`, `ADR-013`) — Completed
 
-### Option A: Mosque Staff Delegation & Role Claim Governance
-> "We are starting Release 2. Feature Slice: Mosque Staff Delegation & Role Claim Governance (slug: `staff-delegation`, ADR: `ADR-009`). Please initiate the interactive /grill-me session following Stage 1 of `_doc/mosque-platform-production-docs/new-feature-planning/prompt.md`."
-
-### Option B: Enhanced Mosque Facilities & Capacity Taxonomy
-> "We are starting Release 2. Feature Slice: Enhanced Mosque Facilities & Capacity Taxonomy (slug: `facility-taxonomy`, ADR: `ADR-009`). Please initiate the interactive /grill-me session following Stage 1 of `_doc/mosque-platform-production-docs/new-feature-planning/prompt.md`."
-
-### Option C: Volunteer Roster & Event Coordination
-> "We are starting Release 2. Feature Slice: Volunteer Roster & Event Coordination (slug: `volunteer-roster`, ADR: `ADR-009`). Please initiate the interactive /grill-me session following Stage 1 of `_doc/mosque-platform-production-docs/new-feature-planning/prompt.md`."
+> [!NOTE]
+> Volunteer Roster Coordination (`F-023`), Multi-Jamaat shifts, and Ramadan scheduling tables are explicitly excluded from roadmap scope by project owner directive. Do not propose or initiate sessions for them.

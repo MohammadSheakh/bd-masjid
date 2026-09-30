@@ -49,7 +49,7 @@ flowchart TD
         F020["F-020: Staff Delegation & Role Claims"]
         F021["F-021: Facilities Taxonomy"]
         F022["F-022: Official Announcements"]
-        F023["F-023: Volunteer Roster"]
+        %% F023 Volunteer Roster is DEFERRED / OUT OF SCOPE
     end
 
     P0 -->|Foundation Gates Passed| P1
@@ -211,14 +211,22 @@ flowchart TD
 
 | Feature ID | Feature Name | Primary Focus | Concurrent Track | Spec Link |
 | :--- | :--- | :--- | :---: | :--- |
-| **F-020** | Staff Delegation & Governance | Mosque-scoped role claims, verification proof upload, mutawalli administrative console | **Track 6-A** | [specs/README.md#f-020](specs/README.md) |
-| **F-021** | Facilities & Accessibility Taxonomy | Capacity counters, wudu facilities, women's prayer area, wheelchair ramp, janaza facilities | **Track 6-B** | [specs/README.md#f-021](specs/README.md) |
-| **F-022** | Official Mosque Announcements | Staff broadcasts, Jumu'ah khutbah topics, emergency announcements | **Track 6-C** | [specs/README.md#f-022](specs/README.md) |
-| **F-023** | Volunteer Roster Coordination | Jummah security, Ramadan iftar shifts, Eid prayer logistics | **Track 6-D** | [specs/README.md#f-023](specs/README.md) |
+| **F-020** | Staff Delegation & Governance | Mosque-scoped role claims, verification proof upload, mutawalli administrative console | **Track 6-A** | [specs/staff-delegation/staff-delegation.md](specs/staff-delegation/staff-delegation.md) |
+| **F-021** | Facilities & Accessibility Taxonomy | Capacity counters, wudu facilities, women's prayer area, wheelchair ramp, janaza facilities | **Track 6-B** | [specs/facilities-taxonomy/facilities-taxonomy.md](specs/facilities-taxonomy/facilities-taxonomy.md) |
+| **F-022** | Official Mosque Announcements | Staff broadcasts, Jumu'ah khutbah topics, emergency announcements | **Track 6-C** | [specs/announcements/announcements.md](specs/announcements/announcements.md) |
+| ~~**F-023**~~ | ~~Volunteer Roster Coordination~~ | *(DEFERRED / OUT OF SCOPE)* — Not needed. | *None* | *Explicitly Excluded* |
+
+> [!IMPORTANT]
+> **Explicit Scope Exclusions (Do NOT Propose or Implement)**:
+> The following features are explicitly excluded from the product roadmap by architectural directive:
+> 1. **Volunteer Roster & Shift Coordination (`F-023`)**: Not needed.
+> 2. **Multi-Jamaat Shifts & Separate Jumu'ah Timetables**: Not needed. Single daily Jamaat per Waqt (`F-007`) satisfies requirements.
+> 3. **Ramadan Sehri/Iftar/Taraweeh Scheduling Engine**: Not needed. Handled via standard announcements (`F-022`) when needed.
+> Agents MUST NOT propose, draft specs for, or develop any of the above items.
 
 #### Concurrency & Parallel Execution
-- `F-020` MUST precede `F-022` and `F-023` because announcements and volunteer coordination require verified mosque-scoped staff authorization.
-- `F-021` (Facilities taxonomy) can be built in parallel with `F-020`.
+- `F-020` preceded `F-022` to establish verified mosque-scoped staff authorization.
+- `F-021` (Facilities taxonomy) was built in parallel with `F-020`.
 
 ---
 
@@ -239,8 +247,7 @@ Phase 4 │ ┌─[ F-007: Atomic Prayer Schedule ]────────┐
 Phase 5 │ ┌─[ F-006: Suggestions & Reports ]─────────┐
         │ ├─[ F-008: Attendance Tracking ]───────────┼──► Phase 5 Exit Gate
         │ └─[ F-012: Community Operations ]──────────┘
-Phase 6 │ ┌─[ F-020: Staff Delegation ]──► ┌─[ F-022: Announcements ]
-        │ │                                └─[ F-023: Volunteers ]
+Phase 6 │ ┌─[ F-020: Staff Delegation ]──► [ F-022: Announcements ]
         │ └─[ F-021: Facilities Taxonomy ]
 ```
 
@@ -250,24 +257,26 @@ Phase 6 │ ┌─[ F-020: Staff Delegation ]──► ┌─[ F-022: Announceme
 
 The canonical registry of feature IDs across the entire repository:
 
-| Feature ID | Canonical Name | Phase | Release | Dependencies | Safe Parallel Counterparts |
-| :--- | :--- | :---: | :---: | :--- | :--- |
-| **F-001** | Database Architecture & Migrations | 0 | R1 | *(None)* | `F-011` |
-| **F-011** | Observability, Health & Reliability | 0 | R1 | *(None)* | `F-001` |
-| **F-002** | Authentication & Security | 1 | R1 | `F-001` | `F-004` (backend only) |
-| **F-003** | Authorization & RBAC | 1 | R1 | `F-001, F-002` | `F-004` |
-| **F-004** | Mosque Registry & Creation | 2 | R1 | `F-001` | `F-002, F-003` |
-| **F-005** | Nearby Discovery & Search | 3 | R1 | `F-001, F-004` | `F-007, F-009` |
-| **F-009** | Interactive Map Discovery UI | 3 | R1 | `F-004, F-005, F-007` | `F-005, F-008` |
-| **F-007** | Prayer Schedules & History | 4 | R1 | `F-001, F-004` | `F-005, F-010` |
-| **F-010** | Mosque Verification & Moderation | 4 | R1 | `F-001..F-004, F-006` | `F-007` |
-| **F-006** | Crowdsourced Suggestions & Reports | 5 | R1 | `F-001, F-004` | `F-008, F-012` |
-| **F-008** | Mosque Attendance Tracking | 5 | R1 | `F-001, F-002, F-004` | `F-006, F-012` |
-| **F-012** | Community Engagement & Operations | 5 | R1 | `F-001, F-002, F-004` | `F-006, F-008` |
-| **F-020** | Staff Delegation & Role Claims | 6 | R2 | `F-001..F-004` | `F-021` |
-| **F-021** | Facilities & Accessibility Taxonomy | 6 | R2 | `F-001, F-004` | `F-020` |
-| **F-022** | Official Announcements Channel | 6 | R2 | `F-001, F-003, F-004, F-020` | `F-021, F-023` |
-| **F-023** | Volunteer Roster Coordination | 6 | R2 | `F-001, F-004, F-020` | `F-021, F-022` |
+| Feature ID | Canonical Name | Phase | Release | Status | Dependencies | Safe Parallel Counterparts |
+| :--- | :--- | :---: | :---: | :---: | :--- | :--- |
+| **F-001** | Database Architecture & Migrations | 0 | R1 | Completed | *(None)* | `F-011` |
+| **F-011** | Observability, Health & Reliability | 0 | R1 | Completed | *(None)* | `F-001` |
+| **F-002** | Authentication & Security | 1 | R1 | Completed | `F-001` | `F-004` (backend only) |
+| **F-003** | Authorization & RBAC | 1 | R1 | Completed | `F-001, F-002` | `F-004` |
+| **F-004** | Mosque Registry & Creation | 2 | R1 | Completed | `F-001` | `F-002, F-003` |
+| **F-005** | Nearby Discovery & Search | 3 | R1 | Completed | `F-001, F-004` | `F-007, F-009` |
+| **F-009** | Interactive Map Discovery UI | 3 | R1 | Completed | `F-004, F-005, F-007` | `F-005, F-008` |
+| **F-007** | Prayer Schedules & History | 4 | R1 | Completed | `F-001, F-004` | `F-005, F-010` |
+| **F-010** | Mosque Verification & Moderation | 4 | R1 | Completed | `F-001..F-004, F-006` | `F-007` |
+| **F-006** | Crowdsourced Suggestions & Reports | 5 | R1 | Completed | `F-001, F-004` | `F-008, F-012` |
+| **F-008** | Mosque Attendance Tracking | 5 | R1 | Completed | `F-001, F-002, F-004` | `F-006, F-012` |
+| **F-012** | Community Engagement & Operations | 5 | R1 | Completed | `F-001, F-002, F-004` | `F-006, F-008` |
+| **F-020** | Staff Delegation & Role Claims | 6 | R2 | Completed | `F-001..F-004` | `F-021` |
+| **F-021** | Facilities & Accessibility Taxonomy | 6 | R2 | Completed | `F-001, F-004` | `F-020` |
+| **F-022** | Official Announcements Channel | 6 | R2 | Completed | `F-001, F-003, F-004, F-020` | `F-021` |
+| ~~**F-023**~~ | ~~Volunteer Roster Coordination~~ | 6 | R2 | **DEFERRED** | `N/A` | *Out of Scope* |
+| **F-030** | Verified Mosque Donations | 7 | R3 | Completed | `F-001..F-004, F-020` | `F-031` |
+| **F-031** | Follows & Notifications | 7 | R3 | Completed | `F-001..F-004, F-020, F-022, F-030` | `F-030` |
 
 ---
 

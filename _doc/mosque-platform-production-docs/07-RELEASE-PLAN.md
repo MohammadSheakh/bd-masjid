@@ -63,21 +63,25 @@ Production additions:
 
 ## Release 3 — Donations and notifications
 
-- verified donation information
-- follow mosque
-- notifications
-- multiple Jamaat
-- Jumu'ah
-- Ramadan schedules
-- prayer reminders
+- verified donation information (Completed - F-030)
+- follow mosque (Completed - F-031)
+- notifications (Completed - F-031)
+
+### Explicitly Excluded / Deferred Scope (Do NOT Propose or Implement)
+> **Direct Architectural Constraint**: The following items are explicitly out of scope and deferred indefinitely:
+> - **Volunteer Roster & Shift Coordination (`F-023`)**: Not needed.
+> - **Multiple Jamaat Shifts**: Standard single Jamaat per Waqt (`F-007`) is sufficient.
+> - **Jumu'ah Special Schedule Tables**: Covered via announcements or standard Zuhr/Jumu'ah Jamaat.
+> - **Ramadan Schedules & Timetables**: Not needed; community announcements (`F-022`) handle ad-hoc notices.
+> - **Prayer Reminders & Background Push**: In-app notifications (`F-031`) are sufficient; no BullMQ/Redis push queue is required.
 
 Only introduce:
 
 - BullMQ
 - Redis
-- Socket.io/push provider
+- Push providers
 
-when the chosen delivery model actually requires them.
+when a future approved production phase explicitly mandates them.
 
 Donation information receives additional fraud/security review.
 

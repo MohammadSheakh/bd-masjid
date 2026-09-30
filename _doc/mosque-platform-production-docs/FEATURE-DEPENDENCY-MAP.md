@@ -34,11 +34,11 @@ flowchart TD
     %% Frontend Aggregation Leaf
     F009["F-009: Map Discovery UI<br/><i>(Leaflet, Viewport, Live Countdown)</i>"]
 
-    %% Upcoming Release 2 Trunk
+    %% Release 2 Trunk
     F020["F-020: Staff Delegation & Governance<br/><i>(Mutawalli / Khateeb Role Claims)</i>"]
     F021["F-021: Enhanced Facilities Taxonomy<br/><i>(Capacity, Access Amenities)</i>"]
     F022["F-022: Official Announcements<br/><i>(Staff-Authored Broadcasts)</i>"]
-    F023["F-023: Volunteer Roster Coordination<br/><i>(Jummah / Eid Shifts)</i>"]
+    %% F-023 Volunteer Roster is DEFERRED / OUT OF SCOPE
 
     %% Linkages - Infrastructure to Trunks
     F001 -->|Foreign Keys & Prisma Schema| F002
@@ -62,7 +62,6 @@ flowchart TD
     F004 -.->|Extends Mosque Model| F021
     F004 -->|mosqueId FK| F020
     F020 -->|Staff Authorization Scope| F022
-    F020 -->|Staff Coordination Scope| F023
 
     %% Linkages - Cross-Domain
     F002 -.->|Optional Creator Actor| F004
@@ -106,9 +105,16 @@ If this platform had to be compiled and migrated from zero on an empty PostgreSQ
 | **Tier 2 (Access Control & Core Services)** | `F-003: Authorization & RBAC`<br/>`F-005: Nearby Discovery & Search`<br/>`F-007: Prayer Schedules & History` | `F-002` (for RBAC)<br/>`F-004` (for Nearby & Prayer) | `PermissionsGuard` requires user tokens. Nearby queries require the PostGIS spatial column. Prayer schedules require `Mosque.id`. |
 | **Tier 3 (Community & Moderation)** | `F-006: Suggestions & Reports`<br/>`F-008: Attendance Tracking`<br/>`F-010: Mosque Verification`<br/>`F-012: Community Operations` | `F-003, F-004, F-006` | Verification modifies `Mosque` status and requires admin RBAC (`F-003`). Attendance requires `User` + `Mosque` composite key (`F-002, F-004`). |
 | **Tier 4 (Presentation Layer)** | `F-009: Map Discovery UI` | `F-004, F-005, F-007` | Dynamic frontend Leaflet client consumes endpoints from Mosque, Nearby search, and Prayer countdown simultaneously. |
-| **Tier 5 (Release 2 Trunk)** | `F-020: Staff Delegation & Governance`<br/>`F-021: Facilities Taxonomy`<br/>`F-022: Announcements`<br/>`F-023: Volunteer Roster` | `F-001..F-004`, `F-020` | Extends `Mosque` and `User` with delegated role matrices and permission-scoped administration. |
+| **Tier 5 (Release 2 Trunk)** | `F-020: Staff Delegation & Governance`<br/>`F-021: Facilities Taxonomy`<br/>`F-022: Announcements` | `F-001..F-004`, `F-020` | Extends `Mosque` and `User` with delegated role matrices and permission-scoped administration. *(Note: `F-023: Volunteer Roster`, Multi-Jamaat, and Ramadan schedules are explicitly DEFERRED / OUT OF SCOPE).* |
 
 ---
+
+> [!IMPORTANT]
+> **Explicit Scope Boundary (Do NOT Propose or Implement)**:
+> - **Volunteer Roster Coordination (`F-023`)**: Out of scope / deferred indefinitely.
+> - **Multi-Jamaat Shifts & Jumu'ah Special Timetables**: Out of scope / deferred.
+> - **Ramadan Schedules (Taraweeh/Sehri/Iftar)**: Out of scope / deferred; standard announcements (`F-022`) are used for community announcements.
+> - AI agents must strictly refrain from planning or proposing development for these items.
 
 ## 3. Brutal Honest Architecture Realities & Vulnerabilities
 

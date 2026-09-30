@@ -97,11 +97,8 @@ Before finalizing any ticket or feature:
 
 ---
 
-### Ready to Start Release 2?
+### Release 2 & 3 Status
+Features `F-020` (Staff Delegation), `F-021` (Facilities Taxonomy), `F-022` (Announcements), `F-030` (Donations), and `F-031` (Follows & Notifications) are fully implemented.
 
-When you are ready, choose which Release 2 slice to tackle first:
-- **Option A**: **Mosque Staff Delegation & Role Claim Governance** (Ibadah committee, Khateeb, Mutawalli approval workflow).
-- **Option B**: **Enhanced Mosque Facilities & Capacity Taxonomy** (Wudu facilities, women's prayer area access, wheelchair accessibility).
-- **Option C**: **Volunteer Roster & Event Coordination** (Jummah crowd management, Eid prayer shifts).
-
-Say the word and we can begin the `/grill-me` session for that feature!
+> [!NOTE]
+> Volunteer Roster Coordination (`F-023`), Multi-Jamaat, and Ramadan schedules are explicitly excluded from roadmap scope by project owner directive. Agents must not propose or plan these features.

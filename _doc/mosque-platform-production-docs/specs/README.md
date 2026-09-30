@@ -28,6 +28,19 @@ Each feature has a dedicated, self-contained specification file (`<feature>.md`)
 
 ---
 
+## Explicitly Excluded / Deferred Roadmap Items (AI Agent Guardrails)
+
+> [!CAUTION]
+> **DO NOT PLAN, CREATE SPECS FOR, OR IMPLEMENT THE FOLLOWING ITEMS**:
+> By project owner directive, the following features are **explicitly out of scope / deferred indefinitely**. AI agents MUST NOT suggest, propose, or initiate development tasks for:
+> 1. **Volunteer Roster Coordination (`F-023`)**: Not needed in current platform.
+> 2. **Multiple Jamaat Shifts / Timetables**: Standard single Jamaat per Waqt (`F-007`) is complete and sufficient.
+> 3. **Jumu'ah Special Schedule Tables**: Covered by standard prayer times and announcements.
+> 4. **Ramadan Schedules & Timetables**: Not needed; ad-hoc announcements (`F-022`) satisfy community notification needs.
+> 5. **External Push Notification Daemons / Queues (BullMQ / Redis)**: WebSocket and REST in-app notification infrastructure (`F-031`) meets all requirements.
+
+---
+
 ## Unified Feature Specification Standard
 Every feature specification in this directory adheres to this unified agentic standard:
 1. **Frontmatter Metadata**: Machine-readable DAG dependencies, lifecycle status, release phase, and PRD/Architecture source anchors.

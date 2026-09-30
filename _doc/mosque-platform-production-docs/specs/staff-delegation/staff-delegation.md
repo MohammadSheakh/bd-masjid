@@ -12,7 +12,6 @@ depends_on:
 
 blocks:
   - F-022
-  - F-023
 
 parallel_with:
   - F-021
