@@ -18,6 +18,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-010](ADR-010-facilities-taxonomy.md) | Mosque Facilities & Accessibility Taxonomy | Accepted | 2026-09-30 | Domain Model & Spatial Search Filters |
 | [ADR-011](ADR-011-announcements.md) | Official Mosque Announcements Channel & Broadcast Governance | Accepted | 2026-09-30 | Community Broadcasts & Expiration |
 | [ADR-012](ADR-012-mosque-donations.md) | Verified Mosque Donation Information & Fraud Prevention | Accepted | 2026-09-30 | Finance & Two-Person Verification |
+| [ADR-013](ADR-013-mosque-follows-and-realtime-notifications.md) | Mosque Follow Subscriptions and Real-Time In-App Notifications | Accepted | 2026-09-30 | Subscriptions, Notifications & WebSockets |
 
 ---
 
