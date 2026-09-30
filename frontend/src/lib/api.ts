@@ -836,4 +836,131 @@ export async function upsertMosqueFacilities(
 
 export * from './api/donations';
 
+export interface UserNotificationItem {
+  id: string;
+  userId: string;
+  mosqueId: string;
+  type: 'ANNOUNCEMENT' | 'SCHEDULE_CHANGE' | 'DONATION_UPDATE' | 'PRAYER_REMINDER';
+  title: string;
+  body: string;
+  entityId?: string | null;
+  isRead: boolean;
+  readAt?: string | null;
+  createdAt: string;
+  mosque?: { id: string; name: string; city: string | null };
+}
+
+export async function fetchFollowStatus(mosqueId: string): Promise<{ isFollowing: boolean; followersCount: number }> {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/follow-status`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return { isFollowing: false, followersCount: 0 };
+    const json = await res.json();
+    return json.data || json || { isFollowing: false, followersCount: 0 };
+  } catch {
+    return { isFollowing: false, followersCount: 0 };
+  }
+}
+
+export async function toggleFollowMosque(
+  mosqueId: string,
+  isFollowing: boolean,
+): Promise<{ success: boolean; isFollowing: boolean; followersCount: number; error?: string }> {
+  try {
+    const method = isFollowing ? 'DELETE' : 'POST';
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/follow`, {
+      method,
+      headers: getAuthHeaders(),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, isFollowing, followersCount: 0, error: json.message || 'Action failed' };
+    }
+    const data = json.data || json;
+    return { success: true, isFollowing: data.isFollowing, followersCount: data.followersCount };
+  } catch (err: any) {
+    return { success: false, isFollowing, followersCount: 0, error: err.message || 'Network error' };
+  }
+}
+
+export async function fetchNotifications(query?: { isRead?: boolean; page?: number; limit?: number }) {
+  try {
+    const params = new URLSearchParams();
+    if (query?.isRead !== undefined) params.set('isRead', String(query.isRead));
+    if (query?.page) params.set('page', String(query.page));
+    if (query?.limit) params.set('limit', String(query.limit));
+
+    const res = await fetch(`${API_BASE}/notifications?${params.toString()}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return { items: [], unreadCount: 0, total: 0 };
+    const json = await res.json();
+    return json.data || json || { items: [], unreadCount: 0, total: 0 };
+  } catch {
+    return { items: [], unreadCount: 0, total: 0 };
+  }
+}
+
+export async function fetchUnreadCount(): Promise<number> {
+  try {
+    const res = await fetch(`${API_BASE}/notifications/unread-count`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return 0;
+    const json = await res.json();
+    return (json.data?.unreadCount ?? json.unreadCount) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function markNotificationAsRead(id: string) {
+  try {
+    await fetch(`${API_BASE}/notifications/${id}/read`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+    });
+  } catch {
+    // Ignore error
+  }
+}
+
+export async function markAllNotificationsAsRead() {
+  try {
+    await fetch(`${API_BASE}/notifications/read-all`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+    });
+  } catch {
+    // Ignore error
+  }
+}
+
+export async function loginUser(email: string, password: string) {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.message || json.error || 'Failed to login');
+  }
+  return json.data || json;
+}
+
+export async function registerUser(name: string, email: string, password: string) {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password }),
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.message || json.error || 'Failed to register');
+  }
+  return json.data || json;
+}
+
 

@@ -24,6 +24,7 @@ import { MosqueStaffManager } from '@/components/MosqueStaffManager';
 import { MosqueFacilitiesSection } from '@/components/MosqueFacilitiesSection';
 import { MosqueAnnouncementsCard } from '@/components/MosqueAnnouncementsCard';
 import { MosqueDonationsDirectory } from '@/components/donations/MosqueDonationsDirectory';
+import { FollowMosqueButton } from '@/components/FollowMosqueButton';
 import { formatTo12Hour } from '@/lib/time';
 
 interface MosquePageProps {
@@ -125,7 +126,7 @@ export default async function MosquePage({ params }: MosquePageProps) {
       <main className="max-w-2xl mx-auto p-4 sm:p-6 space-y-6">
         {/* Profile Card */}
         <div className="p-6 rounded-3xl bg-white border border-[#e8e8ea] shadow-sm space-y-4">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#111114]">
@@ -147,6 +148,10 @@ export default async function MosquePage({ params }: MosquePageProps) {
                 <MapPin className="w-4 h-4 shrink-0 text-zinc-400" />
                 <span>{mosque.address || 'Address not listed'}, {mosque.city || 'Bangladesh'}</span>
               </p>
+            </div>
+
+            <div className="shrink-0 mt-2 sm:mt-0">
+              <FollowMosqueButton mosqueId={mosque.id} />
             </div>
           </div>
 
