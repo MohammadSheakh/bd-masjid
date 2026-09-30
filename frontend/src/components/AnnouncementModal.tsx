@@ -1,22 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Mosque, MosqueAnnouncement } from '@/types/mosque';
+import { Mosque, MosqueAnnouncement, AnnouncementCategory } from '@/types/mosque';
 import {
   fetchMosqueAnnouncements,
   createMosqueAnnouncement,
+  deleteMosqueAnnouncement,
 } from '@/lib/api';
-import { X, Pin, Megaphone, Plus, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, Pin, Megaphone, Plus, Calendar, AlertCircle, CheckCircle2, Trash2 } from 'lucide-react';
 
 interface AnnouncementModalProps {
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose: () => void;
   mosque: Mosque;
   onAnnouncementCreated?: (announcement: MosqueAnnouncement) => void;
 }
 
 export function AnnouncementModal({
-  isOpen,
+  isOpen = true,
   onClose,
   mosque,
   onAnnouncementCreated,
@@ -28,6 +29,8 @@ export function AnnouncementModal({
   // Form state
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [category, setCategory] = useState<AnnouncementCategory>('GENERAL');
+  const [expiresAt, setExpiresAt] = useState('');
   const [isPinned, setIsPinned] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
@@ -65,7 +68,9 @@ export function AnnouncementModal({
     const result = await createMosqueAnnouncement(mosque.id, {
       title: title.trim(),
       content: content.trim(),
+      category,
       isPinned,
+      expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
     });
 
     setIsSubmitting(false);
@@ -81,6 +86,8 @@ export function AnnouncementModal({
       }
       setTitle('');
       setContent('');
+      setCategory('GENERAL');
+      setExpiresAt('');
       setIsPinned(false);
       setShowPostForm(false);
     } else {
@@ -88,6 +95,16 @@ export function AnnouncementModal({
         type: 'error',
         text: result.error || 'Failed to post announcement.',
       });
+    }
+  };
+
+  const handleDelete = async (announcementId: string) => {
+    if (!confirm('Are you sure you want to delete this notice?')) return;
+    const ok = await deleteMosqueAnnouncement(mosque.id, announcementId);
+    if (ok) {
+      setAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
+    } else {
+      alert('Failed to delete announcement. Ensure you have permission.');
     }
   };
 
@@ -179,6 +196,39 @@ export function AnnouncementModal({
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-[#111114] block mb-1">
+                    Category *
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value as AnnouncementCategory)}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#e8e8ea] bg-white focus:outline-none focus:ring-2 focus:ring-[#111114]"
+                  >
+                    <option value="GENERAL">General Notice</option>
+                    <option value="JUMUAH_KHUTBAH">Jumu'ah Khutbah</option>
+                    <option value="EMERGENCY_ALERT">Emergency Alert (Leadership only)</option>
+                    <option value="RAMADAN">Ramadan Notice</option>
+                    <option value="EID">Eid Prayer</option>
+                    <option value="JANAZA">Janaza Notice</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-[#111114] block mb-1">
+                    Expires On (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={expiresAt}
+                    onChange={(e) => setExpiresAt(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#e8e8ea] bg-white focus:outline-none focus:ring-2 focus:ring-[#111114]"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -189,7 +239,7 @@ export function AnnouncementModal({
                 />
                 <label htmlFor="pinAnnouncement" className="text-xs text-[#6e6e73] cursor-pointer flex items-center gap-1">
                   <Pin className="w-3 h-3 text-amber-600" />
-                  <span>Pin to top of mosque profile</span>
+                  <span>Pin to top (max 3 pinned notices allowed)</span>
                 </label>
               </div>
 
@@ -232,21 +282,34 @@ export function AnnouncementModal({
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         {item.isPinned && (
                           <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">
                             <Pin className="w-2.5 h-2.5" />
                             Pinned
                           </span>
                         )}
+                        <span className="inline-flex items-center text-[10px] font-semibold text-zinc-700 bg-zinc-200/70 px-2 py-0.5 rounded-full">
+                          {item.category || 'GENERAL'}
+                        </span>
                         <h3 className="text-xs font-bold text-[#111114]">
                           {item.title}
                         </h3>
                       </div>
-                      <span className="text-[10px] text-[#6e6e73] flex items-center gap-1 font-mono">
-                        <Calendar className="w-3 h-3 text-zinc-400" />
-                        {new Date(item.createdAt).toLocaleDateString()}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-[#6e6e73] flex items-center gap-1 font-mono">
+                          <Calendar className="w-3 h-3 text-zinc-400" />
+                          {new Date(item.createdAt).toLocaleDateString()}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(item.id)}
+                          title="Delete notice"
+                          className="p-1 text-[#86868b] hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-xs text-zinc-700 leading-relaxed whitespace-pre-line">
                       {item.content}
