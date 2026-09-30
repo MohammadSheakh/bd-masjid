@@ -39,8 +39,8 @@ This checklist reflects the implementation progress against production requireme
 - [x] unique constraints reviewed
 - [x] indexes based on actual queries
 - [x] spatial index verified
-- [ ] backup policy defined
-- [ ] restore procedure tested before launch
+- [x] backup policy defined
+- [x] restore procedure tested before launch
 
 ## C. Authentication
 
@@ -259,12 +259,12 @@ This checklist reflects the implementation progress against production requireme
 
 ## R. Backup/recovery
 
-- [ ] automated backups
-- [ ] retention defined
-- [ ] restore procedure
-- [ ] restore exercise completed
-- [ ] RPO defined
-- [ ] RTO defined
+- [x] automated backups
+- [x] retention defined
+- [x] restore procedure
+- [x] restore exercise completed
+- [x] RPO defined
+- [x] RTO defined
 - [x] production incident runbook
 
 ## S. Launch gate
@@ -277,7 +277,7 @@ Before first production release:
 - [x] no unbounded growing API
 - [x] no known unauthorized mutation path
 - [x] migrations reviewed
-- [ ] backup restore tested
+- [x] backup restore tested
 - [x] failure paths tested
 - [x] operational logs/metrics exist
 - [x] health/readiness configured

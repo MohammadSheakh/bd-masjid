@@ -20,6 +20,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-012](ADR-012-mosque-donations.md) | Verified Mosque Donation Information & Fraud Prevention | Accepted | 2026-09-30 | Finance & Two-Person Verification |
 | [ADR-013](ADR-013-mosque-follows-and-realtime-notifications.md) | Mosque Follow Subscriptions and Real-Time In-App Notifications | Accepted | 2026-09-30 | Subscriptions, Notifications & WebSockets |
 | [ADR-014](ADR-014-production-ci-cd-and-disposable-migration-replay.md) | Production CI/CD Pipeline and Disposable Migration Replay | Accepted | 2026-09-30 | CI/CD, PostGIS Replay & Production Gates |
+| [ADR-015](ADR-015-database-backup-retention-and-disaster-recovery.md) | Database Backup, Retention Policy, and Disaster Recovery Architecture | Accepted | 2026-09-30 | Backups, Disaster Recovery, RPO/RTO & Drills |
 
 ---
 
