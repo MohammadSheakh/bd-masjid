@@ -20,26 +20,29 @@ export function NotificationToast({ alert, onDismiss }: NotificationToastProps) 
   const getIcon = (type: string) => {
     switch (type) {
       case 'ANNOUNCEMENT':
-        return <Megaphone className="w-4 h-4 text-blue-600" />;
+        return <Megaphone className="w-4 h-4 text-[#111114]" />;
       case 'SCHEDULE_CHANGE':
-        return <Clock className="w-4 h-4 text-amber-600" />;
+        return <Clock className="w-4 h-4 text-[#111114]" />;
       case 'DONATION_UPDATE':
-        return <HeartHandshake className="w-4 h-4 text-emerald-600" />;
+        return <HeartHandshake className="w-4 h-4 text-[#111114]" />;
       default:
-        return <Bell className="w-4 h-4 text-emerald-600" />;
+        return <Bell className="w-4 h-4 text-[#111114]" />;
     }
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-sm w-full animate-in slide-in-from-bottom-4 duration-200">
-      <div className="bg-white border border-[#e8e8ea] rounded-2xl shadow-xl p-3.5 flex items-start gap-3">
-        <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
+    <div
+      role="alert"
+      className="fixed bottom-4 right-4 z-50 max-w-sm w-full animate-in slide-in-from-bottom-2 duration-150"
+    >
+      <div className="bg-white border border-[#e8e8ea] rounded-[10px] p-3.5 flex items-start gap-3">
+        <div className="w-8 h-8 rounded-full bg-[#fafafa] border border-[#e8e8ea] flex items-center justify-center shrink-0 mt-0.5">
           {getIcon(alert.type)}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#111114] bg-[#fafafa] border border-[#e8e8ea] px-1.5 py-0.5 rounded">
               Live Alert
             </span>
             {alert.mosqueName && (
@@ -55,7 +58,7 @@ export function NotificationToast({ alert, onDismiss }: NotificationToastProps) 
 
         <button
           onClick={onDismiss}
-          className="text-[#6e6e73] hover:text-[#111114] p-1 rounded-full hover:bg-[#fafafa] transition-colors"
+          className="text-[#6e6e73] hover:text-[#111114] p-1 rounded-full hover:bg-[#fafafa] border border-transparent hover:border-[#e8e8ea] transition-colors"
           aria-label="Dismiss notification"
         >
           <X className="w-3.5 h-3.5" />

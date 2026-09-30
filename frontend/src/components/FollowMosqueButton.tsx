@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Bookmark, BookmarkCheck, Loader2, Users } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Loader2 } from 'lucide-react';
 import { fetchFollowStatus, toggleFollowMosque } from '@/lib/api';
 import { AuthModal } from './AuthModal';
 
@@ -68,16 +68,16 @@ export function FollowMosqueButton({
         onClick={handleToggle}
         disabled={isLoading}
         aria-label={isFollowing ? 'Unfollow Mosque' : 'Follow Mosque'}
-        className={`inline-flex items-center gap-1.5 text-xs font-semibold rounded-full transition-all active:scale-95 disabled:opacity-50 ${
+        className={`inline-flex items-center gap-1.5 text-xs font-semibold rounded-full transition-colors active:scale-95 disabled:opacity-50 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-[#111114] ${
           isFollowing
-            ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
+            ? 'bg-[#111114] text-white hover:bg-[#27272a]'
             : 'bg-[#fafafa] text-[#111114] border border-[#e8e8ea] hover:bg-[#f0f0f2]'
         } ${compact ? 'px-2.5 py-1 text-[11px]' : 'px-3.5 py-1.5'} ${className}`}
       >
         {isLoading ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin text-current" />
         ) : isFollowing ? (
-          <BookmarkCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <BookmarkCheck className="w-3.5 h-3.5 text-emerald-400" />
         ) : (
           <Bookmark className="w-3.5 h-3.5 text-[#6e6e73]" />
         )}
@@ -85,7 +85,11 @@ export function FollowMosqueButton({
         <span>{isFollowing ? 'Following' : 'Follow'}</span>
 
         {followersCount > 0 && (
-          <span className="text-[10px] font-normal opacity-80 border-l border-current/20 pl-1.5 ml-0.5">
+          <span
+            className={`text-[10px] font-normal border-l pl-1.5 ml-0.5 ${
+              isFollowing ? 'border-white/30 text-white/90' : 'border-[#e8e8ea] text-[#6e6e73]'
+            }`}
+          >
             {followersCount}
           </span>
         )}
