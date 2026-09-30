@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MosquesService } from './mosques.service';
+import { MosquesService } from '../mosques.service';
 import { PrismaService } from '@app/database';
-import { AuditService } from '../audit/audit.service';
+import { AuditService } from '../../audit/audit.service';
 import { ConflictException } from '@nestjs/common';
 
 describe('MosquesService', () => {

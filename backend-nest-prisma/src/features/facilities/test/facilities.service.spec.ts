@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { MosqueStaffRole } from '@prisma/client';
-import { FacilitiesService } from './facilities.service';
-import { UpsertFacilityDto } from './dto/upsert-facility.dto';
+import { FacilitiesService } from '../facilities.service';
+import { UpsertFacilityDto } from '../dto/upsert-facility.dto';
 
 describe('FacilitiesService', () => {
   let service: FacilitiesService;

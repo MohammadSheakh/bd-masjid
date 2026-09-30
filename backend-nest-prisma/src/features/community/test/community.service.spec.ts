@@ -9,9 +9,9 @@ import {
   MosqueStaffRole,
   DonationMethodType,
 } from '@prisma/client';
-import { CommunityService } from './community.service';
+import { CommunityService } from '../community.service';
 import { PrismaService } from '@app/database';
-import { AuditService } from '../audit/audit.service';
+import { AuditService } from '../../audit/audit.service';
 import type { UserPayload } from '@app/common';
 
 describe('CommunityService', () => {

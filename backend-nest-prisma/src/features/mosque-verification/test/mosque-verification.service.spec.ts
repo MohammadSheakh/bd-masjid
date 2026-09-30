@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MosqueVerificationService } from './mosque-verification.service';
+import { MosqueVerificationService } from '../mosque-verification.service';
 import { PrismaService } from '@app/database';
-import { AuditService } from '../audit/audit.service';
+import { AuditService } from '../../audit/audit.service';
 import { NotFoundException } from '@nestjs/common';
 import { MosqueVerificationStatus } from '@prisma/client';
 

@@ -9,8 +9,8 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { UserPayload } from '@app/common';
-import { AuditService } from '../audit/audit.service';
-import { DonationsService } from './donations.service';
+import { AuditService } from '../../audit/audit.service';
+import { DonationsService } from '../donations.service';
 
 describe('DonationsService', () => {
   let service: DonationsService;

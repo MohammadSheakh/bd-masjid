@@ -8,8 +8,8 @@ import {
 import { AnnouncementCategory, MosqueStaffRole } from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { UserPayload } from '@app/common';
-import { AuditService } from '../audit/audit.service';
-import { AnnouncementsService } from './announcements.service';
+import { AuditService } from '../../audit/audit.service';
+import { AnnouncementsService } from '../announcements.service';
 
 describe('AnnouncementsService', () => {
   let service: AnnouncementsService;

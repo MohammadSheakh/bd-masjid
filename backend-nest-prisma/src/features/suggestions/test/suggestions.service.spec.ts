@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { SuggestionStatus, ReportType } from '@prisma/client';
-import { SuggestionsService } from './suggestions.service';
+import { SuggestionsService } from '../suggestions.service';
 import { PrismaService } from '@app/database';
-import { AuditService } from '../audit/audit.service';
+import { AuditService } from '../../audit/audit.service';
 import type { UserPayload } from '@app/common';
 
 describe('SuggestionsService', () => {

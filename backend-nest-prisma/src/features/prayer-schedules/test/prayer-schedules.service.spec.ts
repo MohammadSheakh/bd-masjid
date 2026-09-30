@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrayerSchedulesService } from './prayer-schedules.service';
+import { PrayerSchedulesService } from '../prayer-schedules.service';
 import { PrismaService } from '@app/database';
-import { AuditService } from '../audit/audit.service';
+import { AuditService } from '../../audit/audit.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('PrayerSchedulesService', () => {

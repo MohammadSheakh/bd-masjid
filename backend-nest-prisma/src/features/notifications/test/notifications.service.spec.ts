@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
-import { NotificationsService } from './notifications.service';
-import { NotificationsGateway } from './notifications.gateway';
+import { NotificationsService } from '../notifications.service';
+import { NotificationsGateway } from '../notifications.gateway';
 import { PrismaService } from '@app/database';
 import { NotificationType } from '@prisma/client';
 

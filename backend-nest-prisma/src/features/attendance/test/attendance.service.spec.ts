@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AttendanceService } from './attendance.service';
+import { AttendanceService } from '../attendance.service';
 import { PrismaService } from '@app/database';
 import { NotFoundException } from '@nestjs/common';
 import { AttendanceStatus } from '@prisma/client';
