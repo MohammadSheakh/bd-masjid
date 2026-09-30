@@ -1,3 +1,7 @@
+import request from 'supertest';
+import { ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { AuthGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
 import { DonationsController } from '../donations.controller';
 import { DonationsService } from '../donations.service';
 import {
@@ -7,7 +11,6 @@ import {
   ReportDonationDto,
   VerifyDonationChannelDto,
 } from '../dto';
-import { UserPayload } from '@app/common';
 import {
   DonationChannelAccountType,
   DonationChannelStatus,
@@ -136,6 +139,91 @@ describe('DonationsController', () => {
 
       expect(service.reportDonationChannel).toHaveBeenCalledWith('channel-1', dto, mockUser);
       expect(result).toEqual(reportResponse);
+    });
+  });
+
+  describe('HTTP Pipeline & Validation Boundary (Supertest)', () => {
+    let app: any;
+    let serviceMock: any;
+
+    beforeAll(async () => {
+      serviceMock = {
+        getMosqueDonationChannels: jest.fn().mockResolvedValue([mockChannel]),
+        submitDonationChannel: jest.fn().mockResolvedValue(mockChannel),
+      };
+
+      const moduleRef = await Test.createTestingModule({
+        controllers: [DonationsController],
+        providers: [
+          { provide: DonationsService, useValue: serviceMock },
+        ],
+      })
+        .overrideGuard(AuthGuard)
+        .useValue({
+          canActivate: (context: any) => {
+            const reflector = new (require('@nestjs/core').Reflector)();
+            const isPublic = reflector.getAllAndOverride(
+              require('@app/common').IS_PUBLIC_KEY,
+              [context.getHandler(), context.getClass()],
+            );
+            const req = context.switchToHttp().getRequest();
+            const auth = req.headers['authorization'];
+            if (auth && auth.startsWith('Bearer valid')) {
+              req.user = mockUser;
+              return true;
+            }
+            if (isPublic) {
+              return true;
+            }
+            throw new (require('@nestjs/common').UnauthorizedException)();
+          },
+        })
+        .overrideGuard(SlidingWindowRateLimitGuard)
+        .useValue({ canActivate: () => true })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalInterceptors(new TransformResponseInterceptor());
+      await app.init();
+    });
+
+    afterAll(async () => {
+      if (app) {
+        await app.close();
+      }
+    });
+
+    it('publicly returns verified channels on GET /mosques/:id/donations', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/mosques/mosque-1/donations');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('success', true);
+      expect(Array.isArray(res.body.data)).toBe(true);
+    });
+
+    it('rejects POST /mosques/:id/donations with 401 when unauthenticated', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/mosques/mosque-1/donations')
+        .send({
+          channelType: DonationChannelType.BKASH_MERCHANT,
+          accountNumber: '01700000000',
+        });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('rejects POST /mosques/:id/donations with 400 when account payload fails validation', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/mosques/mosque-1/donations')
+        .set('Authorization', 'Bearer valid-user-token')
+        .send({
+          channelType: 'INVALID_TYPE',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBeDefined();
     });
   });
 });

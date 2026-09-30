@@ -1,11 +1,13 @@
-import { BadRequestException } from '@nestjs/common';
+import request from 'supertest';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { AuthGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
 import { MosquesController } from '../mosques.controller';
 import { MosquesService } from '../mosques.service';
 import { CreateMosqueDto } from '../dto/create-mosque.dto';
 import { UpdateMosqueDto } from '../dto/update-mosque.dto';
 import { NearbyMosquesQueryDto } from '../dto/nearby-mosques.dto';
 import { MosqueQueryDto } from '../dto/mosque-query.dto';
-import { UserPayload } from '@app/common';
 import { UserRole } from '@prisma/client';
 
 describe('MosquesController', () => {
@@ -162,4 +164,91 @@ describe('MosquesController', () => {
       expect(result).toEqual(updatedMosque);
     });
   });
+
+  describe('HTTP Pipeline & Validation Boundary (Supertest)', () => {
+    let app: any;
+    let serviceMock: any;
+
+    beforeAll(async () => {
+      serviceMock = {
+        create: jest.fn().mockResolvedValue(mockMosque),
+        findNearby: jest.fn().mockResolvedValue([mockMosque]),
+        update: jest.fn().mockResolvedValue(mockMosque),
+      };
+
+      const moduleRef = await Test.createTestingModule({
+        controllers: [MosquesController],
+        providers: [
+          { provide: MosquesService, useValue: serviceMock },
+        ],
+      })
+        .overrideGuard(AuthGuard)
+        .useValue({
+          canActivate: (context: any) => {
+            const reflector = new (require('@nestjs/core').Reflector)();
+            const isPublic = reflector.getAllAndOverride(
+              require('@app/common').IS_PUBLIC_KEY,
+              [context.getHandler(), context.getClass()],
+            );
+            const req = context.switchToHttp().getRequest();
+            const auth = req.headers['authorization'];
+            if (auth && auth.startsWith('Bearer valid')) {
+              req.user = mockUser;
+              return true;
+            }
+            if (isPublic) {
+              return true;
+            }
+            throw new (require('@nestjs/common').UnauthorizedException)();
+          },
+        })
+        .overrideGuard(SlidingWindowRateLimitGuard)
+        .useValue({ canActivate: () => true })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalInterceptors(new TransformResponseInterceptor());
+      await app.init();
+    });
+
+    afterAll(async () => {
+      if (app) {
+        await app.close();
+      }
+    });
+
+    it('rejects POST /mosques with 400 when required fields are missing', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/mosques')
+        .send({ name: '' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBeDefined();
+    });
+
+    it('accepts POST /mosques with valid DTO and wraps response in transform interceptor', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/mosques')
+        .send({
+          name: 'Baitul Mukarram National Mosque',
+          latitude: 23.75,
+          longitude: 90.39,
+          address: 'Topkhana Road, Dhaka',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('success', true);
+      expect(res.body.data).toEqual(mockMosque);
+    });
+
+    it('rejects PATCH /mosques/:id with 401 when no bearer token is supplied', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/mosques/mosque-uuid-1')
+        .send({ address: 'New Address' });
+
+      expect(res.status).toBe(401);
+    });
+  });
 });
+
