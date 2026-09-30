@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { toggleAttendance, toggleMosqueBookmark, getLocalBookmarks } from '@/lib/api';
 import { formatTo12Hour } from '@/lib/time';
+import { MosqueFacilitiesSection } from './MosqueFacilitiesSection';
 
 interface MosqueDetailModalProps {
   mosque: Mosque | null;
@@ -291,60 +292,11 @@ export function MosqueDetailModal({
             )}
           </div>
 
-          {/* Facilities Available */}
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73] mb-2">
-              Facilities Available
-            </h3>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-2 p-2.5 bg-[#fafafa] border border-[#e8e8ea] rounded-xl text-zinc-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>Dedicated Wudu Area</span>
-              </div>
-              <div
-                className={`flex items-center gap-2 p-2.5 rounded-xl border ${
-                  mosque.hasSeparateWomenSpace
-                    ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800'
-                    : 'bg-[#fafafa] border-[#e8e8ea] text-[#6e6e73]'
-                }`}
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    mosque.hasSeparateWomenSpace ? 'bg-emerald-500' : 'bg-zinc-300'
-                  }`}
-                ></span>
-                <span>Women's Prayer Space</span>
-              </div>
-              <div
-                className={`flex items-center gap-2 p-2.5 rounded-xl border ${
-                  mosque.hasAirConditioning
-                    ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800'
-                    : 'bg-[#fafafa] border-[#e8e8ea] text-[#6e6e73]'
-                }`}
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    mosque.hasAirConditioning ? 'bg-emerald-500' : 'bg-zinc-300'
-                  }`}
-                ></span>
-                <span>Air Conditioned</span>
-              </div>
-              <div
-                className={`flex items-center gap-2 p-2.5 rounded-xl border ${
-                  mosque.hasParking
-                    ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800'
-                    : 'bg-[#fafafa] border-[#e8e8ea] text-[#6e6e73]'
-                }`}
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    mosque.hasParking ? 'bg-emerald-500' : 'bg-zinc-300'
-                  }`}
-                ></span>
-                <span>Parking Available</span>
-              </div>
-            </div>
-          </div>
+          {/* Facilities & Accessibility Taxonomy */}
+          <MosqueFacilitiesSection
+            mosque={mosque}
+            initialFacility={mosque.facility}
+          />
 
           {/* Staff & Committee */}
           <div>

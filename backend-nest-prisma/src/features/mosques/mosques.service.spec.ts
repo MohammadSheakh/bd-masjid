@@ -27,6 +27,9 @@ describe('MosquesService', () => {
       prayerScheduleHistory: {
         create: jest.fn(),
       },
+      mosqueFacility: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
       userMosqueAttendance: {
         count: jest.fn().mockResolvedValue(0),
         findUnique: jest.fn().mockResolvedValue(null),
@@ -160,5 +163,60 @@ describe('MosquesService', () => {
       global.fetch = originalFetch;
     });
   });
+
+  describe('findNearby', () => {
+    it('should query nearby mosques and attach facilities and prayer schedules', async () => {
+      const mockRawMosque = {
+        id: 'mosque-1',
+        name: 'Dhanmondi Shahi Masjid',
+        latitude: 23.74,
+        longitude: 90.38,
+        address: 'Road 7',
+        landmark: null,
+        city: 'Dhaka',
+        country: 'Bangladesh',
+        operationalStatus: 'OPEN',
+        verificationStatus: 'VERIFIED',
+        hasWuduArea: true,
+        hasSeparateWomenSpace: true,
+        hasAirConditioning: true,
+        hasParking: true,
+        hasWheelchairAccess: true,
+        hasJanazaFacility: false,
+        capacity: 1000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        distanceMeters: 450.5,
+      };
+
+      const mockFacility = {
+        id: 'fac-1',
+        mosqueId: 'mosque-1',
+        hasFemalePrayerSpace: true,
+        hasWheelchairAccess: true,
+        hasAirConditioning: true,
+        totalCapacity: 1200,
+      };
+
+      prisma.$queryRaw.mockResolvedValue([mockRawMosque]);
+      prisma.prayerSchedule.findMany.mockResolvedValue([]);
+      prisma.mosqueFacility.findMany.mockResolvedValue([mockFacility]);
+
+      const results = await service.findNearby({
+        lat: 23.74,
+        lng: 90.38,
+        hasFemalePrayerSpace: true,
+        hasAirConditioning: true,
+        minCapacity: 500,
+      });
+
+      expect(results).toHaveLength(1);
+      expect(results[0].id).toBe('mosque-1');
+      expect(results[0].facility).toEqual(mockFacility);
+      expect(results[0].distanceMeters).toBe(450.5);
+      expect(prisma.$queryRaw).toHaveBeenCalled();
+    });
+  });
 });
+
 

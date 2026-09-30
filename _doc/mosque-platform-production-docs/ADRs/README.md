@@ -15,6 +15,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-007](ADR-007-uniform-error-contract-and-observability.md) | Uniform API Error Contract, Correlation Tracking, and Logging Sanitization | Accepted | 2026-09-28 | Security & Observability |
 | [ADR-008](ADR-008-infrastructure-stack-and-mongoose-removal.md) | Infrastructure Retentions (Redis, BullMQ, Cloudinary, Firebase Admin) and Complete Removal of Mongoose | Accepted | 2026-09-28 | Infrastructure & Persistence |
 | [ADR-009](ADR-009-staff-delegation.md) | Mosque Staff Delegation & Tiered Role Claim Governance | Accepted | 2026-09-29 | Authorization & Staff Governance |
+| [ADR-010](ADR-010-facilities-taxonomy.md) | Mosque Facilities & Accessibility Taxonomy | Accepted | 2026-09-30 | Domain Model & Spatial Search Filters |
 
 ---
 

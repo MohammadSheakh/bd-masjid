@@ -40,6 +40,7 @@ export default function HomePage() {
   const [filterWomen, setFilterWomen] = useState(false);
   const [filterAC, setFilterAC] = useState(false);
   const [filterParking, setFilterParking] = useState(false);
+  const [filterWheelchair, setFilterWheelchair] = useState(false);
   const [filterBookmarked, setFilterBookmarked] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [mobileTab, setMobileTab] = useState<'map' | 'list'>('list');
@@ -75,7 +76,11 @@ export default function HomePage() {
     const lat = customLat || 23.75;
     const lng = customLng || 90.39;
     try {
-      const data = await fetchNearbyMosques(lat, lng, 10000);
+      const data = await fetchNearbyMosques(lat, lng, 10000, {
+        hasFemalePrayerSpace: filterWomen || undefined,
+        hasAirConditioning: filterAC || undefined,
+        hasWheelchairAccess: filterWheelchair || undefined,
+      });
       setMosques(data);
     } finally {
       setIsLoading(false);
@@ -90,7 +95,8 @@ export default function HomePage() {
         selectedCity !== 'All' ||
         filterWomen ||
         filterAC ||
-        filterParking
+        filterParking ||
+        filterWheelchair
       ) {
         setIsLoading(true);
         try {
@@ -101,6 +107,7 @@ export default function HomePage() {
               hasSeparateWomenSpace: filterWomen || undefined,
               hasAirConditioning: filterAC || undefined,
               hasParking: filterParking || undefined,
+              hasWheelchairAccess: filterWheelchair || undefined,
             },
           );
           setMosques(results);
@@ -113,7 +120,7 @@ export default function HomePage() {
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCity, filterWomen, filterAC, filterParking]);
+  }, [searchQuery, selectedCity, filterWomen, filterAC, filterParking, filterWheelchair]);
 
   // Handle GPS Locate Me
   const handleLocateMe = () => {
@@ -249,6 +256,17 @@ export default function HomePage() {
               >
                 {filterAC && <Check className="w-3 h-3" />}
                 AC
+              </button>
+              <button
+                onClick={() => setFilterWheelchair(!filterWheelchair)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap transition-colors flex items-center gap-1 ${
+                  filterWheelchair
+                    ? 'bg-emerald-700 text-white shadow-sm'
+                    : 'bg-[#fafafa] text-[#6e6e73] hover:bg-zinc-100 border border-[#e8e8ea]'
+                }`}
+              >
+                {filterWheelchair && <Check className="w-3 h-3" />}
+                Wheelchair
               </button>
               <button
                 onClick={() => setFilterParking(!filterParking)}

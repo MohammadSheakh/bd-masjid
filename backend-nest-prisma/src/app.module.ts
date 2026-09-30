@@ -14,6 +14,7 @@ import { AttendanceModule } from './features/attendance/attendance.module';
 import { SuggestionsModule } from './features/suggestions/suggestions.module';
 import { MosqueVerificationModule } from './features/mosque-verification/mosque-verification.module';
 import { CommunityModule } from './features/community/community.module';
+import { FacilitiesModule } from './features/facilities/facilities.module';
 
 /**
  * Application Root Module - Mosque Information & Community Platform
@@ -33,6 +34,7 @@ import { CommunityModule } from './features/community/community.module';
     SuggestionsModule,
     MosqueVerificationModule,
     CommunityModule,
+    FacilitiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

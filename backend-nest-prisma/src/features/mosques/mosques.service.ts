@@ -243,10 +243,42 @@ export class MosquesService {
       query.radiusMeters || MOSQUE_CONSTANTS.DEFAULT_NEARBY_RADIUS_METERS;
     const limit = query.limit || MOSQUE_CONSTANTS.DEFAULT_LIMIT;
 
-    // Bounding box approximation for spatial index scan before exact spherical calculation
-    const latDelta = radiusMeters / 111000.0;
-    const lngDelta =
-      radiusMeters / (111000.0 * Math.cos((lat * Math.PI) / 180));
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`m."isDeleted" = false`,
+      Prisma.sql`ST_DWithin(
+        ST_SetSRID(ST_MakePoint(m.longitude, m.latitude), 4326)::geography,
+        ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+        ${radiusMeters}
+      )`,
+    ];
+
+    if (query.hasFemalePrayerSpace) {
+      conditions.push(
+        Prisma.sql`(f."hasFemalePrayerSpace" = true OR (f.id IS NULL AND m."hasSeparateWomenSpace" = true))`,
+      );
+    }
+    if (query.hasWheelchairAccess) {
+      conditions.push(
+        Prisma.sql`(f."hasWheelchairAccess" = true OR (f.id IS NULL AND m."hasWheelchairAccess" = true))`,
+      );
+    }
+    if (query.hasAirConditioning) {
+      conditions.push(
+        Prisma.sql`(f."hasAirConditioning" = true OR (f.id IS NULL AND m."hasAirConditioning" = true))`,
+      );
+    }
+    if (query.hasJanazaService) {
+      conditions.push(
+        Prisma.sql`(f."hasJanazaService" = true OR (f.id IS NULL AND m."hasJanazaFacility" = true))`,
+      );
+    }
+    if (query.minCapacity && query.minCapacity > 0) {
+      conditions.push(
+        Prisma.sql`(COALESCE(f."totalCapacity", m.capacity, 0) >= ${query.minCapacity})`,
+      );
+    }
+
+    const whereClause = Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`;
 
     const rawMosques = await this.prisma.$queryRaw<
       Array<{
@@ -299,12 +331,8 @@ export class MosquesService {
           )::numeric, 1
         )::double precision AS "distanceMeters"
       FROM "Mosque" m
-      WHERE m."isDeleted" = false
-        AND ST_DWithin(
-          ST_SetSRID(ST_MakePoint(m.longitude, m.latitude), 4326)::geography,
-          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
-          ${radiusMeters}
-        )
+      LEFT JOIN "MosqueFacility" f ON f."mosqueId" = m.id
+      ${whereClause}
       ORDER BY "distanceMeters" ASC
       LIMIT ${limit}
     `;
@@ -313,17 +341,25 @@ export class MosquesService {
       return [];
     }
 
-    // Attach current prayer schedules
+    // Attach current prayer schedules and facilities
     const mosqueIds = rawMosques.map((m) => m.id);
-    const schedules = await this.prisma.prayerSchedule.findMany({
-      where: { mosqueId: { in: mosqueIds } },
-    });
+    const [schedules, facilities] = await Promise.all([
+      this.prisma.prayerSchedule.findMany({
+        where: { mosqueId: { in: mosqueIds } },
+      }),
+      this.prisma.mosqueFacility.findMany({
+        where: { mosqueId: { in: mosqueIds } },
+      }),
+    ]);
     const scheduleMap = new Map(schedules.map((s) => [s.mosqueId, s]));
+    const facilityMap = new Map(facilities.map((f) => [f.mosqueId, f]));
 
     return rawMosques.map((mosque) => {
       const schedule = scheduleMap.get(mosque.id) || null;
+      const facility = facilityMap.get(mosque.id) || null;
       return {
         ...mosque,
+        facility,
         prayerSchedule: schedule,
         freshness: this.deriveFreshness(
           schedule?.updatedAt || mosque.updatedAt,
@@ -339,6 +375,7 @@ export class MosquesService {
     const mosque = await this.prisma.mosque.findUnique({
       where: { id, isDeleted: false },
       include: {
+        facility: true,
         prayerSchedule: true,
         staffMembers: {
           where: { isVerified: true },

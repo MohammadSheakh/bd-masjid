@@ -47,4 +47,46 @@ export class NearbyMosquesQueryDto {
   @Min(1)
   @Max(MOSQUE_CONSTANTS.MAX_LIMIT)
   limit?: number = MOSQUE_CONSTANTS.DEFAULT_LIMIT;
+
+  @ApiPropertyOptional({
+    description: 'Filter mosques by dedicated female prayer space availability',
+    example: true,
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  hasFemalePrayerSpace?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Filter mosques by wheelchair access availability',
+    example: true,
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  hasWheelchairAccess?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Filter mosques by air conditioning availability',
+    example: true,
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  hasAirConditioning?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Filter mosques by Janaza funeral preparation service availability',
+    example: true,
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  hasJanazaService?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Filter mosques by minimum capacity',
+    example: 500,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  minCapacity?: number;
 }

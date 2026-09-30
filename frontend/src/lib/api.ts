@@ -1,5 +1,6 @@
 import {
   Mosque,
+  MosqueFacility,
   DuplicateCandidate,
   AttendanceSummary,
   MosqueRoleClaim,
@@ -179,12 +180,39 @@ export async function fetchNearbyMosques(
   lat: number,
   lng: number,
   radiusMeters = 5000,
+  facilityFilters?: {
+    hasFemalePrayerSpace?: boolean;
+    hasWheelchairAccess?: boolean;
+    hasAirConditioning?: boolean;
+    hasJanazaService?: boolean;
+    minCapacity?: number;
+  },
 ): Promise<Mosque[]> {
   try {
-    const res = await fetch(
-      `${API_BASE}/mosques/nearby?lat=${lat}&lng=${lng}&radiusMeters=${radiusMeters}`,
-      { next: { revalidate: 60 } },
-    );
+    const params = new URLSearchParams({
+      lat: String(lat),
+      lng: String(lng),
+      radiusMeters: String(radiusMeters),
+    });
+    if (facilityFilters?.hasFemalePrayerSpace) {
+      params.append('hasFemalePrayerSpace', 'true');
+    }
+    if (facilityFilters?.hasWheelchairAccess) {
+      params.append('hasWheelchairAccess', 'true');
+    }
+    if (facilityFilters?.hasAirConditioning) {
+      params.append('hasAirConditioning', 'true');
+    }
+    if (facilityFilters?.hasJanazaService) {
+      params.append('hasJanazaService', 'true');
+    }
+    if (facilityFilters?.minCapacity) {
+      params.append('minCapacity', String(facilityFilters.minCapacity));
+    }
+
+    const res = await fetch(`${API_BASE}/mosques/nearby?${params.toString()}`, {
+      next: { revalidate: 60 },
+    });
     if (!res.ok) throw new Error('Failed to fetch nearby mosques');
     const json = await res.json();
     return json.data || json;
@@ -201,6 +229,7 @@ export async function searchMosques(
     hasSeparateWomenSpace?: boolean;
     hasAirConditioning?: boolean;
     hasParking?: boolean;
+    hasWheelchairAccess?: boolean;
   },
 ): Promise<Mosque[]> {
   try {
@@ -210,6 +239,7 @@ export async function searchMosques(
     if (filters?.hasSeparateWomenSpace) params.append('hasSeparateWomenSpace', 'true');
     if (filters?.hasAirConditioning) params.append('hasAirConditioning', 'true');
     if (filters?.hasParking) params.append('hasParking', 'true');
+    if (filters?.hasWheelchairAccess) params.append('hasWheelchairAccess', 'true');
 
     const res = await fetch(`${API_BASE}/mosques?${params.toString()}`);
     if (!res.ok) throw new Error('Failed to search mosques');
@@ -620,4 +650,69 @@ export async function fetchUserBookmarks(): Promise<string[]> {
   }
   return getLocalBookmarks();
 }
+
+export async function fetchMosqueFacilities(
+  mosqueId: string,
+): Promise<MosqueFacility | null> {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/facilities`, {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      if (res.status === 404) return null;
+      throw new Error(`Failed to fetch facilities: ${res.statusText}`);
+    }
+    const json = await res.json();
+    return json.data ?? json;
+  } catch (err) {
+    console.warn(`Error fetching facilities for mosque ${mosqueId}:`, err);
+    return null;
+  }
+}
+
+export async function upsertMosqueFacilities(
+  mosqueId: string,
+  data: Partial<MosqueFacility>,
+  token?: string,
+): Promise<{ success: boolean; data?: MosqueFacility; error?: string }> {
+  try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    const activeToken =
+      token ||
+      (typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null);
+    if (activeToken) {
+      headers['Authorization'] = `Bearer ${activeToken}`;
+    }
+
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/facilities`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      return {
+        success: false,
+        error: json.message || json.error || 'Failed to update facilities',
+      };
+    }
+
+    return {
+      success: true,
+      data: json.data ?? json,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Network error updating facilities',
+    };
+  }
+}
+
 

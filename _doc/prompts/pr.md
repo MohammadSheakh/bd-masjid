@@ -28,3 +28,7 @@ so that you can understand what we need to do next for release 2
 another thing is .. then [/grill-me](slashCommand;grill-me)  .. and create spec ( [SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/feature-spec-metadata/SKILL.md)  ), adr about this 
 keep in mind other related 02 to 08 docs also 
 =======================>
+
+what is the next task then ? is spec is already created for that ?
+
+=================>

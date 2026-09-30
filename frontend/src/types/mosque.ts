@@ -111,6 +111,27 @@ export interface MosqueDonationMethod {
   isVerified: boolean;
 }
 
+export interface MosqueFacility {
+  id?: string;
+  mosqueId?: string;
+  totalCapacity?: number | null;
+  toiletCount?: number | null;
+  hasSeparateWudu?: boolean | null;
+  wuduCapacity?: number | null;
+  hasFemalePrayerSpace?: boolean | null;
+  femaleCapacity?: number | null;
+  hasWheelchairAccess?: boolean | null;
+  hasRamp?: boolean | null;
+  hasAirConditioning?: boolean | null;
+  hasFan?: boolean | null;
+  hasJanazaService?: boolean | null;
+  hasParkingCar?: boolean | null;
+  hasParkingBike?: boolean | null;
+  hasLibraryMaktab?: boolean | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Mosque {
   id: string;
   name: string;
@@ -123,6 +144,7 @@ export interface Mosque {
   operationalStatus: MosqueOperationalStatus;
   verificationStatus: MosqueVerificationStatus;
   distanceMeters?: number;
+  facility?: MosqueFacility | null;
   prayerSchedule?: PrayerSchedule | null;
   freshness?: FreshnessMetadata;
   attendanceSummary?: AttendanceSummary;

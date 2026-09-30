@@ -49,6 +49,7 @@ model Mosque {
   capacity                Int?
 
   // Relations
+  facility                MosqueFacility?
   prayerSchedule          PrayerSchedule?
   scheduleHistories       PrayerScheduleHistory[]
   attendances             UserMosqueAttendance[]

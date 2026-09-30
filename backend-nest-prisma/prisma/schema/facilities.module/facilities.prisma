@@ -1,0 +1,38 @@
+model MosqueFacility {
+  id                    String    @id @default(cuid())
+  mosqueId              String    @unique
+  mosque                Mosque    @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+
+  // Overall Capacity
+  totalCapacity         Int?
+  toiletCount           Int?
+
+  // Ablution (Wudu)
+  hasSeparateWudu       Boolean?  @default(false)
+  wuduCapacity          Int?
+
+  // Women's Facilities
+  hasFemalePrayerSpace  Boolean?  @default(false)
+  femaleCapacity        Int?
+
+  // Accessibility
+  hasWheelchairAccess   Boolean?  @default(false)
+  hasRamp               Boolean?  @default(false)
+
+  // Climate Control
+  hasAirConditioning    Boolean?  @default(false)
+  hasFan                Boolean?  @default(true)
+
+  // Community Amenities
+  hasJanazaService      Boolean?  @default(false)
+  hasParkingCar         Boolean?  @default(false)
+  hasParkingBike        Boolean?  @default(false)
+  hasLibraryMaktab      Boolean?  @default(false)
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([hasFemalePrayerSpace, hasWheelchairAccess])
+  @@index([hasAirConditioning])
+  @@index([totalCapacity])
+}
