@@ -1,3 +1,7 @@
+import request from 'supertest';
+import { ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { AuthGuard, RolesGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
 import { CommunityController } from '../community.controller';
 import { CommunityService } from '../community.service';
 import { AddStaffDto } from '../dto/add-staff.dto';
@@ -5,7 +9,6 @@ import { CreateRoleClaimDto } from '../dto/create-claim.dto';
 import { ReviewRoleClaimDto } from '../dto/review-claim.dto';
 import { CreateDonationMethodDto } from '../dto/create-donation.dto';
 import { ReviewDonationMethodDto } from '../dto/review-donation.dto';
-import { UserPayload } from '@app/common';
 import {
   DonationMethodType,
   MosqueStaffRole,
@@ -220,6 +223,88 @@ describe('CommunityController', () => {
 
       expect(service.getUserBookmarks).toHaveBeenCalledWith('user-1');
       expect(result).toEqual(response);
+    });
+  });
+
+  describe('HTTP Pipeline & Validation Boundary (Supertest)', () => {
+    let app: any;
+    let serviceMock: any;
+
+    beforeAll(async () => {
+      serviceMock = {
+        getStaff: jest.fn().mockResolvedValue([{ id: 'staff-1', role: MosqueStaffRole.IMAM }]),
+        submitRoleClaim: jest.fn().mockResolvedValue({ id: 'claim-1', role: MosqueStaffRole.IMAM }),
+      };
+
+      const moduleRef = await Test.createTestingModule({
+        controllers: [CommunityController],
+        providers: [
+          { provide: CommunityService, useValue: serviceMock },
+        ],
+      })
+        .overrideGuard(AuthGuard)
+        .useValue({
+          canActivate: (context: any) => {
+            const reflector = new (require('@nestjs/core').Reflector)();
+            const isPublic = reflector.getAllAndOverride(
+              require('@app/common').IS_PUBLIC_KEY,
+              [context.getHandler(), context.getClass()],
+            );
+            const req = context.switchToHttp().getRequest();
+            const auth = req.headers['authorization'];
+            if (auth && auth.startsWith('Bearer valid')) {
+              req.user = mockUser;
+              return true;
+            }
+            if (isPublic) {
+              return true;
+            }
+            throw new (require('@nestjs/common').UnauthorizedException)();
+          },
+        })
+        .overrideGuard(RolesGuard)
+        .useValue({ canActivate: () => true })
+        .overrideGuard(SlidingWindowRateLimitGuard)
+        .useValue({ canActivate: () => true })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalInterceptors(new TransformResponseInterceptor());
+      await app.init();
+    });
+
+    afterAll(async () => {
+      if (app) {
+        await app.close();
+      }
+    });
+
+    it('publicly returns staff directory on GET /mosques/:id/staff', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/mosques/mosque-1/staff');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('success', true);
+      expect(Array.isArray(res.body.data)).toBe(true);
+    });
+
+    it('rejects POST /mosques/:id/role-claims with 401 when no bearer token is supplied', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/mosques/mosque-1/role-claims')
+        .send({ role: MosqueStaffRole.IMAM, description: 'Test claim' });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('rejects POST /mosques/:id/role-claims with 400 when role enum is invalid', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/mosques/mosque-1/role-claims')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ role: 'INVALID_ROLE', description: 'Test claim' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBeDefined();
     });
   });
 });

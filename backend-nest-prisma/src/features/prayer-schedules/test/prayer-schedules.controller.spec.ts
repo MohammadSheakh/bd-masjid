@@ -1,7 +1,10 @@
+import request from 'supertest';
+import { ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { AuthGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
 import { PrayerSchedulesController } from '../prayer-schedules.controller';
 import { PrayerSchedulesService } from '../prayer-schedules.service';
 import { UpdatePrayerScheduleDto } from '../dto/update-prayer-schedule.dto';
-import { UserPayload } from '@app/common';
 import { UserRole } from '@prisma/client';
 
 describe('PrayerSchedulesController', () => {
@@ -83,6 +86,87 @@ describe('PrayerSchedulesController', () => {
 
       expect(service.getHistory).toHaveBeenCalledWith('mosque-1', 1, 10);
       expect(result).toEqual(history);
+    });
+  });
+
+  describe('HTTP Pipeline & Validation Boundary (Supertest)', () => {
+    let app: any;
+    let serviceMock: any;
+
+    beforeAll(async () => {
+      serviceMock = {
+        getCurrentSchedule: jest.fn().mockResolvedValue({ schedule: mockSchedule, freshness: 'FRESH' }),
+        updateSchedule: jest.fn().mockResolvedValue(mockSchedule),
+      };
+
+      const moduleRef = await Test.createTestingModule({
+        controllers: [PrayerSchedulesController],
+        providers: [
+          { provide: PrayerSchedulesService, useValue: serviceMock },
+        ],
+      })
+        .overrideGuard(AuthGuard)
+        .useValue({
+          canActivate: (context: any) => {
+            const reflector = new (require('@nestjs/core').Reflector)();
+            const isPublic = reflector.getAllAndOverride(
+              require('@app/common').IS_PUBLIC_KEY,
+              [context.getHandler(), context.getClass()],
+            );
+            const req = context.switchToHttp().getRequest();
+            const auth = req.headers['authorization'];
+            if (auth && auth.startsWith('Bearer valid')) {
+              req.user = mockActor;
+              return true;
+            }
+            if (isPublic) {
+              return true;
+            }
+            throw new (require('@nestjs/common').UnauthorizedException)();
+          },
+        })
+        .overrideGuard(SlidingWindowRateLimitGuard)
+        .useValue({ canActivate: () => true })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalInterceptors(new TransformResponseInterceptor());
+      await app.init();
+    });
+
+    afterAll(async () => {
+      if (app) {
+        await app.close();
+      }
+    });
+
+    it('publicly returns current schedule with 200 on GET /mosques/:id/prayer-schedule', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/mosques/mosque-1/prayer-schedule');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('success', true);
+      expect(res.body.data.freshness).toBe('FRESH');
+    });
+
+    it('rejects PUT /mosques/:id/prayer-schedule with 401 when no bearer token is supplied', async () => {
+      const res = await request(app.getHttpServer())
+        .put('/mosques/mosque-1/prayer-schedule')
+        .send({ fajrAzan: '05:05' });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('accepts authorized PUT /mosques/:id/prayer-schedule and returns updated timetable', async () => {
+      const res = await request(app.getHttpServer())
+        .put('/mosques/mosque-1/prayer-schedule')
+        .set('Authorization', 'Bearer valid-imam-token')
+        .send({ fajrAzan: '05:05' });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('success', true);
+      expect(serviceMock.updateSchedule).toHaveBeenCalled();
     });
   });
 });

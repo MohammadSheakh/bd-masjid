@@ -1,9 +1,12 @@
+import request from 'supertest';
+import { ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { AuthGuard, RolesGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
 import { SuggestionsController } from '../suggestions.controller';
 import { SuggestionsService } from '../suggestions.service';
 import { CreateSuggestionDto } from '../dto/create-suggestion.dto';
 import { CreateReportDto } from '../dto/create-report.dto';
 import { UpdateStatusDto } from '../dto/update-status.dto';
-import { UserPayload } from '@app/common';
 import { ReportType, SuggestionStatus, UserRole } from '@prisma/client';
 
 describe('SuggestionsController', () => {
@@ -58,7 +61,7 @@ describe('SuggestionsController', () => {
   describe('createReport', () => {
     it('should delegate report creation to service', async () => {
       const dto: CreateReportDto = {
-        type: ReportType.WRONG_PRAYER_TIMES,
+        type: ReportType.PRAYER_TIME,
         description: 'Asr time is 15 minutes late',
       };
       const response = { id: 'report-1', ...dto };
@@ -136,6 +139,103 @@ describe('SuggestionsController', () => {
 
       expect(service.updateReportStatus).toHaveBeenCalledWith('report-1', dto, mockAdmin);
       expect(result).toEqual(response);
+    });
+  });
+
+  describe('HTTP Pipeline & Validation Boundary (Supertest)', () => {
+    let app: any;
+    let serviceMock: any;
+
+    beforeAll(async () => {
+      serviceMock = {
+        createSuggestion: jest.fn().mockResolvedValue({ id: 'sugg-1', status: SuggestionStatus.PENDING }),
+        createReport: jest.fn().mockResolvedValue({ id: 'report-1', status: SuggestionStatus.PENDING }),
+      };
+
+      const moduleRef = await Test.createTestingModule({
+        controllers: [SuggestionsController],
+        providers: [
+          { provide: SuggestionsService, useValue: serviceMock },
+        ],
+      })
+        .overrideGuard(AuthGuard)
+        .useValue({
+          canActivate: (context: any) => {
+            const reflector = new (require('@nestjs/core').Reflector)();
+            const isPublic = reflector.getAllAndOverride(
+              require('@app/common').IS_PUBLIC_KEY,
+              [context.getHandler(), context.getClass()],
+            );
+            const req = context.switchToHttp().getRequest();
+            const auth = req.headers['authorization'];
+            if (auth && auth.startsWith('Bearer valid')) {
+              req.user = mockAdmin;
+              return true;
+            }
+            if (isPublic) {
+              return true;
+            }
+            throw new (require('@nestjs/common').UnauthorizedException)();
+          },
+        })
+        .overrideGuard(RolesGuard)
+        .useValue({ canActivate: () => true })
+        .overrideGuard(SlidingWindowRateLimitGuard)
+        .useValue({ canActivate: () => true })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalInterceptors(new TransformResponseInterceptor());
+      await app.init();
+    });
+
+    afterAll(async () => {
+      if (app) {
+        await app.close();
+      }
+    });
+
+    it('rejects POST /mosques/:id/suggestions with 400 when suggestedTimes is not an object', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/mosques/mosque-1/suggestions')
+        .send({ suggestedTimes: 'invalid-not-an-object' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBeDefined();
+    });
+
+    it('rejects POST /mosques/:id/reports with 400 when report type enum is invalid', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/mosques/mosque-1/reports')
+        .send({
+          type: 'INVALID_REPORT_TYPE',
+          description: 'Fajr time is listed 30 minutes too early',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBeDefined();
+    });
+
+    it('accepts public POST /mosques/:id/reports with valid payload and wraps in envelope', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/mosques/mosque-1/reports')
+        .send({
+          type: ReportType.PRAYER_TIME,
+          description: 'Fajr time is listed 30 minutes too early',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('success', true);
+      expect(res.body.data.id).toBe('report-1');
+    });
+
+    it('rejects PATCH /admin/suggestions/:id/status with 401 when no bearer token is supplied', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/admin/suggestions/sugg-1/status')
+        .send({ status: SuggestionStatus.RESOLVED });
+
+      expect(res.status).toBe(401);
     });
   });
 });

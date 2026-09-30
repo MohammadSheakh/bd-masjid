@@ -1,7 +1,10 @@
+import request from 'supertest';
+import { ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { AuthGuard, RolesGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
 import { MosqueVerificationController } from '../mosque-verification.controller';
 import { MosqueVerificationService } from '../mosque-verification.service';
 import { VerifyMosqueDto, RejectMosqueDto } from '../dto/verification.dto';
-import { UserPayload } from '@app/common';
 import { MosqueVerificationStatus, UserRole } from '@prisma/client';
 
 describe('MosqueVerificationController', () => {
@@ -75,6 +78,81 @@ describe('MosqueVerificationController', () => {
 
       expect(service.rejectMosque).toHaveBeenCalledWith('mosque-1', dto, mockAdmin);
       expect(result).toEqual(rejectedMosque);
+    });
+  });
+
+  describe('HTTP Pipeline & Validation Boundary (Supertest)', () => {
+    let app: any;
+    let serviceMock: any;
+
+    beforeAll(async () => {
+      serviceMock = {
+        getPendingMosques: jest.fn().mockResolvedValue({ items: [mockMosque], total: 1 }),
+        verifyMosque: jest.fn().mockResolvedValue(mockMosque),
+        rejectMosque: jest.fn().mockResolvedValue(mockMosque),
+      };
+
+      const moduleRef = await Test.createTestingModule({
+        controllers: [MosqueVerificationController],
+        providers: [
+          { provide: MosqueVerificationService, useValue: serviceMock },
+        ],
+      })
+        .overrideGuard(AuthGuard)
+        .useValue({
+          canActivate: (context: any) => {
+            const req = context.switchToHttp().getRequest();
+            const auth = req.headers['authorization'];
+            if (auth && auth.startsWith('Bearer valid-admin')) {
+              req.user = mockAdmin;
+              return true;
+            }
+            throw new (require('@nestjs/common').UnauthorizedException)();
+          },
+        })
+        .overrideGuard(RolesGuard)
+        .useValue({ canActivate: () => true })
+        .overrideGuard(SlidingWindowRateLimitGuard)
+        .useValue({ canActivate: () => true })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalInterceptors(new TransformResponseInterceptor());
+      await app.init();
+    });
+
+    afterAll(async () => {
+      if (app) {
+        await app.close();
+      }
+    });
+
+    it('rejects GET /admin/mosques/pending-verification with 401 when no token is provided', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/admin/mosques/pending-verification');
+
+      expect(res.status).toBe(401);
+    });
+
+    it('returns 200 and wrapped list on GET /admin/mosques/pending-verification with admin token', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/admin/mosques/pending-verification')
+        .set('Authorization', 'Bearer valid-admin-token');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('success', true);
+      expect(res.body.data.items).toBeDefined();
+    });
+
+    it('rejects POST /admin/mosques/:id/reject with 400 when reason is missing', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/admin/mosques/mosque-1/reject')
+        .set('Authorization', 'Bearer valid-admin-token')
+        .send({});
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBeDefined();
     });
   });
 });
