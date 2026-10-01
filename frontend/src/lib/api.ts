@@ -9,7 +9,31 @@ import {
   MosqueStaffMember,
 } from '@/types/mosque';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6733/api/v1';
+export function getApiBase(): string {
+  if (typeof window !== 'undefined') {
+    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    // If explicitly configured with https://, use it directly
+    if (envUrl && envUrl.startsWith('https://')) {
+      return envUrl.replace(/\/$/, '');
+    }
+    // Prevent Mixed Content blocking if page was loaded over HTTPS
+    if (window.location.protocol === 'https:' && (!envUrl || envUrl.startsWith('http://'))) {
+      return '/api/v1';
+    }
+    return (envUrl || '/api/v1').replace(/\/$/, '');
+  }
+  // Server-side execution in Node.js (SSR / Next.js container)
+  const serverUrl =
+    process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://backend:6733/api/v1';
+  return serverUrl.replace(/\/$/, '');
+}
+
+export const API_BASE = {
+  toString: () => getApiBase(),
+  valueOf: () => getApiBase(),
+};
 
 function getAuthHeaders(): HeadersInit {
   const headers: Record<string, string> = {
@@ -959,6 +983,30 @@ export async function registerUser(name: string, email: string, password: string
   const json = await res.json();
   if (!res.ok) {
     throw new Error(json.message || json.error || 'Failed to register');
+  }
+  return json.data || json;
+}
+
+export async function getOAuthConfig(): Promise<{ googleClientId: string | null }> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/oauth/config`);
+    if (!res.ok) return { googleClientId: null };
+    const json = await res.json();
+    return json.data || json;
+  } catch {
+    return { googleClientId: null };
+  }
+}
+
+export async function oauthLogin(provider: string, idToken: string) {
+  const res = await fetch(`${API_BASE}/auth/oauth`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, idToken }),
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.message || json.error || 'Google authentication failed');
   }
   return json.data || json;
 }

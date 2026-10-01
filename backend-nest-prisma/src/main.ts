@@ -75,8 +75,41 @@ async function bootstrap() {
   app.use(helmet());
 
   // CORS - Cross-Origin Resource Sharing
+  const rawOrigins = [
+    customerWebUrl,
+    adminWebUrl,
+    'http://localhost:3005',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://masjid.sheakh.qzz.io',
+    'https://ferio.sheakh.qzz.io',
+  ];
+  const allowedOrigins = rawOrigins
+    .flatMap((url) => (url ? url.split(',') : []))
+    .map((url) => url.trim().replace(/\/$/, ''))
+    .filter((url) => url.length > 0);
+
   app.enableCors({
-    origin: [customerWebUrl, adminWebUrl],
+    origin: (requestOrigin, callback) => {
+      // Allow server-to-server, curl, mobile apps, or local dev without origin header
+      if (!requestOrigin) {
+        return callback(null, true);
+      }
+      const normalizedOrigin = requestOrigin.replace(/\/$/, '');
+      const isAllowed =
+        allowedOrigins.includes(normalizedOrigin) ||
+        /^https?:\/\/localhost(:\d+)?$/.test(normalizedOrigin) ||
+        /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(normalizedOrigin) ||
+        /\.sheakh\.qzz\.io$/.test(new URL(normalizedOrigin).hostname);
+
+      if (isAllowed) {
+        return callback(null, true);
+      }
+      return callback(
+        new Error(`Origin ${requestOrigin} not allowed by CORS policy`),
+        false,
+      );
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: [

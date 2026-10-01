@@ -1,18 +1,23 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { StructuredLogger } from '@app/common';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   [key: string]: any;
   private readonly logger = new StructuredLogger(PrismaService.name);
+  private readonly pool: Pool;
 
   constructor() {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     const adapter = new PrismaPg(pool);
     super({ adapter });
+    this.pool = pool;
   }
 
   async onModuleInit() {
@@ -28,4 +33,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
       throw error;
     }
   }
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+    await this.pool.end();
+  }
 }
+

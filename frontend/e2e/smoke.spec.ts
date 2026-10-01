@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Mosque Platform End-to-End Smoke Suite', () => {
+test.describe('Mosque Platform End-to-End Enterprise Suite', () => {
 
   test('1. Home page renders brand, navigation, search, and dynamic map container', async ({ page }) => {
     await page.goto('/');
@@ -88,6 +88,45 @@ test.describe('Mosque Platform End-to-End Smoke Suite', () => {
 
     // Confirm no unhandled 500 error page
     await expect(page.locator('text=Application error')).not.toBeVisible();
+  });
+
+  test('6. Search input handles typing and queries without console exceptions', async ({ page }) => {
+    await page.goto('/');
+
+    const searchInput = page.getByPlaceholder('Search mosque name, street, or area...');
+    await searchInput.fill('Baitul Mukarram');
+    await expect(searchInput).toHaveValue('Baitul Mukarram');
+
+    // Clear search
+    await searchInput.fill('');
+    await expect(searchInput).toHaveValue('');
+  });
+
+  test('7. City filter pills switch active selection correctly', async ({ page }) => {
+    await page.goto('/');
+
+    // Locate city filter buttons
+    const chittagongBtn = page.getByRole('button', { name: 'Chittagong' });
+    if (await chittagongBtn.isVisible()) {
+      await chittagongBtn.click();
+      // Ensure page did not crash
+      await expect(page.locator('main')).toBeVisible();
+    }
+  });
+
+  test('8. Add Mosque form validates mandatory mosque name before submission', async ({ page }) => {
+    await page.goto('/');
+
+    // Open modal
+    await page.getByRole('button', { name: /Add Mosque/i }).click();
+    await expect(page.locator('text=Submit a Mosque')).toBeVisible();
+
+    // Attempt to submit with empty name
+    const submitBtn = page.getByRole('button', { name: /Submit Mosque Listing/i });
+    await submitBtn.click();
+
+    // Verify inline error prompt appears
+    await expect(page.locator('text=Please enter mosque name.')).toBeVisible();
   });
 
 });

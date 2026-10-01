@@ -22,6 +22,7 @@ import {
   Key,
 } from 'lucide-react';
 import { formatTo12Hour } from '@/lib/time';
+import { AuthModal } from '@/components/AuthModal';
 
 interface PendingMosque {
   id: string;
@@ -140,6 +141,7 @@ export default function AdminPage() {
   const [tokenInput, setTokenInput] = useState('');
   const [showTokenPrompt, setShowTokenPrompt] = useState(false);
   const [hasToken, setHasToken] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6733/api/v1';
 
@@ -167,6 +169,16 @@ export default function AdminPage() {
       }
     }
     setShowTokenPrompt(false);
+    loadData();
+  };
+
+  const handleAuthSuccess = (_user: any) => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('access_token');
+      setHasToken(Boolean(stored));
+      if (stored) setTokenInput(stored);
+    }
+    setIsAuthModalOpen(false);
     loadData();
   };
 
@@ -478,15 +490,23 @@ export default function AdminPage() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowTokenPrompt(true)}
+            onClick={() => setIsAuthModalOpen(true)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors ${
               hasToken
                 ? 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100'
+                : 'border-zinc-300 bg-[#111114] text-white hover:bg-zinc-800'
             }`}
           >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>{hasToken ? 'Admin Active' : 'Sign In as Admin'}</span>
+          </button>
+
+          <button
+            onClick={() => setShowTokenPrompt(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-full border border-[#e8e8ea] bg-white text-[#6e6e73] hover:text-[#111114] hover:bg-zinc-100 transition-colors"
+            title="Manual Token Input"
+          >
             <Key className="w-3.5 h-3.5" />
-            <span>{hasToken ? 'Admin Token Active' : 'Set Admin Token'}</span>
           </button>
 
           <button
@@ -592,12 +612,21 @@ export default function AdminPage() {
                 <p className="text-amber-800 mt-0.5">{authError}</p>
               </div>
             </div>
-            <button
-              onClick={() => setShowTokenPrompt(true)}
-              className="px-3 py-1.5 rounded-lg bg-amber-600 text-white font-medium hover:bg-amber-700 transition-colors shrink-0"
-            >
-              Set Admin Token
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-full bg-[#111114] text-white font-medium hover:bg-zinc-800 transition-colors shrink-0 flex items-center gap-1.5"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Sign In as Admin (Google or Email)</span>
+              </button>
+              <button
+                onClick={() => setShowTokenPrompt(true)}
+                className="px-3 py-1.5 rounded-full border border-amber-300 bg-white text-amber-900 font-medium hover:bg-amber-100 transition-colors shrink-0"
+              >
+                Token
+              </button>
+            </div>
           </div>
         )}
 
@@ -1194,6 +1223,12 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   );
 }

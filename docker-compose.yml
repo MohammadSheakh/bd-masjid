@@ -41,6 +41,11 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-13b52e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e8}
       CUSTOMER_WEB_URL: ${CUSTOMER_WEB_URL:-http://localhost:3000}
       ADMIN_WEB_URL: ${ADMIN_WEB_URL:-http://localhost:3001}
+      ADMIN_NAME: ${ADMIN_NAME:-Mohammad Sheakh (Admin)}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-mohammad.sheakh01@gmail.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-AdminPass123!}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       BENCHMARK_BYPASS_TOKEN: ${BENCHMARK_BYPASS_TOKEN:-production-benchmark-bypass-9988}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
       TZ: ${TZ:-Asia/Dhaka}
@@ -67,7 +72,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:6733/api/v1}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://apiferio.sheakh.qzz.io/api/v1}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     container_name: bd-masjid-frontend
     restart: unless-stopped
     env_file:
@@ -79,7 +85,9 @@ services:
       NODE_ENV: production
       PORT: 3000
       HOSTNAME: "0.0.0.0"
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:6733/api/v1}
+      INTERNAL_API_URL: http://backend:6733
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://apiferio.sheakh.qzz.io/api/v1}
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
       TZ: ${TZ:-Asia/Dhaka}
     depends_on:
       backend:
@@ -103,8 +111,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: bd-masjid-cloudflared
     restart: unless-stopped
-    profiles:
-      - tunnel
+    network_mode: host
     command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARE_TUNNEL_TOKEN:-}
     env_file:
       - path: .env
@@ -114,8 +121,6 @@ services:
         condition: service_healthy
       backend:
         condition: service_healthy
-    networks:
-      - bd-masjid-network
 
 volumes:
   bd_masjid_redisdata:

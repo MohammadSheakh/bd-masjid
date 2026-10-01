@@ -2,12 +2,14 @@
 
 import React from 'react';
 import { Mosque, MosqueFacility } from '@/types/mosque';
+import { Building2, Check, Pencil, Sparkles } from 'lucide-react';
 
 interface MosqueFacilitiesCardProps {
   mosque: Mosque;
   facility?: MosqueFacility | null;
   canEdit?: boolean;
   onEdit?: () => void;
+  onOpenSuggestion?: () => void;
 }
 
 export const MosqueFacilitiesCard: React.FC<MosqueFacilitiesCardProps> = ({
@@ -15,272 +17,285 @@ export const MosqueFacilitiesCard: React.FC<MosqueFacilitiesCardProps> = ({
   facility,
   canEdit = false,
   onEdit,
+  onOpenSuggestion,
 }) => {
-  // Coalesce between dedicated facility record and legacy mosque booleans
-  const totalCapacity = facility?.totalCapacity ?? mosque.capacity ?? null;
-  const toiletCount = facility?.toiletCount ?? null;
+  // Only display capacity metrics that have actual numbers (> 0) reported
+  const capacityItems: { label: string; value: string }[] = [];
 
-  const femaleSpace =
-    facility?.hasFemalePrayerSpace !== undefined &&
-    facility?.hasFemalePrayerSpace !== null
-      ? facility.hasFemalePrayerSpace
-      : mosque.hasSeparateWomenSpace !== undefined
-        ? mosque.hasSeparateWomenSpace
-        : null;
+  const totalCap =
+    facility?.totalCapacity ??
+    (mosque.capacity && mosque.capacity > 0 ? mosque.capacity : null);
+  if (totalCap && totalCap > 0) {
+    capacityItems.push({
+      label: 'Total Capacity',
+      value: `${totalCap.toLocaleString()} musallis`,
+    });
+  }
 
-  const femaleCapacity = facility?.femaleCapacity ?? null;
+  if (facility?.femaleCapacity && facility.femaleCapacity > 0) {
+    capacityItems.push({
+      label: "Women's Capacity",
+      value: `${facility.femaleCapacity.toLocaleString()} musallis`,
+    });
+  }
 
-  const separateWudu =
-    facility?.hasSeparateWudu !== undefined &&
-    facility?.hasSeparateWudu !== null
-      ? facility.hasSeparateWudu
-      : mosque.hasWuduArea !== undefined
-        ? mosque.hasWuduArea
-        : null;
+  if (facility?.wuduCapacity && facility.wuduCapacity > 0) {
+    capacityItems.push({
+      label: 'Wudu Taps',
+      value: `${facility.wuduCapacity} taps`,
+    });
+  }
 
-  const wuduCapacity = facility?.wuduCapacity ?? null;
+  if (facility?.toiletCount && facility.toiletCount > 0) {
+    capacityItems.push({
+      label: 'Washrooms',
+      value: `${facility.toiletCount} units`,
+    });
+  }
 
-  const wheelchair =
-    facility?.hasWheelchairAccess !== undefined &&
-    facility?.hasWheelchairAccess !== null
-      ? facility.hasWheelchairAccess
-      : mosque.hasWheelchairAccess !== undefined
-        ? mosque.hasWheelchairAccess
-        : null;
+  // Only display facility amenities that have been confirmed available (true)
+  interface AvailableAmenity {
+    id: string;
+    label: string;
+    detailText?: string;
+  }
 
-  const ramp = facility?.hasRamp ?? null;
+  const availableAmenities: AvailableAmenity[] = [];
 
-  const ac =
-    facility?.hasAirConditioning !== undefined &&
-    facility?.hasAirConditioning !== null
-      ? facility.hasAirConditioning
-      : mosque.hasAirConditioning !== undefined
-        ? mosque.hasAirConditioning
-        : null;
+  if (facility?.hasFemalePrayerSpace) {
+    availableAmenities.push({
+      id: 'female-prayer-space',
+      label: "Women's Prayer Space",
+      detailText: facility.femaleCapacity
+        ? `${facility.femaleCapacity.toLocaleString()} musallis`
+        : 'Dedicated area',
+    });
+  }
 
-  const fan = facility?.hasFan ?? null;
+  if (facility?.hasSeparateWudu) {
+    availableAmenities.push({
+      id: 'separate-wudu',
+      label: 'Separate Wudu Area',
+      detailText: facility.wuduCapacity ? `${facility.wuduCapacity} taps` : undefined,
+    });
+  }
 
-  const janaza =
-    facility?.hasJanazaService !== undefined &&
-    facility?.hasJanazaService !== null
-      ? facility.hasJanazaService
-      : mosque.hasJanazaFacility !== undefined
-        ? mosque.hasJanazaFacility
-        : null;
+  if (facility?.hasAirConditioning) {
+    availableAmenities.push({
+      id: 'air-conditioning',
+      label: 'Air Conditioning (AC)',
+    });
+  }
 
-  const parkingCar = facility?.hasParkingCar ?? (mosque.hasParking ? true : null);
-  const parkingBike = facility?.hasParkingBike ?? null;
-  const libraryMaktab = facility?.hasLibraryMaktab ?? null;
+  if (facility?.hasFan) {
+    availableAmenities.push({
+      id: 'electric-fans',
+      label: 'Electric Fans',
+    });
+  }
 
-  const renderStatusBadge = (
-    value: boolean | null | undefined,
-    detailText?: string | null,
-  ) => {
-    if (value === null || value === undefined) {
-      return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] text-xs font-medium bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-          Not Reported
-        </span>
-      );
-    }
+  if (facility?.hasWheelchairAccess) {
+    availableAmenities.push({
+      id: 'wheelchair-access',
+      label: 'Wheelchair Accessible',
+    });
+  }
 
-    if (value) {
-      return (
-        <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60">
-            Available
-          </span>
-          {detailText && (
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">
-              ({detailText})
-            </span>
-          )}
-        </div>
-      );
-    }
+  if (facility?.hasRamp) {
+    availableAmenities.push({
+      id: 'entrance-ramp',
+      label: 'Entrance Ramp',
+    });
+  }
 
+  if (facility?.hasJanazaService) {
+    availableAmenities.push({
+      id: 'janaza-service',
+      label: 'Janaza Funeral Services',
+    });
+  }
+
+  if (facility?.hasLibraryMaktab) {
+    availableAmenities.push({
+      id: 'library-maktab',
+      label: 'Maktab & Library',
+    });
+  }
+
+  if (facility?.hasParkingCar) {
+    availableAmenities.push({
+      id: 'parking-car',
+      label: 'Car Parking',
+    });
+  }
+
+  if (facility?.hasParkingBike) {
+    availableAmenities.push({
+      id: 'parking-bike',
+      label: 'Motorcycle & Bike Parking',
+    });
+  }
+
+  const hasAnyInformation =
+    capacityItems.length > 0 || availableAmenities.length > 0;
+
+  // Empty state: No facility or capacity information has been reported for this mosque yet
+  if (!hasAnyInformation) {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] text-xs font-medium bg-neutral-100 text-neutral-600 dark:bg-neutral-800/70 dark:text-neutral-400">
-        Not Available
-      </span>
-    );
-  };
+      <section
+        aria-labelledby="facilities-heading"
+        className="bg-white border border-[#e8e8ea] rounded-2xl p-4 sm:p-5 mb-4"
+      >
+        <div className="flex items-center justify-between pb-3 border-b border-[#e8e8ea] mb-3">
+          <div>
+            <h3
+              id="facilities-heading"
+              className="text-xs font-bold uppercase tracking-wider text-[#6e6e73]"
+            >
+              Facilities & Capacity
+            </h3>
+            <p className="text-xs text-[#111114] font-medium mt-0.5">
+              Amenities & accessibility details
+            </p>
+          </div>
+        </div>
 
+        <div className="text-center py-6 px-4 bg-[#fafafa] rounded-xl border border-dashed border-[#e8e8ea]">
+          <div className="w-10 h-10 mx-auto mb-2.5 rounded-full bg-white border border-[#e8e8ea] flex items-center justify-center text-[#6e6e73]">
+            <Building2 className="w-5 h-5" />
+          </div>
+          <h4 className="text-xs font-semibold text-[#111114]">
+            No facility details reported yet
+          </h4>
+          <p className="text-[11px] text-[#6e6e73] max-w-sm mx-auto mt-1 mb-3.5 leading-relaxed">
+            Capacity, separate wudu, women&apos;s prayer space, and accessibility provisions have not been submitted for this mosque.
+          </p>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-[#111114] hover:bg-neutral-800 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#111114] focus:outline-none"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Add Facilities & Capacity
+            </button>
+          ) : onOpenSuggestion ? (
+            <button
+              type="button"
+              onClick={onOpenSuggestion}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-[#111114] bg-white hover:bg-neutral-50 border border-[#e8e8ea] rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#111114] focus:outline-none"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              Suggest Facility Details
+            </button>
+          ) : null}
+        </div>
+      </section>
+    );
+  }
+
+  // Populated state: Only show verified / reported facilities and capacities
   return (
     <section
       aria-labelledby="facilities-heading"
-      className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[10px] p-5 mb-6"
+      className="bg-white border border-[#e8e8ea] rounded-2xl p-4 sm:p-5 mb-4"
     >
-      <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-3 mb-4">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-[#e8e8ea] mb-3.5">
         <div>
           <h3
             id="facilities-heading"
-            className="text-base font-semibold text-[#111114] dark:text-neutral-100"
+            className="text-xs font-bold uppercase tracking-wider text-[#6e6e73]"
           >
             Facilities & Capacity
           </h3>
-          <p className="text-xs text-[#6e6e73] dark:text-neutral-400 mt-0.5">
+          <p className="text-xs text-[#111114] font-medium mt-0.5">
             Verified architectural and accessibility amenities
           </p>
         </div>
-        {canEdit && (
+        {canEdit ? (
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-neutral-800 dark:text-neutral-200 bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700 rounded-[8px] transition-colors"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#111114] hover:text-neutral-700 transition-colors focus-visible:ring-2 focus-visible:ring-[#111114] focus:outline-none"
           >
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-              />
-            </svg>
-            Edit Facilities
+            <Pencil className="w-3.5 h-3.5" />
+            Edit
           </button>
-        )}
+        ) : onOpenSuggestion ? (
+          <button
+            type="button"
+            onClick={onOpenSuggestion}
+            className="inline-flex items-center gap-1 text-xs font-medium text-[#6e6e73] hover:text-[#111114] transition-colors focus-visible:ring-2 focus-visible:ring-[#111114] focus:outline-none"
+          >
+            Suggest Update
+          </button>
+        ) : null}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
-        {/* Women's Prayer Space */}
-        <div className="flex items-center justify-between py-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-              Women&apos;s Prayer Space
-            </span>
-          </div>
-          {renderStatusBadge(
-            femaleSpace,
-            femaleCapacity ? `${femaleCapacity} musallis` : null,
-          )}
+      {/* Aggregate Capacity Numbers (Only reported metrics > 0) */}
+      {capacityItems.length > 0 && (
+        <div
+          className={`grid gap-2 mb-3.5 ${
+            capacityItems.length === 1
+              ? 'grid-cols-1'
+              : capacityItems.length === 2
+                ? 'grid-cols-2'
+                : capacityItems.length === 3
+                  ? 'grid-cols-3'
+                  : 'grid-cols-2 sm:grid-cols-4'
+          }`}
+        >
+          {capacityItems.map((item) => (
+            <div
+              key={item.label}
+              className="p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea] text-center"
+            >
+              <div className="text-[11px] font-medium text-[#6e6e73]">
+                {item.label}
+              </div>
+              <div className="text-sm font-bold text-[#111114] mt-0.5">
+                {item.value}
+              </div>
+            </div>
+          ))}
         </div>
+      )}
 
-        {/* Wheelchair Accessibility */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-            Wheelchair Accessible
-          </span>
-          {renderStatusBadge(wheelchair)}
+      {/* Available Amenities List */}
+      {availableAmenities.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {availableAmenities.map((amenity) => (
+            <div
+              key={amenity.id}
+              className="flex items-center justify-between p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea]"
+            >
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-5 h-5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                  <Check className="w-3.5 h-3.5" />
+                </span>
+                <span className="text-xs font-semibold text-[#111114]">
+                  {amenity.label}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {amenity.detailText && (
+                  <span className="text-[11px] text-[#6e6e73]">
+                    {amenity.detailText}
+                  </span>
+                )}
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Available
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
-
-        {/* Access Ramp */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-            Entrance Ramp
-          </span>
-          {renderStatusBadge(ramp)}
+      ) : (
+        <div className="pt-2 text-[11px] text-[#6e6e73]">
+          No specific amenities have been confirmed yet.
         </div>
-
-        {/* Air Conditioning */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-            Air Conditioning (AC)
-          </span>
-          {renderStatusBadge(ac)}
-        </div>
-
-        {/* Electric Fans */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-            Electric Fans
-          </span>
-          {renderStatusBadge(fan)}
-        </div>
-
-        {/* Separate Wudu Area */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-            Separate Wudu Area
-          </span>
-          {renderStatusBadge(
-            separateWudu,
-            wuduCapacity ? `${wuduCapacity} taps` : null,
-          )}
-        </div>
-
-        {/* Janaza Staging */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-            Janaza Funeral Services
-          </span>
-          {renderStatusBadge(janaza)}
-        </div>
-
-        {/* Library / Maktab */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-            Maktab & Library
-          </span>
-          {renderStatusBadge(libraryMaktab)}
-        </div>
-
-        {/* Car Parking */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-            Car Parking
-          </span>
-          {renderStatusBadge(parkingCar)}
-        </div>
-
-        {/* Bike / Bicycle Parking */}
-        <div className="flex items-center justify-between py-1">
-          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-            Motorcycle / Bike Parking
-          </span>
-          {renderStatusBadge(parkingBike)}
-        </div>
-      </div>
-
-      {/* Aggregate Capacity Numbers Bar */}
-      <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-        <div className="p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
-            Total Capacity
-          </div>
-          <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mt-0.5">
-            {totalCapacity !== null
-              ? `${totalCapacity.toLocaleString()} musallis`
-              : 'Not Reported'}
-          </div>
-        </div>
-
-        <div className="p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
-            Women&apos;s Capacity
-          </div>
-          <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mt-0.5">
-            {femaleCapacity !== null
-              ? `${femaleCapacity.toLocaleString()} musallis`
-              : femaleSpace === false
-                ? 'N/A'
-                : 'Not Reported'}
-          </div>
-        </div>
-
-        <div className="p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
-            Wudu Taps
-          </div>
-          <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mt-0.5">
-            {wuduCapacity !== null ? `${wuduCapacity} taps` : 'Not Reported'}
-          </div>
-        </div>
-
-        <div className="p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
-            Washrooms / Toilets
-          </div>
-          <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mt-0.5">
-            {toiletCount !== null ? `${toiletCount} units` : 'Not Reported'}
-          </div>
-        </div>
-      </div>
+      )}
     </section>
   );
 };

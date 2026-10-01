@@ -36,6 +36,8 @@ The Authentication & Credential Security feature provides identity lifecycle man
 ## 3. REST API Contracts
 - `POST /api/v1/auth/register` — User registration
 - `POST /api/v1/auth/login` — Email/password login with lockout checking
+- `GET /api/v1/auth/oauth/config` — Public OAuth client configuration (`googleClientId`)
+- `POST /api/v1/auth/oauth` — OAuth login with verified Google ID token (`provider: 'google'`, `idToken`)
 - `POST /api/v1/auth/refresh-token` — Rotate refresh token
 - `POST /api/v1/auth/logout` — Terminate session
 - `POST /api/v1/auth/2fa/generate` & `verify` — TOTP setup & verification
@@ -48,6 +50,8 @@ The Authentication & Credential Security feature provides identity lifecycle man
 - [x] Account lockout on consecutive failed attempts
 - [x] Two-factor authentication (TOTP) service
 - [x] Credential logging prohibited via `LogSanitizer`
+- [x] Google OAuth 2.0 Sign-In with cryptographic ID token verification (`OAuthVerificationService`)
+- [x] Multi-role identity mapping: automatic Admin elevation via `ADMIN_EMAIL`, Mosque Staff role resolution, Community user
 - [x] Auth unit and controller test suites (`auth.service.spec.ts`, `auth.controller.spec.ts`)
 
 ---
@@ -78,3 +82,22 @@ The Authentication & Credential Security feature provides identity lifecycle man
 - **Implementation Files**:
   - Service: `backend-nest-prisma/src/features/authentication/two-factor/two-factor.service.ts`
   - Tests: `backend-nest-prisma/src/features/authentication/two-factor/two-factor.service.spec.ts`
+
+### TK-AUTH-03: Google OAuth 2.0 & Multi-Role Identity Integration
+- **Status**: `[x] Completed` | **Priority**: High
+- **Description**: Support Google Sign-In with cryptographically verified ID tokens (`google-auth-library`), dynamic client configuration, and multi-role user resolution (Platform Admin, Mosque Staff/Committee, Community Visitors).
+- **Acceptance Criteria**:
+  - [x] `GET /api/v1/auth/oauth/config` exposes public `googleClientId` under rate-limiting.
+  - [x] `POST /api/v1/auth/oauth` verifies token against Google Client ID; rejects unverified emails.
+  - [x] Admin elevation: Accounts matching configured `ADMIN_EMAIL` automatically granted `UserRole.admin`.
+  - [x] Mosque Staff resolution: Queries verified `mosqueStaff` records and returns assigned mosque roles in user profile payload.
+  - [x] Visitors/Worshipers: Standard accounts created with verified email status.
+  - [x] Frontend integration: Accessible, Ferio-compliant `AuthModal.tsx` with Google Identity Services and Navbar badge indicators.
+- **Implementation Files**:
+  - OAuth Verification: `backend-nest-prisma/src/features/authentication/oauth/oauth-verification.service.ts`
+  - Auth Service: `backend-nest-prisma/src/features/authentication/auth/auth.service.ts`
+  - Auth Controller: `backend-nest-prisma/src/features/authentication/auth/auth.controller.ts`
+  - Frontend Modal: `frontend/src/components/AuthModal.tsx`
+  - Frontend Navbar: `frontend/src/components/Navbar.tsx`
+  - Frontend Admin Page: `frontend/src/app/admin/page.tsx`
+  - Tests: `backend-nest-prisma/src/features/authentication/auth/test/auth.service.spec.ts`

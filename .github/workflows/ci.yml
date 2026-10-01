@@ -83,6 +83,20 @@ jobs:
           JWT_SECRET: "test-jwt-secret-for-ci-pipeline-min-32-chars-long"
           NODE_ENV: test
 
+      - name: Security, RBAC & Lifecycle E2E tests
+        run: pnpm run test:e2e
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
+          TEST_DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/bd_masjid_test"
+          JWT_SECRET: "test-jwt-secret-for-ci-pipeline-min-32-chars-long"
+          JWT_ACCESS_SECRET: "test-jwt-secret-for-ci-pipeline-min-32-chars-long"
+          NODE_ENV: test
+
+      - name: BullMQ & Redis cache resilience smoke tests
+        run: pnpm run test:queue-smoke
+        env:
+          NODE_ENV: test
+
   frontend:
     name: Frontend — Turbopack Production Build & Typecheck
     runs-on: ubuntu-latest

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Mosque, AttendanceStatus } from '@/types/mosque';
+import React, { useState, useEffect } from 'react';
+import { Mosque, AttendanceStatus, MosqueStaffMember } from '@/types/mosque';
 import {
   X,
   MapPin,
@@ -19,8 +19,14 @@ import {
   Bookmark,
   BookmarkCheck,
   Moon,
+  Loader2,
 } from 'lucide-react';
-import { toggleAttendance, toggleMosqueBookmark, getLocalBookmarks } from '@/lib/api';
+import {
+  toggleAttendance,
+  toggleMosqueBookmark,
+  getLocalBookmarks,
+  fetchMosqueStaff,
+} from '@/lib/api';
 import { formatTo12Hour } from '@/lib/time';
 import { MosqueFacilitiesSection } from './MosqueFacilitiesSection';
 
@@ -66,6 +72,62 @@ export function MosqueDetailModal({
   );
   const [isUpdatingAttendance, setIsUpdatingAttendance] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
+
+  // Dynamic verified staff roster
+  const [staffList, setStaffList] = useState<MosqueStaffMember[]>(() => {
+    if (mosque.staffMembers && Array.isArray(mosque.staffMembers)) {
+      return mosque.staffMembers.filter((s) => s.isVerified);
+    }
+    return [];
+  });
+  const [isLoadingStaff, setIsLoadingStaff] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (mosque.staffMembers && Array.isArray(mosque.staffMembers)) {
+      setStaffList(mosque.staffMembers.filter((s) => s.isVerified));
+    } else {
+      setIsLoadingStaff(true);
+      fetchMosqueStaff(mosque.id)
+        .then((data) => {
+          if (isMounted && Array.isArray(data)) {
+            setStaffList(data.filter((s: MosqueStaffMember) => s.isVerified));
+          }
+        })
+        .catch(() => {
+          if (isMounted) setStaffList([]);
+        })
+        .finally(() => {
+          if (isMounted) setIsLoadingStaff(false);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [mosque.id, mosque.staffMembers]);
+
+  const formatStaffRole = (role: string) => {
+    switch (role) {
+      case 'MOSQUE_ADMIN':
+        return { title: 'Mosque Administrator', subtitle: 'Mutawalli / Committee Head' };
+      case 'IMAM':
+        return { title: 'Pesh Imam', subtitle: 'Appointed Islamic Scholar' };
+      case 'MUAZZIN':
+        return { title: 'Muazzin', subtitle: 'Regular Caller to Prayer' };
+      case 'KHATIB':
+        return { title: 'Chief Khatib', subtitle: 'Friday Khutbah Speaker' };
+      case 'KHADEM':
+        return { title: 'Khadem', subtitle: 'Mosque Caretaker' };
+      case 'COMMITTEE_PRESIDENT':
+        return { title: 'Committee President', subtitle: 'Executive Leadership' };
+      case 'COMMITTEE_SECRETARY':
+        return { title: 'General Secretary', subtitle: 'Administrative Leadership' };
+      case 'COMMITTEE_MEMBER':
+        return { title: 'Committee Member', subtitle: 'Management Committee' };
+      default:
+        return { title: role.replace(/_/g, ' '), subtitle: 'Verified Mosque Personnel' };
+    }
+  };
 
   const schedule = mosque.prayerSchedule;
 
@@ -296,6 +358,7 @@ export function MosqueDetailModal({
           <MosqueFacilitiesSection
             mosque={mosque}
             initialFacility={mosque.facility}
+            onOpenSuggestion={() => onOpenSuggestion(mosque)}
           />
 
           {/* Staff & Committee */}
@@ -306,34 +369,69 @@ export function MosqueDetailModal({
               </h3>
               {onOpenRoleClaim && (
                 <button
+                  type="button"
                   onClick={() => onOpenRoleClaim(mosque)}
-                  className="text-[11px] font-semibold text-emerald-700 hover:underline"
+                  className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 transition-colors focus-visible:ring-2 focus-visible:ring-[#111114] focus-visible:ring-offset-1 focus:outline-none rounded"
                 >
                   Claim Official Role
                 </button>
               )}
             </div>
 
-            <div className="p-3 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl divide-y divide-[#ececed] text-xs">
-              <div className="flex items-center justify-between py-1.5">
-                <div>
-                  <span className="font-semibold text-[#111114] block">Pesh Imam</span>
-                  <span className="text-[11px] text-[#6e6e73]">Appointed Islamic Scholar</span>
-                </div>
-                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                  Verified
-                </span>
+            {isLoadingStaff ? (
+              <div
+                aria-live="polite"
+                className="p-3.5 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl flex items-center justify-center gap-2 text-xs text-[#6e6e73]"
+              >
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#6e6e73]" aria-hidden="true" />
+                <span>Loading verified personnel...</span>
               </div>
-              <div className="flex items-center justify-between py-1.5">
-                <div>
-                  <span className="font-semibold text-[#111114] block">Muazzin</span>
-                  <span className="text-[11px] text-[#6e6e73]">Regular Caller to Prayer</span>
-                </div>
-                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                  Verified
-                </span>
+            ) : staffList.length > 0 ? (
+              <div className="p-3 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl divide-y divide-[#ececed] text-xs">
+                {staffList.map((member) => {
+                  const roleMeta = formatStaffRole(member.role);
+                  return (
+                    <div key={member.id} className="flex items-center justify-between py-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-[#111114]">{member.name}</span>
+                          <span className="text-[10px] font-medium text-[#111114] bg-[#f4f4f5] px-1.5 py-0.5 rounded border border-[#e8e8ea]">
+                            {roleMeta.title}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-[#6e6e73] block mt-0.5">
+                          {roleMeta.subtitle}
+                          {member.contactNumber ? ` · ${member.contactNumber}` : ''}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                        <Check className="w-2.5 h-2.5" aria-hidden="true" />
+                        Verified
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            ) : (
+              <div className="p-4 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl text-center">
+                <Users className="w-4 h-4 text-[#6e6e73] mx-auto mb-1.5 opacity-60" aria-hidden="true" />
+                <p className="text-xs font-medium text-[#6e6e73]">
+                  No appointed Imams or committee members verified yet.
+                </p>
+                {onOpenRoleClaim && (
+                  <p className="text-[11px] text-[#6e6e73] mt-1.5">
+                    Are you the Imam, Muazzin, or a committee member?{' '}
+                    <button
+                      type="button"
+                      onClick={() => onOpenRoleClaim(mosque)}
+                      className="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline focus-visible:ring-2 focus-visible:ring-[#111114] focus:outline-none rounded"
+                    >
+                      Claim official role
+                    </button>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Community Notices & Announcements */}

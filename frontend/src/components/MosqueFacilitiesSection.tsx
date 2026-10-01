@@ -8,11 +8,13 @@ import { EditFacilitiesModal } from './EditFacilitiesModal';
 interface MosqueFacilitiesSectionProps {
   mosque: Mosque;
   initialFacility?: MosqueFacility | null;
+  onOpenSuggestion?: () => void;
 }
 
 export const MosqueFacilitiesSection: React.FC<MosqueFacilitiesSectionProps> = ({
   mosque,
   initialFacility,
+  onOpenSuggestion,
 }) => {
   const [facility, setFacility] = useState<MosqueFacility | null>(
     initialFacility || mosque.facility || null,
@@ -65,6 +67,7 @@ export const MosqueFacilitiesSection: React.FC<MosqueFacilitiesSectionProps> = (
         facility={facility}
         canEdit={canEdit}
         onEdit={() => setIsModalOpen(true)}
+        onOpenSuggestion={onOpenSuggestion}
       />
 
       {isModalOpen && (

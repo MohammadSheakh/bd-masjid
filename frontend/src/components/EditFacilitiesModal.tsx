@@ -129,18 +129,18 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-facilities-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
     >
-      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[10px] w-full max-w-xl my-8 overflow-hidden shadow-xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
+      <div className="bg-white border border-[#e8e8ea] rounded-2xl sm:rounded-3xl w-full max-w-xl my-8 overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-[#e8e8ea] bg-[#fafafa]">
           <div>
             <h2
               id="edit-facilities-title"
-              className="text-base font-semibold text-[#111114] dark:text-neutral-100"
+              className="text-base font-bold text-[#111114]"
             >
               Update Mosque Facilities & Capacity
             </h2>
-            <p className="text-xs text-[#6e6e73] dark:text-neutral-400 mt-0.5">
+            <p className="text-xs text-[#6e6e73] mt-0.5">
               Specify verified architectural, accessibility, and community amenities
             </p>
           </div>
@@ -148,7 +148,7 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 p-1"
+            className="text-[#6e6e73] hover:text-[#111114] p-1 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-[#111114] focus:outline-none"
           >
             <svg
               className="w-5 h-5"
@@ -166,21 +166,21 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 max-h-[75vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 max-h-[75vh] overflow-y-auto">
           {error && (
-            <div className="mb-4 p-3 rounded-[8px] bg-red-50 text-red-700 text-xs border border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900">
+            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-xs border border-red-200">
               {error}
             </div>
           )}
 
           {/* Capacity Section */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73] mb-3">
               Musalli & Washroom Capacity
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                <label className="block text-xs font-semibold text-[#111114] mb-1">
                   Total Musalli Capacity
                 </label>
                 <input
@@ -189,12 +189,12 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
                   placeholder="e.g. 1500"
                   value={totalCapacity}
                   onChange={(e) => setTotalCapacity(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[8px] focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-white"
+                  className="w-full text-xs px-3 py-2 bg-[#fafafa] border border-[#e8e8ea] text-[#111114] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#111114]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                <label className="block text-xs font-semibold text-[#111114] mb-1">
                   Toilet / Washroom Count
                 </label>
                 <input
@@ -203,15 +203,15 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
                   placeholder="e.g. 12"
                   value={toiletCount}
                   onChange={(e) => setToiletCount(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[8px] focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-white"
+                  className="w-full text-xs px-3 py-2 bg-[#fafafa] border border-[#e8e8ea] text-[#111114] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#111114]"
                 />
               </div>
             </div>
           </div>
 
           {/* Women & Wudu Section */}
-          <div className="mb-6 pt-4 border-t border-neutral-100 dark:border-neutral-800">
-            <h3 className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-3">
+          <div className="mb-6 pt-4 border-t border-[#e8e8ea]">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73] mb-3">
               Women&apos;s Area & Wudu Provisions
             </h3>
             <div className="space-y-4">
@@ -221,21 +221,21 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
                   id="hasFemalePrayerSpace"
                   checked={hasFemalePrayerSpace}
                   onChange={(e) => setHasFemalePrayerSpace(e.target.checked)}
-                  className="mt-0.5 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+                  className="mt-0.5 rounded border-[#e8e8ea] text-[#111114] focus:ring-[#111114]"
                 />
                 <div className="flex-1">
                   <label
                     htmlFor="hasFemalePrayerSpace"
-                    className="text-xs font-medium text-neutral-800 dark:text-neutral-200 cursor-pointer"
+                    className="text-xs font-semibold text-[#111114] cursor-pointer"
                   >
                     Dedicated Secluded Women&apos;s Prayer Space
                   </label>
-                  <p className="text-[11px] text-neutral-500">
+                  <p className="text-[11px] text-[#6e6e73]">
                     Separate hall or partitioned section with dedicated entrance
                   </p>
                   {hasFemalePrayerSpace && (
                     <div className="mt-2">
-                      <label className="block text-[11px] font-medium text-neutral-600 dark:text-neutral-400 mb-1">
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
                         Women&apos;s Section Musalli Capacity
                       </label>
                       <input
@@ -244,7 +244,7 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
                         placeholder="e.g. 200"
                         value={femaleCapacity}
                         onChange={(e) => setFemaleCapacity(e.target.value)}
-                        className="w-full text-xs px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[8px]"
+                        className="w-full text-xs px-3 py-1.5 bg-[#fafafa] border border-[#e8e8ea] text-[#111114] rounded-lg"
                       />
                     </div>
                   )}
@@ -257,21 +257,21 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
                   id="hasSeparateWudu"
                   checked={hasSeparateWudu}
                   onChange={(e) => setHasSeparateWudu(e.target.checked)}
-                  className="mt-0.5 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+                  className="mt-0.5 rounded border-[#e8e8ea] text-[#111114] focus:ring-[#111114]"
                 />
                 <div className="flex-1">
                   <label
                     htmlFor="hasSeparateWudu"
-                    className="text-xs font-medium text-neutral-800 dark:text-neutral-200 cursor-pointer"
+                    className="text-xs font-semibold text-[#111114] cursor-pointer"
                   >
                     Dedicated Ablution (Wudu) Area
                   </label>
-                  <p className="text-[11px] text-neutral-500">
+                  <p className="text-[11px] text-[#6e6e73]">
                     Continuous tap or tank setup separated from main hall
                   </p>
                   {hasSeparateWudu && (
                     <div className="mt-2">
-                      <label className="block text-[11px] font-medium text-neutral-600 dark:text-neutral-400 mb-1">
+                      <label className="block text-[11px] font-medium text-[#6e6e73] mb-1">
                         Total Wudu Faucet / Tap Count
                       </label>
                       <input
@@ -280,7 +280,7 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
                         placeholder="e.g. 40"
                         value={wuduCapacity}
                         onChange={(e) => setWuduCapacity(e.target.value)}
-                        className="w-full text-xs px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-[8px]"
+                        className="w-full text-xs px-3 py-1.5 bg-[#fafafa] border border-[#e8e8ea] text-[#111114] rounded-lg"
                       />
                     </div>
                   )}
@@ -290,55 +290,55 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
           </div>
 
           {/* Accessibility & Climate */}
-          <div className="mb-6 pt-4 border-t border-neutral-100 dark:border-neutral-800">
-            <h3 className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-3">
+          <div className="mb-6 pt-4 border-t border-[#e8e8ea]">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73] mb-3">
               Accessibility & Climate Controls
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="flex items-center gap-2 p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-800 cursor-pointer text-xs">
+              <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea] hover:bg-neutral-100/70 transition-colors cursor-pointer text-xs">
                 <input
                   type="checkbox"
                   checked={hasWheelchairAccess}
                   onChange={(e) => setHasWheelchairAccess(e.target.checked)}
-                  className="rounded text-neutral-900"
+                  className="rounded text-[#111114]"
                 />
-                <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                <span className="font-semibold text-[#111114]">
                   Wheelchair Accessible
                 </span>
               </label>
 
-              <label className="flex items-center gap-2 p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-800 cursor-pointer text-xs">
+              <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea] hover:bg-neutral-100/70 transition-colors cursor-pointer text-xs">
                 <input
                   type="checkbox"
                   checked={hasRamp}
                   onChange={(e) => setHasRamp(e.target.checked)}
-                  className="rounded text-neutral-900"
+                  className="rounded text-[#111114]"
                 />
-                <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                <span className="font-semibold text-[#111114]">
                   Entrance Ramp Available
                 </span>
               </label>
 
-              <label className="flex items-center gap-2 p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-800 cursor-pointer text-xs">
+              <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea] hover:bg-neutral-100/70 transition-colors cursor-pointer text-xs">
                 <input
                   type="checkbox"
                   checked={hasAirConditioning}
                   onChange={(e) => setHasAirConditioning(e.target.checked)}
-                  className="rounded text-neutral-900"
+                  className="rounded text-[#111114]"
                 />
-                <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                <span className="font-semibold text-[#111114]">
                   Air Conditioning (AC)
                 </span>
               </label>
 
-              <label className="flex items-center gap-2 p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-800 cursor-pointer text-xs">
+              <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea] hover:bg-neutral-100/70 transition-colors cursor-pointer text-xs">
                 <input
                   type="checkbox"
                   checked={hasFan}
                   onChange={(e) => setHasFan(e.target.checked)}
-                  className="rounded text-neutral-900"
+                  className="rounded text-[#111114]"
                 />
-                <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                <span className="font-semibold text-[#111114]">
                   Electric Fans
                 </span>
               </label>
@@ -346,74 +346,74 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
           </div>
 
           {/* Community Amenities */}
-          <div className="mb-6 pt-4 border-t border-neutral-100 dark:border-neutral-800">
-            <h3 className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 uppercase tracking-wider mb-3">
+          <div className="mb-6 pt-4 border-t border-[#e8e8ea]">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73] mb-3">
               Community Services & Parking
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="flex items-center gap-2 p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-800 cursor-pointer text-xs">
+              <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea] hover:bg-neutral-100/70 transition-colors cursor-pointer text-xs">
                 <input
                   type="checkbox"
                   checked={hasJanazaService}
                   onChange={(e) => setHasJanazaService(e.target.checked)}
-                  className="rounded text-neutral-900"
+                  className="rounded text-[#111114]"
                 />
-                <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                <span className="font-semibold text-[#111114]">
                   Janaza Staging & Service
                 </span>
               </label>
 
-              <label className="flex items-center gap-2 p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-800 cursor-pointer text-xs">
+              <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea] hover:bg-neutral-100/70 transition-colors cursor-pointer text-xs">
                 <input
                   type="checkbox"
                   checked={hasLibraryMaktab}
                   onChange={(e) => setHasLibraryMaktab(e.target.checked)}
-                  className="rounded text-neutral-900"
+                  className="rounded text-[#111114]"
                 />
-                <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                <span className="font-semibold text-[#111114]">
                   Maktab / Islamic Library
                 </span>
               </label>
 
-              <label className="flex items-center gap-2 p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-800 cursor-pointer text-xs">
+              <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea] hover:bg-neutral-100/70 transition-colors cursor-pointer text-xs">
                 <input
                   type="checkbox"
                   checked={hasParkingCar}
                   onChange={(e) => setHasParkingCar(e.target.checked)}
-                  className="rounded text-neutral-900"
+                  className="rounded text-[#111114]"
                 />
-                <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                <span className="font-semibold text-[#111114]">
                   Car Parking Space
                 </span>
               </label>
 
-              <label className="flex items-center gap-2 p-2.5 rounded-[8px] bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-800 cursor-pointer text-xs">
+              <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#fafafa] border border-[#e8e8ea] hover:bg-neutral-100/70 transition-colors cursor-pointer text-xs">
                 <input
                   type="checkbox"
                   checked={hasParkingBike}
                   onChange={(e) => setHasParkingBike(e.target.checked)}
-                  className="rounded text-neutral-900"
+                  className="rounded text-[#111114]"
                 />
-                <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                <span className="font-semibold text-[#111114]">
                   Motorcycle / Bike Parking
                 </span>
               </label>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e8e8ea]">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+              className="px-4 py-2 text-xs font-semibold text-[#6e6e73] hover:text-[#111114] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 text-xs font-medium text-white bg-[#111114] hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 rounded-[10px] transition-colors disabled:opacity-50"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#111114] hover:bg-neutral-800 rounded-xl transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#111114] focus:outline-none"
             >
               {loading ? 'Saving...' : 'Save Facilities'}
             </button>

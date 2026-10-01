@@ -18,8 +18,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build-time environment variable for Next.js inlined public variables
-ARG NEXT_PUBLIC_API_URL=http://localhost:6733/api/v1
+ARG NEXT_PUBLIC_API_URL=https://apiferio.sheakh.qzz.io/api/v1
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build

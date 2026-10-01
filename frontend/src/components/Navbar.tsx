@@ -11,6 +11,7 @@ import {
   LogOut,
   ShieldCheck,
   ChevronDown,
+  Building2,
 } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationsPopover } from './NotificationsPopover';
@@ -174,9 +175,25 @@ export function Navbar({ onAddMosqueClick, onLocateMe, isLocating }: NavbarProps
                     <div className="px-3.5 py-2 border-b border-[#e8e8ea] bg-[#fafafa]">
                       <p className="font-bold text-[#111114] truncate">{currentUser.name || 'User'}</p>
                       <p className="text-[10px] text-[#6e6e73] truncate">{currentUser.email}</p>
-                      {currentUser.role === 'admin' && (
-                        <span className="inline-block mt-1 px-1.5 py-0.5 text-[9px] font-bold rounded bg-[#fafafa] text-[#111114] border border-[#e8e8ea]">
-                          Platform Admin
+                      {currentUser.role === 'admin' ? (
+                        <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 text-[9px] font-bold rounded bg-[#fafafa] text-[#111114] border border-[#e8e8ea]">
+                          <ShieldCheck className="w-2.5 h-2.5 text-[#111114]" /> Platform Admin
+                        </span>
+                      ) : currentUser.staffRoles && currentUser.staffRoles.length > 0 ? (
+                        <div className="mt-1 space-y-0.5">
+                          {currentUser.staffRoles.map((s: any) => (
+                            <span
+                              key={s.id || s.role}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-medium rounded bg-[#fafafa] text-[#111114] border border-[#e8e8ea]"
+                            >
+                              <Building2 className="w-2.5 h-2.5 text-[#6e6e73]" />
+                              {s.role} {s.mosque?.name ? `• ${s.mosque.name}` : ''}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="inline-block mt-1 px-1.5 py-0.5 text-[9px] font-medium rounded bg-[#fafafa] text-[#6e6e73] border border-[#e8e8ea]">
+                          Community Member / Visitor
                         </span>
                       )}
                     </div>

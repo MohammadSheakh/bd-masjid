@@ -197,4 +197,29 @@ describe('AuthService token lifecycle', () => {
       'private-refresh-token',
     );
   });
+
+  it('returns configured Google client ID from getOAuthConfig', () => {
+    const configService = {
+      get: jest.fn((key: string) =>
+        key === 'GOOGLE_CLIENT_ID'
+          ? 'test-google-client-id.apps.googleusercontent.com'
+          : null,
+      ),
+      getOrThrow: jest.fn(),
+    };
+    const service = new AuthService(
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      configService as never,
+      {} as never,
+    );
+
+    expect(service.getOAuthConfig()).toEqual({
+      googleClientId: 'test-google-client-id.apps.googleusercontent.com',
+    });
+  });
 });

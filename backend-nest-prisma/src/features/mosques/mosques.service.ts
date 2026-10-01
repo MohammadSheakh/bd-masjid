@@ -603,11 +603,11 @@ export class MosquesService {
       return cached.data;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
     try {
       const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=en,bn`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
-
       const response = await fetch(url, {
         headers: {
           'User-Agent':
@@ -616,7 +616,6 @@ export class MosquesService {
         },
         signal: controller.signal,
       });
-      clearTimeout(timeoutId);
 
       if (response.ok) {
         const raw = (await response.json()) as any;
@@ -677,6 +676,8 @@ export class MosquesService {
       this.logger.warn(
         `Reverse geocode failed for ${latitude},${longitude}: ${err.message}`,
       );
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     return {

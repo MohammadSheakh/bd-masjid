@@ -69,8 +69,30 @@ export class AuthService {
     const user = await this.validateCredentials(loginDto, 'USER');
     const tokens = await this.generateTokens(user);
 
+    const staffRoles = this.prisma.mosqueStaff
+      ? await this.prisma.mosqueStaff.findMany({
+          where: { userId: user.id, isVerified: true },
+          select: {
+            id: true,
+            mosqueId: true,
+            role: true,
+            isVerified: true,
+            mosque: {
+              select: {
+                id: true,
+                name: true,
+                city: true,
+              },
+            },
+          },
+        })
+      : [];
+
     return {
-      user: this.toPublicUser(user),
+      user: {
+        ...this.toPublicUser(user),
+        staffRoles,
+      },
       ...tokens,
     };
   }
@@ -579,6 +601,13 @@ export class AuthService {
     const name = payload.name;
     const profileImage = payload.picture;
     const normalizedEmail = email.trim().toLowerCase();
+    const configuredAdminEmail = (
+      this.configService.get<string>('ADMIN_EMAIL') || ''
+    ).trim().toLowerCase();
+    const isAdmin = Boolean(
+      configuredAdminEmail && normalizedEmail === configuredAdminEmail,
+    );
+
     const user = await this.prisma.$transaction(async (transaction) => {
       const emailUser = await transaction.user.findUnique({
         where: { email: normalizedEmail },
@@ -589,11 +618,16 @@ export class AuthService {
         throw new UnauthorizedException('Account has been deleted');
       }
 
+      const targetRole = isAdmin
+        ? UserRole.admin
+        : (emailUser?.role ?? UserRole.user);
+
       const accountUser = emailUser
         ? await transaction.user.update({
             where: { id: emailUser.id },
             data: {
               isEmailVerified: true,
+              role: targetRole,
               profileImageUrl: profileImage || emailUser.profileImageUrl,
             },
             select: authUserSelect,
@@ -602,7 +636,7 @@ export class AuthService {
             data: {
               name: name || normalizedEmail.split('@')[0],
               email: normalizedEmail,
-              role: UserRole.user,
+              role: targetRole,
               isEmailVerified: true,
               authProvider: provider,
               profileImageUrl: profileImage || '/uploads/users/user.png',
@@ -613,6 +647,25 @@ export class AuthService {
       return accountUser;
     });
 
+    const staffRoles = this.prisma.mosqueStaff
+      ? await this.prisma.mosqueStaff.findMany({
+          where: { userId: user.id, isVerified: true },
+          select: {
+            id: true,
+            mosqueId: true,
+            role: true,
+            isVerified: true,
+            mosque: {
+              select: {
+                id: true,
+                name: true,
+                city: true,
+              },
+            },
+          },
+        })
+      : [];
+
     const tokens = await this.generateTokens(user);
 
     return {
@@ -622,8 +675,19 @@ export class AuthService {
         email: user.email,
         role: user.role,
         profileImageUrl: user.profileImageUrl,
+        staffRoles,
       },
       ...tokens,
+    };
+  }
+
+  /**
+   * Get public OAuth configurations for clients
+   */
+  getOAuthConfig() {
+    return {
+      googleClientId:
+        (this.configService.get<string>('GOOGLE_CLIENT_ID') || '').trim() || null,
     };
   }
 

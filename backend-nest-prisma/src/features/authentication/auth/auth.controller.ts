@@ -238,6 +238,22 @@ export class AuthController {
   }
 
   /**
+   * GET /auth/oauth/config
+   * Returns public client configurations for OAuth providers (e.g. Google Client ID)
+   */
+  @Get('oauth/config')
+  @UseGuards(SlidingWindowRateLimitGuard)
+  @RateLimit(GLOBAL_RATE_LIMITS.user)
+  @ApiOperation({
+    summary: 'OAuth client configuration',
+    description: 'Returns public client configurations including Google Client ID',
+  })
+  @ApiResponse({ status: 200, description: 'OAuth configuration returned' })
+  getOAuthConfig() {
+    return this.authService.getOAuthConfig();
+  }
+
+  /**
    * POST /auth/oauth
    * OAuth login (Google)
    *
