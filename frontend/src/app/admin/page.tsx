@@ -1200,9 +1200,19 @@ export default function AdminPage() {
         {/* Tab 5: Schedule Suggestions */}
         {activeTab === 'suggestions' && (
           <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-zinc-50 border border-[#e8e8ea] text-xs space-y-1">
+              <div className="flex items-center gap-2 font-semibold text-[#111114]">
+                <Clock className="w-4 h-4 text-emerald-600" />
+                <span>Immediate Community Timetable Updates Active (ADR-021)</span>
+              </div>
+              <p className="text-[#6e6e73]">
+                Community timetable edits persist directly to active mosque schedules with immutable audit snapshots. Approval bottlenecks have been decommissioned. Any legacy or non-timetable suggestions awaiting review appear below.
+              </p>
+            </div>
+
             {suggestions.length === 0 ? (
               <div className="p-12 text-center rounded-xl bg-white border border-[#e8e8ea] text-xs text-[#6e6e73]">
-                No pending suggestions.
+                No pending suggestions. All community prayer timetable changes take effect immediately without moderation queue delays.
               </div>
             ) : (
               suggestions.map((s) => (

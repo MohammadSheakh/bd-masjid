@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Mosque } from '@/types/mosque';
-import { fetchNearbyMosques, searchMosques, fetchUserBookmarks, toggleMosqueBookmark } from '@/lib/api';
+import { fetchNearbyMosques, searchMosques, fetchUserBookmarks, toggleMosqueBookmark, fetchMosqueById } from '@/lib/api';
 import { Navbar } from '@/components/Navbar';
 import { MosqueCard } from '@/components/MosqueCard';
 import { MosqueDetailModal } from '@/components/MosqueDetailModal';
@@ -435,7 +435,21 @@ export default function HomePage() {
         <SuggestionModal
           mosque={suggestionMosque}
           onClose={() => setSuggestionMosque(null)}
-          onSuccess={() => {}}
+          onSuccess={async () => {
+            if (userLocation) {
+              loadInitialMosques(userLocation.lat, userLocation.lng);
+            } else {
+              loadInitialMosques();
+            }
+            if (selectedMosque && selectedMosque.id === suggestionMosque.id) {
+              try {
+                const refreshed = await fetchMosqueById(suggestionMosque.id);
+                if (refreshed) setSelectedMosque(refreshed);
+              } catch {
+                // Ignore refresh fallback error
+              }
+            }
+          }}
         />
       )}
 
