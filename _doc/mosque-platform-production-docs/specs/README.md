@@ -36,6 +36,7 @@ Each feature has a dedicated, self-contained specification file (`<feature>.md`)
 | **F-032** | Enterprise Admin Mosque Management, Directory & Report Resolution Console | [enterprise-admin-mosque-management.md](enterprise-admin-mosque-management/enterprise-admin-mosque-management.md) | [TK-ADM-01, TK-ADM-02](enterprise-admin-mosque-management/enterprise-admin-mosque-management.md#6-implementation-slices--proof-of-completion) | `F-001..F-004, F-006, F-010, F-020, F-021, F-026` | 3 | `[x] Completed` |
 | **F-033** | Mosque Listing Governance & Moderated Delisting | [mosque-listing-delisting-governance.md](mosque-listing-delisting-governance/mosque-listing-delisting-governance.md) | [TK-LIST-01..03](mosque-listing-delisting-governance/mosque-listing-delisting-governance.md#5-implementation-slices--proof-of-completion) | `F-001, F-003, F-004, F-006, F-032` | 3 | `[x] Completed` |
 | **F-034** | Immediate Community Prayer Timetable Updates | [immediate-community-timetable-updates.md](immediate-community-timetable-updates/immediate-community-timetable-updates.md) | Implementation Proof | `F-001, F-004, F-006, F-007, F-033` | 3 | `[x] Completed` |
+| **F-035** | Followed Mosques First Feed with Dynamic Discovery Search | [followed-mosques-feed.md](followed-mosques-feed/followed-mosques-feed.md) | Implementation Proof | `F-001, F-004, F-031, F-034` | 3 | `[/] In Progress` |
 
 
 ---
