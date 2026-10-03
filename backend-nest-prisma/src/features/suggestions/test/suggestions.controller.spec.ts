@@ -66,7 +66,7 @@ describe('SuggestionsController', () => {
       expect(service.createSuggestion).toHaveBeenCalledWith(
         'mosque-1',
         dto,
-        'user-1',
+        mockUser,
       );
       expect(result).toEqual(response);
     });

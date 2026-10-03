@@ -62,7 +62,7 @@ export class SuggestionsController {
     return this.suggestionsService.createSuggestion(
       mosqueId,
       dto,
-      user?.userId,
+      user,
     );
   }
 

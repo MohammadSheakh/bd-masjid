@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { Prisma, SuggestionStatus, ReportType } from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
+import { PrayerSchedulesService } from '../prayer-schedules/prayer-schedules.service';
 import type { UserPayload } from '@app/common';
 import { CreateSuggestionDto } from './dto/create-suggestion.dto';
 import { CreateReportDto } from './dto/create-report.dto';
@@ -14,16 +15,23 @@ export class SuggestionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly prayerSchedulesService: PrayerSchedulesService,
   ) {}
 
   /**
    * Submit prayer time or profile suggestion
+   * Backward-compatible: Timetable suggestions auto-apply immediately per ADR-021
    */
   async createSuggestion(
     mosqueId: string,
     dto: CreateSuggestionDto,
-    userId?: string,
+    actor?: UserPayload | string,
   ) {
+    const userPayload: UserPayload | undefined =
+      typeof actor === 'object' && actor !== null ? actor : undefined;
+    const userId =
+      userPayload?.userId || (typeof actor === 'string' ? actor : null);
+
     const mosque = await this.prisma.mosque.findUnique({
       where: { id: mosqueId, isDeleted: false },
       select: { id: true, name: true },
@@ -31,6 +39,27 @@ export class SuggestionsService {
 
     if (!mosque) {
       throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
+    }
+
+    const filteredTimes: Record<string, string> = {};
+    if (dto.suggestedTimes && typeof dto.suggestedTimes === 'object') {
+      for (const [k, v] of Object.entries(dto.suggestedTimes)) {
+        if (typeof v === 'string' && v.trim().length > 0) {
+          filteredTimes[k] = v.trim();
+        }
+      }
+    }
+    const hasSuggestedTimes = Object.keys(filteredTimes).length > 0;
+
+    if (hasSuggestedTimes) {
+      await this.prayerSchedulesService.updateSchedule(
+        mosqueId,
+        {
+          ...filteredTimes,
+          reason: dto.description?.trim() || 'Auto-applied via timetable suggestion',
+        },
+        userPayload,
+      );
     }
 
     const suggestion = await this.prisma.mosqueSuggestion.create({
@@ -41,12 +70,18 @@ export class SuggestionsService {
           ? (dto.suggestedTimes as Prisma.InputJsonValue)
           : Prisma.JsonNull,
         description: dto.description?.trim() || null,
-        status: SuggestionStatus.OPEN,
+        status: hasSuggestedTimes
+          ? SuggestionStatus.RESOLVED
+          : SuggestionStatus.OPEN,
+        resolutionNotes: hasSuggestedTimes
+          ? 'Auto-applied via Immediate Community Timetable Updates (ADR-021)'
+          : null,
+        reviewedAt: hasSuggestedTimes ? new Date() : null,
       },
     });
 
     this.logger.log(
-      `New suggestion ${suggestion.id} submitted for mosque ${mosqueId}`,
+      `Suggestion ${suggestion.id} processed for mosque ${mosqueId} (status: ${suggestion.status})`,
     );
     return suggestion;
   }

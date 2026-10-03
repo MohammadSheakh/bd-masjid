@@ -4,6 +4,7 @@ import { SuggestionStatus, ReportType } from '@prisma/client';
 import { SuggestionsService } from '../suggestions.service';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../../audit/audit.service';
+import { PrayerSchedulesService } from '../../prayer-schedules/prayer-schedules.service';
 import type { UserPayload } from '@app/common';
 
 describe('SuggestionsService', () => {
@@ -33,6 +34,10 @@ describe('SuggestionsService', () => {
     record: jest.fn().mockResolvedValue({ id: 'audit-sugg-1' }),
   };
 
+  const mockPrayerSchedulesService = {
+    updateSchedule: jest.fn().mockResolvedValue({ id: 'sched-1' }),
+  };
+
   const adminActor: UserPayload = {
     userId: 'admin-1',
     email: 'admin@example.com',
@@ -47,6 +52,7 @@ describe('SuggestionsService', () => {
         SuggestionsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: AuditService, useValue: mockAudit },
+        { provide: PrayerSchedulesService, useValue: mockPrayerSchedulesService },
       ],
     }).compile();
 
@@ -68,7 +74,7 @@ describe('SuggestionsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('creates suggestion successfully for valid mosque', async () => {
+    it('auto-applies schedule and sets status to RESOLVED when suggestedTimes provided', async () => {
       mockPrisma.mosque.findUnique.mockResolvedValue({
         id: 'mosque-1',
         name: 'Test Mosque',
@@ -77,7 +83,7 @@ describe('SuggestionsService', () => {
         id: 'sugg-1',
         mosqueId: 'mosque-1',
         suggestedTimes: { fajrJamaat: '05:20' },
-        status: SuggestionStatus.OPEN,
+        status: SuggestionStatus.RESOLVED,
       });
 
       const res = await service.createSuggestion(
@@ -90,6 +96,44 @@ describe('SuggestionsService', () => {
       );
 
       expect(res.id).toBe('sugg-1');
+      expect(mockPrayerSchedulesService.updateSchedule).toHaveBeenCalledWith(
+        'mosque-1',
+        {
+          fajrJamaat: '05:20',
+          reason: 'Summer time change',
+        },
+        undefined,
+      );
+      expect(mockPrisma.mosqueSuggestion.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          mosqueId: 'mosque-1',
+          userId: 'user-1',
+          status: SuggestionStatus.RESOLVED,
+        }),
+      });
+    });
+
+    it('creates OPEN suggestion without updating schedule when suggestedTimes is empty', async () => {
+      mockPrisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        name: 'Test Mosque',
+      });
+      mockPrisma.mosqueSuggestion.create.mockResolvedValue({
+        id: 'sugg-2',
+        mosqueId: 'mosque-1',
+        status: SuggestionStatus.OPEN,
+      });
+
+      const res = await service.createSuggestion(
+        'mosque-1',
+        {
+          description: 'Please add wheelchair ramp',
+        },
+        'user-1',
+      );
+
+      expect(res.id).toBe('sugg-2');
+      expect(mockPrayerSchedulesService.updateSchedule).not.toHaveBeenCalled();
       expect(mockPrisma.mosqueSuggestion.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           mosqueId: 'mosque-1',
