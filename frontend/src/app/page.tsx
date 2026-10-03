@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Mosque } from '@/types/mosque';
-import { fetchNearbyMosques, searchMosques, fetchUserBookmarks, toggleMosqueBookmark, fetchMosqueById } from '@/lib/api';
+import { fetchNearbyMosques, searchMosques, fetchUserBookmarks, toggleMosqueBookmark, fetchMosqueById, fetchFollowedMosques } from '@/lib/api';
 import { Navbar } from '@/components/Navbar';
 import { MosqueCard } from '@/components/MosqueCard';
 import { MosqueDetailModal } from '@/components/MosqueDetailModal';
@@ -34,6 +34,8 @@ const MosqueMap = dynamic(
 
 export default function HomePage() {
   const [mosques, setMosques] = useState<Mosque[]>([]);
+  const [followedMosques, setFollowedMosques] = useState<Mosque[]>([]);
+  const [isFollowedLoading, setIsFollowedLoading] = useState(true);
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState('All');
@@ -63,12 +65,22 @@ export default function HomePage() {
   // Available cities for filtering
   const cities = ['All', 'Dhaka', 'Chattogram', 'Sylhet'];
 
-  // Initial Load: Try geolocation or fallback to central Dhaka, and load bookmarks
+  // Load followed mosques from server / local storage
+  const loadFollowedMosques = async () => {
+    setIsFollowedLoading(true);
+    try {
+      const list = await fetchFollowedMosques();
+      setFollowedMosques(list);
+      setBookmarkedIds(list.map((m) => m.id));
+    } finally {
+      setIsFollowedLoading(false);
+    }
+  };
+
+  // Initial Load: Try geolocation or fallback to central Dhaka, and load followed mosques
   useEffect(() => {
+    loadFollowedMosques();
     loadInitialMosques();
-    fetchUserBookmarks().then((ids) => {
-      if (Array.isArray(ids)) setBookmarkedIds(ids);
-    });
   }, []);
 
   const loadInitialMosques = async (customLat?: number, customLng?: number) => {
@@ -157,25 +169,58 @@ export default function HomePage() {
     setSelectedMosque(newMosque);
   };
 
+  const isSearchingOrFiltering = Boolean(
+    searchQuery.trim() ||
+    selectedCity !== 'All' ||
+    filterWomen ||
+    filterAC ||
+    filterParking ||
+    filterWheelchair ||
+    filterBookmarked
+  );
+
   const handleCardToggleBookmark = async (e: React.MouseEvent, mosqueId: string) => {
+    const targetMosque =
+      mosques.find((m) => m.id === mosqueId) ||
+      followedMosques.find((m) => m.id === mosqueId);
+
     const res = await toggleMosqueBookmark(mosqueId);
-    setBookmarkedIds((prev) =>
-      res.isBookmarked ? [...prev, mosqueId] : prev.filter((id) => id !== mosqueId),
-    );
+    if (res.isBookmarked) {
+      setBookmarkedIds((prev) => (prev.includes(mosqueId) ? prev : [...prev, mosqueId]));
+      if (targetMosque) {
+        setFollowedMosques((prev) => (prev.some((m) => m.id === mosqueId) ? prev : [targetMosque, ...prev]));
+      } else {
+        fetchMosqueById(mosqueId).then((m) => {
+          if (m) setFollowedMosques((prev) => (prev.some((p) => p.id === m.id) ? prev : [m, ...prev]));
+        });
+      }
+    } else {
+      setBookmarkedIds((prev) => prev.filter((id) => id !== mosqueId));
+      setFollowedMosques((prev) => prev.filter((m) => m.id !== mosqueId));
+    }
   };
 
   const handleDetailBookmarkChange = (mosqueId: string, isBookmarked: boolean) => {
-    setBookmarkedIds((prev) =>
-      isBookmarked ? (prev.includes(mosqueId) ? prev : [...prev, mosqueId]) : prev.filter((id) => id !== mosqueId),
-    );
+    if (isBookmarked) {
+      setBookmarkedIds((prev) => (prev.includes(mosqueId) ? prev : [...prev, mosqueId]));
+      if (selectedMosque && selectedMosque.id === mosqueId) {
+        setFollowedMosques((prev) => (prev.some((m) => m.id === mosqueId) ? prev : [selectedMosque, ...prev]));
+      }
+    } else {
+      setBookmarkedIds((prev) => prev.filter((id) => id !== mosqueId));
+      setFollowedMosques((prev) => prev.filter((m) => m.id !== mosqueId));
+    }
   };
 
   const displayedMosques = useMemo(() => {
+    if (!isSearchingOrFiltering) {
+      return followedMosques;
+    }
     if (filterBookmarked) {
       return mosques.filter((m) => bookmarkedIds.includes(m.id));
     }
     return mosques;
-  }, [mosques, filterBookmarked, bookmarkedIds]);
+  }, [isSearchingOrFiltering, followedMosques, mosques, filterBookmarked, bookmarkedIds]);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#fafafa]">
@@ -296,10 +341,10 @@ export default function HomePage() {
           {/* Mosque List Header / Counter */}
           <div className="px-4 py-2 bg-[#fafafa] border-b border-[#f0f0f2] flex items-center justify-between text-xs text-[#6e6e73]">
             <span>
-              {isLoading
+              {(isSearchingOrFiltering ? isLoading : isFollowedLoading)
                 ? 'Searching...'
-                : filterBookmarked
-                ? `${displayedMosques.length} followed mosques`
+                : !isSearchingOrFiltering
+                ? `${displayedMosques.length} followed ${displayedMosques.length === 1 ? 'mosque' : 'mosques'}`
                 : `${displayedMosques.length} mosques discovered`}
             </span>
             <span className="text-[11px] font-medium text-emerald-700">Live Jammat times</span>
@@ -307,28 +352,22 @@ export default function HomePage() {
 
           {/* Mosque Cards List */}
           <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
-            {isLoading && displayedMosques.length === 0 ? (
+            {(isSearchingOrFiltering ? isLoading : isFollowedLoading) && displayedMosques.length === 0 ? (
               <div className="p-8 text-center text-xs text-[#6e6e73] flex flex-col items-center justify-center space-y-2">
                 <RefreshCw className="w-5 h-5 animate-spin text-zinc-400" />
-                <span>Loading mosques...</span>
+                <span>{!isSearchingOrFiltering ? 'Loading followed mosques...' : 'Searching mosques...'}</span>
               </div>
             ) : displayedMosques.length === 0 ? (
               <div className="p-8 text-center text-xs text-[#6e6e73] space-y-2">
-                {filterBookmarked ? (
+                {!isSearchingOrFiltering ? (
                   <>
                     <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 mx-auto flex items-center justify-center mb-1">
                       <Bookmark className="w-5 h-5" />
                     </div>
                     <p className="font-semibold text-sm text-[#111114]">No followed mosques yet</p>
                     <p className="text-[11px] max-w-xs mx-auto">
-                      Tap the bookmark icon on any mosque card to follow its daily prayer schedules and announcements.
+                      Search above for your neighborhood mosque or select a city to follow its daily prayer schedule.
                     </p>
-                    <button
-                      onClick={() => setFilterBookmarked(false)}
-                      className="mt-2 px-4 py-1.5 rounded-full bg-[#111114] text-white text-xs font-semibold"
-                    >
-                      Browse All Mosques
-                    </button>
                   </>
                 ) : (
                   <>
@@ -388,7 +427,7 @@ export default function HomePage() {
             }`}
           >
             <List className="w-3.5 h-3.5" />
-            <span>List ({mosques.length})</span>
+            <span>List ({displayedMosques.length})</span>
           </button>
           <button
             onClick={() => setMobileTab('map')}
@@ -436,6 +475,7 @@ export default function HomePage() {
           mosque={suggestionMosque}
           onClose={() => setSuggestionMosque(null)}
           onSuccess={async () => {
+            loadFollowedMosques();
             if (userLocation) {
               loadInitialMosques(userLocation.lat, userLocation.lng);
             } else {
