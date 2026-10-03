@@ -53,4 +53,32 @@ export class UpdateMosqueDto {
   @IsOptional()
   @IsEnum(MosqueOperationalStatus)
   operationalStatus?: MosqueOperationalStatus;
+
+  @ApiPropertyOptional({
+    description: 'Verification status of the mosque',
+    example: 'VERIFIED',
+  })
+  @IsOptional()
+  verificationStatus?: any;
+
+  @ApiPropertyOptional({
+    description: 'Latitude coordinates',
+    example: 23.75,
+  })
+  @IsOptional()
+  latitude?: number;
+
+  @ApiPropertyOptional({
+    description: 'Longitude coordinates',
+    example: 90.39,
+  })
+  @IsOptional()
+  longitude?: number;
+
+  @ApiPropertyOptional({
+    description: 'Approximate prayer capacity',
+    example: 500,
+  })
+  @IsOptional()
+  capacity?: number;
 }

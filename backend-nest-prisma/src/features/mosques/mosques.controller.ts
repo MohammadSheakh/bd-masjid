@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -22,6 +23,8 @@ import {
 } from '@nestjs/swagger';
 import {
   AuthGuard,
+  RolesGuard,
+  Roles,
   Public,
   User as CurrentUser,
   TransformResponseInterceptor,
@@ -37,7 +40,7 @@ import { MosqueQueryDto } from './dto/mosque-query.dto';
 
 @ApiTags('Mosques')
 @Controller('mosques')
-@UseGuards(AuthGuard, SlidingWindowRateLimitGuard)
+@UseGuards(AuthGuard, RolesGuard, SlidingWindowRateLimitGuard)
 @UseInterceptors(TransformResponseInterceptor)
 export class MosquesController {
   constructor(private readonly mosquesService: MosquesService) {}
@@ -171,5 +174,25 @@ export class MosquesController {
     @CurrentUser() actor: UserPayload,
   ) {
     return this.mosquesService.update(id, dto, actor);
+  }
+
+  @Delete(':id')
+  @Roles('admin', 'moderator')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 15 })
+  @ApiOperation({
+    summary: 'Soft-delete mosque',
+    description: 'Marks mosque as deleted (Platform admin or moderator)',
+  })
+  @ApiParam({ name: 'id', description: 'Mosque UUID' })
+  @ApiResponse({ status: 200, description: 'Mosque deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Mosque not found' })
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() actor: UserPayload,
+  ) {
+    return this.mosquesService.softDelete(id, actor);
   }
 }

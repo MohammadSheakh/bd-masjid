@@ -217,6 +217,25 @@ describe('MosquesService', () => {
       expect(prisma.$queryRaw).toHaveBeenCalled();
     });
   });
+
+  describe('softDelete', () => {
+    it('should mark mosque as deleted and record audit event', async () => {
+      prisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', isDeleted: false });
+      prisma.mosque.update.mockResolvedValue({ id: 'mosque-1', isDeleted: true });
+
+      const actor: any = { userId: 'admin-1', role: 'admin' };
+      const res = await service.softDelete('mosque-1', actor);
+
+      expect(res.deleted).toBe(true);
+      expect(prisma.mosque.update).toHaveBeenCalledWith({
+        where: { id: 'mosque-1' },
+        data: { isDeleted: true },
+      });
+      expect(audit.record).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'MOSQUE_DELETED' }),
+      );
+    });
+  });
 });
 
 

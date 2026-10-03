@@ -38,6 +38,7 @@ describe('MosquesController', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
     } as unknown as jest.Mocked<MosquesService>;
 
     controller = new MosquesController(service);
@@ -162,6 +163,18 @@ describe('MosquesController', () => {
 
       expect(service.update).toHaveBeenCalledWith('mosque-uuid-1', updateDto, mockUser);
       expect(result).toEqual(updatedMosque);
+    });
+  });
+
+  describe('remove', () => {
+    it('should delegate soft-delete to service with actor context', async () => {
+      const deleteResult = { deleted: true, id: 'mosque-uuid-1' };
+      service.softDelete.mockResolvedValue(deleteResult as any);
+
+      const result = await controller.remove('mosque-uuid-1', mockUser);
+
+      expect(service.softDelete).toHaveBeenCalledWith('mosque-uuid-1', mockUser);
+      expect(result).toEqual(deleteResult);
     });
   });
 

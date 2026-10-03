@@ -548,6 +548,15 @@ export class MosquesService {
         data.landmark = dto.landmark?.trim() || null;
       if (dto.city) data.city = dto.city.trim();
       if (dto.operationalStatus) data.operationalStatus = dto.operationalStatus;
+      if (dto.verificationStatus) {
+        data.verificationStatus = dto.verificationStatus;
+        if (dto.verificationStatus === MosqueVerificationStatus.VERIFIED && !previous.verifiedAt) {
+          data.verifiedAt = new Date();
+        }
+      }
+      if (dto.latitude !== undefined) data.latitude = Number(dto.latitude);
+      if (dto.longitude !== undefined) data.longitude = Number(dto.longitude);
+      if (dto.capacity !== undefined) data.capacity = dto.capacity !== null ? Number(dto.capacity) : null;
 
       const saved = await tx.mosque.update({
         where: { id },
@@ -570,6 +579,35 @@ export class MosquesService {
     });
 
     return updated;
+  }
+
+  /**
+   * Soft-delete mosque
+   */
+  async softDelete(id: string, actor: UserPayload) {
+    const previous = await this.prisma.mosque.findUnique({
+      where: { id, isDeleted: false },
+    });
+
+    if (!previous) {
+      throw new NotFoundException(`Mosque with ID ${id} not found`);
+    }
+
+    const updated = await this.prisma.mosque.update({
+      where: { id },
+      data: { isDeleted: true },
+    });
+
+    await this.audit.record({
+      action: 'MOSQUE_DELETED',
+      entityType: 'Mosque',
+      entityId: id,
+      actor,
+      previousValue: previous,
+      newValue: updated,
+    });
+
+    return { deleted: true, id };
   }
 
   private geocodeCache = new Map<
