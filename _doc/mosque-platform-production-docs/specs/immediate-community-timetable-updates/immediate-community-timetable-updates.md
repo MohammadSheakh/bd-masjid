@@ -2,7 +2,7 @@
 id: F-034
 name: Immediate Community Prayer Timetable Updates
 phase: 3
-status: in-progress
+status: completed
 
 depends_on:
   - F-001
@@ -65,10 +65,10 @@ This specification eliminates the manual administrative approval bottleneck for 
 
 ## 4. Implementation Checklist
 - [x] Author ADR-021 and Feature Specification F-034
-- [ ] Backend: Remove RBAC restriction from `PrayerSchedulesService.updateSchedule`
-- [ ] Backend: Ensure backward compatibility in `SuggestionsService.createSuggestion` to auto-apply timetable updates
-- [ ] Backend: Update unit and controller tests
-- [ ] Frontend: Update `SuggestionModal.tsx` to "Update Prayer Timetable" and call direct update API
-- [ ] Frontend: Remove green Ramadan timetable section from `SuggestionModal.tsx`
-- [ ] Frontend: Update `admin/page.tsx` to reflect decommissioned suggestion approval queue
-- [ ] Verify full test suite passing and zero type errors
+- [x] Backend: Remove RBAC restriction from `PrayerSchedulesService.updateSchedule`
+- [x] Backend: Ensure backward compatibility in `SuggestionsService.createSuggestion` to auto-apply timetable updates
+- [x] Backend: Update unit and controller tests
+- [x] Frontend: Update `SuggestionModal.tsx` to "Update Prayer Timetable" and call direct update API
+- [x] Frontend: Remove green Ramadan timetable section from `SuggestionModal.tsx`
+- [x] Frontend: Update `admin/page.tsx` to reflect decommissioned suggestion approval queue
+- [x] Verify full test suite passing and zero type errors
