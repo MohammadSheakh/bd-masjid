@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { Mosque } from '@/types/mosque';
+import { Mosque, AttendanceStatus } from '@/types/mosque';
 import { fetchNearbyMosques, searchMosques, fetchUserBookmarks, toggleMosqueBookmark, fetchMosqueById, fetchFollowedMosques } from '@/lib/api';
 import { Navbar } from '@/components/Navbar';
 import { MosqueCard } from '@/components/MosqueCard';
@@ -210,6 +210,35 @@ export default function HomePage() {
       setBookmarkedIds((prev) => prev.filter((id) => id !== mosqueId));
       setFollowedMosques((prev) => prev.filter((m) => m.id !== mosqueId));
     }
+  };
+
+  const handleAttendanceChanged = (
+    mosqueId: string,
+    newStatus: AttendanceStatus,
+    newRegular?: number,
+    newOccasional?: number,
+  ) => {
+    const updateSummary = (m: Mosque): Mosque => {
+      if (m.id !== mosqueId) return m;
+      const prev = m.attendanceSummary;
+      const prevRegular = prev?.regularCount || 0;
+      const prevOccasional = prev?.occasionalCount || 0;
+      const regularCount = newRegular !== undefined ? newRegular : prevRegular;
+      const occasionalCount = newOccasional !== undefined ? newOccasional : prevOccasional;
+      return {
+        ...m,
+        attendanceSummary: {
+          regularCount,
+          occasionalCount,
+          totalCount: regularCount + occasionalCount,
+          userStatus: newStatus,
+        },
+      };
+    };
+
+    setMosques((prev) => prev.map(updateSummary));
+    setFollowedMosques((prev) => prev.map(updateSummary));
+    setSelectedMosque((prev) => (prev ? updateSummary(prev) : null));
   };
 
   const displayedMosques = useMemo(() => {
@@ -463,6 +492,7 @@ export default function HomePage() {
           onOpenAnnouncements={(m) => setAnnouncementMosque(m)}
           onOpenDonations={(m) => setDonationMosque(m)}
           onBookmarkChange={handleDetailBookmarkChange}
+          onAttendanceChanged={handleAttendanceChanged}
         />
       )}
 

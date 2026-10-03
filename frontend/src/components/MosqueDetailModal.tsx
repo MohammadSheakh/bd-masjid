@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import {
   toggleAttendance,
+  fetchAttendanceSummary,
   toggleMosqueBookmark,
   getLocalBookmarks,
   fetchMosqueStaff,
@@ -39,7 +40,12 @@ interface MosqueDetailModalProps {
   onOpenRoleClaim?: (mosque: Mosque) => void;
   onOpenAnnouncements?: (mosque: Mosque) => void;
   onOpenDonations?: (mosque: Mosque) => void;
-  onAttendanceChanged?: (mosqueId: string, status: AttendanceStatus) => void;
+  onAttendanceChanged?: (
+    mosqueId: string,
+    status: AttendanceStatus,
+    regularCount?: number,
+    occasionalCount?: number,
+  ) => void;
   onBookmarkChange?: (mosqueId: string, isBookmarked: boolean) => void;
 }
 
@@ -89,6 +95,22 @@ export function MosqueDetailModal({
     return [];
   });
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
+
+  // Fetch fresh attendance summary from server on mount
+  useEffect(() => {
+    let isMounted = true;
+    fetchAttendanceSummary(mosque.id).then((summary) => {
+      if (!isMounted || !summary) return;
+      setRegularCount(summary.regularCount ?? 0);
+      setOccasionalCount(summary.occasionalCount ?? 0);
+      if (summary.userStatus && summary.userStatus !== 'NONE') {
+        setCurrentAttendance(summary.userStatus);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [mosque.id]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -175,9 +197,13 @@ export function MosqueDetailModal({
         if (summary.userStatus) {
           setCurrentAttendance(summary.userStatus);
         }
-      }
-      if (onAttendanceChanged) {
-        onAttendanceChanged(mosque.id, newStatus);
+        if (onAttendanceChanged) {
+          onAttendanceChanged(mosque.id, newStatus, summary.regularCount, summary.occasionalCount);
+        }
+      } else {
+        if (onAttendanceChanged) {
+          onAttendanceChanged(mosque.id, newStatus);
+        }
       }
     } finally {
       setIsUpdatingAttendance(false);

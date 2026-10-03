@@ -455,12 +455,37 @@ export async function deleteMosque(id: string) {
   }
 }
 
+export async function fetchAttendanceSummary(
+  mosqueId: string,
+): Promise<AttendanceSummary | null> {
+  try {
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null;
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/attendance-summary`, {
+      headers,
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data || json || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function toggleAttendance(
   mosqueId: string,
   status: 'REGULAR' | 'OCCASIONAL' | 'NONE',
 ): Promise<AttendanceSummary | null> {
   try {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null;
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -497,7 +522,10 @@ export async function updatePrayerSchedule(
   mosqueId: string,
   data: Record<string, string | undefined>,
 ) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const token =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('access_token') || localStorage.getItem('token')
+      : null;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
