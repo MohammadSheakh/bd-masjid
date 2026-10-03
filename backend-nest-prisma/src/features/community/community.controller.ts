@@ -9,7 +9,10 @@ import {
   Query,
   UseGuards,
   UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -17,6 +20,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import {
   AuthGuard,
@@ -32,6 +36,7 @@ import type { UserPayload } from '@app/common';
 import { RoleClaimStatus } from '@prisma/client';
 import { CommunityService } from './community.service';
 import { AddStaffDto } from './dto/add-staff.dto';
+import { UpdateStaffDto } from './dto/update-staff.dto';
 import { CreateRoleClaimDto } from './dto/create-claim.dto';
 import { ReviewRoleClaimDto } from './dto/review-claim.dto';
 import { CreateDonationMethodDto } from './dto/create-donation.dto';
@@ -97,6 +102,25 @@ export class CommunityController {
     return this.communityService.removeStaff(mosqueId, staffId, actor);
   }
 
+  @Patch(['mosques/:id/staff/:staffId', 'community/:id/staff/:staffId'])
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 30 })
+  @ApiOperation({
+    summary: 'Update staff or committee member',
+    description:
+      'Update a staff/committee entry (Platform admin or verified local Mosque Admin)',
+  })
+  @ApiParam({ name: 'id', description: 'Mosque UUID' })
+  @ApiParam({ name: 'staffId', description: 'Staff UUID' })
+  async updateStaff(
+    @Param('id') mosqueId: string,
+    @Param('staffId') staffId: string,
+    @Body() dto: UpdateStaffDto,
+    @CurrentUser() actor: UserPayload,
+  ) {
+    return this.communityService.updateStaff(mosqueId, staffId, dto, actor);
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Role Claims
   // ──────────────────────────────────────────────────────────────────────────
@@ -121,6 +145,35 @@ export class CommunityController {
     @CurrentUser() actor: UserPayload,
   ) {
     return this.communityService.submitRoleClaim(mosqueId, dto, actor);
+  }
+
+  @Post(['community/upload-image', 'mosques/upload-claim-image'])
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 20 })
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: 'Upload person photo or document for role claim',
+    description: 'Accepts jpeg/png/webp image up to 5MB and returns data URL / reference',
+  })
+  async uploadClaimImage(
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No image file provided');
+    }
+    const base64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+    return {
+      success: true,
+      url: base64,
+      filename: file.originalname,
+      size: file.size,
+      mimeType: file.mimetype,
+    };
   }
 
   @Get(['mosques/:id/role-claims', 'community/:id/role-claims'])

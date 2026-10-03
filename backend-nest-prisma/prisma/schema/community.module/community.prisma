@@ -1,5 +1,6 @@
 enum MosqueStaffRole {
   MOSQUE_ADMIN
+  MUTAWALLI
   IMAM
   MUAZZIN
   KHATIB
@@ -7,6 +8,7 @@ enum MosqueStaffRole {
   COMMITTEE_PRESIDENT
   COMMITTEE_SECRETARY
   COMMITTEE_MEMBER
+  CUSTOM
 }
 
 enum RoleClaimStatus {
@@ -24,12 +26,15 @@ model MosqueStaff {
   userId        String?
   user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  role          MosqueStaffRole
-  name          String
-  contactNumber String?
-  isVerified    Boolean         @default(false)
-  verifiedAt    DateTime?
-  verifiedById  String?
+  role            MosqueStaffRole
+  customRoleTitle String?
+  name            String
+  contactNumber   String?
+  startDate       DateTime?
+  imageUrl        String?
+  isVerified      Boolean         @default(false)
+  verifiedAt      DateTime?
+  verifiedById    String?
 
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -49,6 +54,11 @@ model MosqueRoleClaim {
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   role            MosqueStaffRole
+  customRoleTitle String?
+  name            String
+  phoneNumber     String
+  startDate       DateTime?
+  imageUrl        String?
   evidence        String
   documentUrl     String?
   status          RoleClaimStatus @default(OPEN)

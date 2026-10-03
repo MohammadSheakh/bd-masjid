@@ -37,6 +37,7 @@ describe('CommunityController', () => {
       getStaff: jest.fn(),
       addStaff: jest.fn(),
       removeStaff: jest.fn(),
+      updateStaff: jest.fn(),
       submitRoleClaim: jest.fn(),
       getMosqueRoleClaims: jest.fn(),
       getRoleClaims: jest.fn(),
@@ -89,6 +90,17 @@ describe('CommunityController', () => {
       const result = await controller.removeStaff('mosque-1', 'staff-2', mockAdmin);
 
       expect(service.removeStaff).toHaveBeenCalledWith('mosque-1', 'staff-2', mockAdmin);
+      expect(result).toEqual(response);
+    });
+
+    it('updateStaff should delegate to service', async () => {
+      const dto = { name: 'Updated Imam' };
+      const response = { id: 'staff-2', name: 'Updated Imam' };
+      service.updateStaff.mockResolvedValue(response as any);
+
+      const result = await controller.updateStaff('mosque-1', 'staff-2', dto, mockAdmin);
+
+      expect(service.updateStaff).toHaveBeenCalledWith('mosque-1', 'staff-2', dto, mockAdmin);
       expect(result).toEqual(response);
     });
   });

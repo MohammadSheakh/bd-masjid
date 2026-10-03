@@ -20,6 +20,7 @@ import {
   BookmarkCheck,
   Moon,
   Loader2,
+  User,
 } from 'lucide-react';
 import {
   toggleAttendance,
@@ -83,6 +84,20 @@ export function MosqueDetailModal({
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
+  useEffect(() => {
     let isMounted = true;
     if (mosque.staffMembers && Array.isArray(mosque.staffMembers)) {
       setStaffList(mosque.staffMembers.filter((s) => s.isVerified));
@@ -106,10 +121,14 @@ export function MosqueDetailModal({
     };
   }, [mosque.id, mosque.staffMembers]);
 
-  const formatStaffRole = (role: string) => {
+  const formatStaffRole = (role: string, customTitle?: string | null) => {
     switch (role) {
       case 'MOSQUE_ADMIN':
-        return { title: 'Mosque Administrator', subtitle: 'Mutawalli / Committee Head' };
+        return { title: 'Mosque Administrator', subtitle: 'Executive Leadership & Admin' };
+      case 'MUTAWALLI':
+        return { title: 'Mutawalli', subtitle: 'Mosque Trustee & Custodian' };
+      case 'CUSTOM':
+        return { title: customTitle || 'Special Officer', subtitle: 'Verified Mosque Personnel' };
       case 'IMAM':
         return { title: 'Pesh Imam', subtitle: 'Appointed Islamic Scholar' };
       case 'MUAZZIN':
@@ -214,18 +233,26 @@ export function MosqueDetailModal({
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${mosque.latitude},${mosque.longitude}`;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg max-h-[90vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[#e8e8ea] overflow-hidden">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mosque-detail-title"
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 animate-in fade-in duration-150"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="relative w-full max-w-lg max-h-[90vh] flex flex-col bg-white rounded-t-[14px] sm:rounded-[12px] shadow-xl border border-[#e8e8ea] overflow-hidden">
         {/* Modal Header */}
         <div className="p-4 sm:p-5 border-b border-[#e8e8ea] flex items-start justify-between gap-3 bg-[#fafafa]">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <h2 className="text-lg font-bold text-[#111114] tracking-tight">
+              <h2 id="mosque-detail-title" className="text-lg font-bold text-[#111114] tracking-tight">
                 {mosque.name}
               </h2>
               {mosque.verificationStatus === 'VERIFIED' ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
                   Verified
                 </span>
               ) : (
@@ -236,7 +263,7 @@ export function MosqueDetailModal({
             </div>
 
             <p className="text-xs text-[#6e6e73] flex items-center gap-1 mt-1">
-              <MapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
+              <MapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
               <span>{mosque.address || 'Address unlisted'}, {mosque.city || 'Dhaka'}</span>
             </p>
           </div>
@@ -252,24 +279,27 @@ export function MosqueDetailModal({
               }}
               disabled={isTogglingBookmark}
               title={isBookmarked ? 'Following Mosque (Click to unfollow)' : 'Follow Mosque for prayer alerts'}
-              className={`p-2 rounded-full transition-colors ${
+              aria-label={isBookmarked ? 'Unfollow Mosque' : 'Follow Mosque for prayer alerts'}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#111114] ${
                 isBookmarked
                   ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
                   : 'text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100'
               }`}
             >
               {isBookmarked ? (
-                <BookmarkCheck className="w-5 h-5 text-emerald-600 fill-emerald-600" />
+                <BookmarkCheck className="w-4 h-4 text-emerald-600 fill-emerald-600" />
               ) : (
-                <Bookmark className="w-5 h-5" />
+                <Bookmark className="w-4 h-4" />
               )}
             </button>
 
             <button
+              type="button"
               onClick={onClose}
-              className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200 transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#6e6e73] hover:text-[#111114] hover:bg-[#fafafa] border border-transparent hover:border-[#e8e8ea] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#111114]"
+              aria-label="Close modal"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -389,20 +419,34 @@ export function MosqueDetailModal({
             ) : staffList.length > 0 ? (
               <div className="p-3 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl divide-y divide-[#ececed] text-xs">
                 {staffList.map((member) => {
-                  const roleMeta = formatStaffRole(member.role);
+                  const roleMeta = formatStaffRole(member.role, member.customRoleTitle);
                   return (
-                    <div key={member.id} className="flex items-center justify-between py-2">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-[#111114]">{member.name}</span>
-                          <span className="text-[10px] font-medium text-[#111114] bg-[#f4f4f5] px-1.5 py-0.5 rounded border border-[#e8e8ea]">
-                            {roleMeta.title}
+                    <div key={member.id} className="flex items-center justify-between py-2 gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-zinc-100 border border-[#e8e8ea] shrink-0 overflow-hidden flex items-center justify-center text-zinc-400">
+                          {member.imageUrl ? (
+                            <img
+                              src={member.imageUrl}
+                              alt={member.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User className="w-4 h-4 text-zinc-500" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-[#111114]">{member.name}</span>
+                            <span className="text-[10px] font-medium text-[#111114] bg-[#f4f4f5] px-1.5 py-0.5 rounded border border-[#e8e8ea]">
+                              {roleMeta.title}
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-[#6e6e73] block mt-0.5">
+                            {roleMeta.subtitle}
+                            {member.startDate ? ` · Since ${new Date(member.startDate).toLocaleDateString()}` : ''}
+                            {member.contactNumber ? ` · ${member.contactNumber}` : ''}
                           </span>
                         </div>
-                        <span className="text-[11px] text-[#6e6e73] block mt-0.5">
-                          {roleMeta.subtitle}
-                          {member.contactNumber ? ` · ${member.contactNumber}` : ''}
-                        </span>
                       </div>
                       <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
                         <Check className="w-2.5 h-2.5" aria-hidden="true" />

@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AnnouncementCategory, Prisma } from '@prisma/client';
+import { AnnouncementCategory, MosqueStaffRole, Prisma } from '@prisma/client';
 import { PrismaService } from '@app/database';
 import type { UserPayload } from '@app/common';
 import { AuditService } from '../audit/audit.service';
@@ -145,11 +145,12 @@ export class AnnouncementsService {
 
       if (dto.category === AnnouncementCategory.EMERGENCY_ALERT) {
         if (
-          staff.role !== 'MOSQUE_ADMIN' &&
-          staff.role !== 'COMMITTEE_PRESIDENT'
+          staff.role !== MosqueStaffRole.MOSQUE_ADMIN &&
+          staff.role !== MosqueStaffRole.MUTAWALLI &&
+          staff.role !== MosqueStaffRole.COMMITTEE_PRESIDENT
         ) {
           throw new ForbiddenException(
-            'EMERGENCY_ALERT announcements require Mosque Admin or Committee President authorization',
+            'EMERGENCY_ALERT announcements require Mosque Admin, Mutawalli, or Committee President authorization',
           );
         }
       }
@@ -517,7 +518,9 @@ export class AnnouncementsService {
 
     if (
       staff &&
-      (staff.role === 'MOSQUE_ADMIN' || staff.role === 'COMMITTEE_PRESIDENT')
+      (staff.role === MosqueStaffRole.MOSQUE_ADMIN ||
+        staff.role === MosqueStaffRole.MUTAWALLI ||
+        staff.role === MosqueStaffRole.COMMITTEE_PRESIDENT)
     ) {
       isAuthorized = true;
       isExecutive = true;
@@ -531,7 +534,7 @@ export class AnnouncementsService {
 
     if (newCategory === AnnouncementCategory.EMERGENCY_ALERT && !isExecutive) {
       throw new ForbiddenException(
-        'EMERGENCY_ALERT category requires Mosque Admin or Committee President authorization',
+        'EMERGENCY_ALERT category requires Mosque Admin, Mutawalli, or Committee President authorization',
       );
     }
   }

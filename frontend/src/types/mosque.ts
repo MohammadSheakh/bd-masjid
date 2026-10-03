@@ -56,8 +56,11 @@ export interface MosqueStaffMember {
   mosqueId?: string;
   userId?: string | null;
   role: string;
+  customRoleTitle?: string | null;
   name: string;
   contactNumber?: string | null;
+  startDate?: string | null;
+  imageUrl?: string | null;
   isVerified: boolean;
   verifiedAt?: string | null;
 }
@@ -67,6 +70,11 @@ export interface MosqueRoleClaim {
   mosqueId: string;
   userId: string;
   role: string;
+  customRoleTitle?: string | null;
+  name?: string;
+  phoneNumber?: string;
+  startDate?: string | null;
+  imageUrl?: string | null;
   evidence: string;
   documentUrl?: string | null;
   status: 'OPEN' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
@@ -76,6 +84,7 @@ export interface MosqueRoleClaim {
     name: string;
     email: string;
     phoneNumber?: string | null;
+    profileImageUrl?: string | null;
   };
   createdAt: string;
 }

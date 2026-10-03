@@ -20,6 +20,53 @@ export class CreateRoleClaimDto {
   role: MosqueStaffRole;
 
   @ApiProperty({
+    required: false,
+    description: 'Custom role title if role is CUSTOM (e.g. Assistant Imam, Treasurer)',
+    example: 'Assistant Imam & Quran Teacher',
+  })
+  @IsString()
+  @IsOptional()
+  @MaxLength(80)
+  customRoleTitle?: string;
+
+  @ApiProperty({
+    description: 'Full name of the person claiming the role',
+    example: 'Mawlana Hafiz Ahmed',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(2)
+  @MaxLength(100)
+  name: string;
+
+  @ApiProperty({
+    description: 'Contact phone number of the person claiming the role',
+    example: '01712345678',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  @MaxLength(25)
+  phoneNumber: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'Starting date of service/appointment at this mosque',
+    example: '2023-01-15T00:00:00.000Z',
+  })
+  @IsOptional()
+  startDate?: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'Personal photo / portrait image URL or data URL of applicant',
+    example: 'https://example.com/uploads/hafiz.jpg',
+  })
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
+  @ApiProperty({
     description:
       'Evidence supporting the claim (e.g. appointment letter, committee confirmation, witness contact)',
     example:

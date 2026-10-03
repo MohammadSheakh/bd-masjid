@@ -353,6 +353,83 @@ export async function createMosque(data: any): Promise<{ success: boolean; data?
   }
 }
 
+export async function fetchPaginatedMosques(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  verificationStatus?: string;
+  operationalStatus?: string;
+  city?: string;
+}): Promise<{
+  items: Mosque[];
+  meta: { page: number; limit: number; total: number; totalPages: number };
+}> {
+  const query = new URLSearchParams();
+  if (params.page) query.append('page', String(params.page));
+  if (params.limit) query.append('limit', String(params.limit));
+  if (params.search?.trim()) query.append('search', params.search.trim());
+  if (params.verificationStatus && params.verificationStatus !== 'ALL') {
+    query.append('verificationStatus', params.verificationStatus);
+  }
+  if (params.operationalStatus && params.operationalStatus !== 'ALL') {
+    query.append('operationalStatus', params.operationalStatus);
+  }
+  if (params.city && params.city !== 'ALL') {
+    query.append('city', params.city);
+  }
+
+  const res = await fetch(`${API_BASE}/mosques?${query.toString()}`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error('Failed to fetch mosques');
+  }
+  const json = await res.json();
+  const data = json.data || json;
+  return {
+    items: data.items || [],
+    meta: data.meta || {
+      page: params.page || 1,
+      limit: params.limit || 20,
+      total: data.items?.length || 0,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function updateMosqueDetails(id: string, data: any) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${id}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to update mosque details' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+export async function deleteMosque(id: string) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to delete mosque' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
 export async function toggleAttendance(
   mosqueId: string,
   status: 'REGULAR' | 'OCCASIONAL' | 'NONE',
@@ -415,7 +492,16 @@ export async function fetchMosqueStaff(mosqueId: string) {
 
 export async function submitRoleClaim(
   mosqueId: string,
-  data: { role: string; evidence: string; documentUrl?: string },
+  data: {
+    role: string;
+    customRoleTitle?: string;
+    name: string;
+    phoneNumber: string;
+    startDate?: string;
+    imageUrl?: string;
+    evidence: string;
+    documentUrl?: string;
+  },
 ) {
   try {
     const res = await fetch(`${API_BASE}/mosques/${mosqueId}/role-claims`, {
@@ -430,6 +516,33 @@ export async function submitRoleClaim(
     return { success: true, data: json.data || json };
   } catch (err: any) {
     return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+export async function uploadClaimImage(
+  file: File,
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') || '' : '';
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(`${API_BASE}/community/upload-image`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to upload image' };
+    }
+    const url = json.data?.url || json.url;
+    return { success: true, url };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network upload error' };
   }
 }
 
@@ -488,7 +601,15 @@ export async function removeMosqueStaff(mosqueId: string, staffId: string) {
 
 export async function addMosqueStaff(
   mosqueId: string,
-  data: { role: string; name: string; contactNumber?: string; userId?: string },
+  data: {
+    role: string;
+    customRoleTitle?: string;
+    name: string;
+    contactNumber?: string;
+    startDate?: string;
+    imageUrl?: string;
+    userId?: string;
+  },
 ) {
   try {
     const res = await fetch(`${API_BASE}/mosques/${mosqueId}/staff`, {
@@ -499,6 +620,35 @@ export async function addMosqueStaff(
     const json = await res.json();
     if (!res.ok) {
       return { success: false, error: json.message || 'Failed to add staff member' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+export async function updateMosqueStaff(
+  mosqueId: string,
+  staffId: string,
+  data: {
+    role?: string;
+    customRoleTitle?: string;
+    name?: string;
+    contactNumber?: string;
+    startDate?: string;
+    imageUrl?: string;
+    isVerified?: boolean;
+  },
+) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${mosqueId}/staff/${staffId}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to update staff member' };
     }
     return { success: true, data: json.data || json };
   } catch (err: any) {

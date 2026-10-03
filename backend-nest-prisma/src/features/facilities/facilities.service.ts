@@ -65,6 +65,7 @@ export class FacilitiesService {
           role: {
             in: [
               MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
               MosqueStaffRole.COMMITTEE_SECRETARY,
               MosqueStaffRole.COMMITTEE_MEMBER,

@@ -346,6 +346,7 @@ export class DonationsService {
         role: {
           in: [
             MosqueStaffRole.MOSQUE_ADMIN,
+            MosqueStaffRole.MUTAWALLI,
             MosqueStaffRole.COMMITTEE_PRESIDENT,
             MosqueStaffRole.COMMITTEE_SECRETARY,
             MosqueStaffRole.COMMITTEE_MEMBER,
@@ -385,7 +386,11 @@ export class DonationsService {
         userId: actor.userId,
         isVerified: true,
         role: {
-          in: [MosqueStaffRole.MOSQUE_ADMIN, MosqueStaffRole.IMAM],
+          in: [
+            MosqueStaffRole.MOSQUE_ADMIN,
+            MosqueStaffRole.MUTAWALLI,
+            MosqueStaffRole.IMAM,
+          ],
         },
       },
     });
@@ -417,6 +422,7 @@ export class DonationsService {
         role: {
           in: [
             MosqueStaffRole.MOSQUE_ADMIN,
+            MosqueStaffRole.MUTAWALLI,
             MosqueStaffRole.IMAM,
             MosqueStaffRole.COMMITTEE_PRESIDENT,
           ],

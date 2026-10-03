@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   RoleClaimStatus,
@@ -25,6 +26,7 @@ describe('CommunityService', () => {
       findMany: jest.fn(),
       findFirst: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
       delete: jest.fn(),
     },
     mosqueRoleClaim: {
@@ -235,6 +237,122 @@ describe('CommunityService', () => {
       expect(mockPrisma.mosqueStaff.create).toHaveBeenCalled();
     });
 
+    it('allows verified local MUTAWALLI to approve an IMAM role claim with identity transfer', async () => {
+      const claim = {
+        id: 'claim-imam-by-mutawalli',
+        mosqueId: 'mosque-1',
+        userId: 'user-imam-2',
+        role: MosqueStaffRole.IMAM,
+        name: 'Mawlana Tariq',
+        phoneNumber: '01711223344',
+        startDate: new Date('2022-01-01'),
+        imageUrl: 'https://example.com/tariq.jpg',
+        status: RoleClaimStatus.OPEN,
+        user: { name: 'Mawlana Tariq', phoneNumber: '01711223344', profileImageUrl: '/uploads/tariq.png' },
+      };
+
+      mockPrisma.mosqueRoleClaim.findUnique.mockResolvedValue(claim);
+      mockPrisma.mosqueStaff.findFirst.mockResolvedValue({
+        id: 'staff-local-mutawalli',
+        mosqueId: 'mosque-1',
+        userId: userActor.userId,
+        isVerified: true,
+        role: MosqueStaffRole.MUTAWALLI,
+      });
+      mockPrisma.mosqueRoleClaim.update.mockResolvedValue({
+        ...claim,
+        status: RoleClaimStatus.APPROVED,
+      });
+      mockPrisma.mosqueStaff.create.mockResolvedValue({ id: 'staff-created-imam-2' });
+
+      const result = await service.reviewRoleClaim(
+        'claim-imam-by-mutawalli',
+        { status: RoleClaimStatus.APPROVED },
+        userActor,
+      );
+
+      expect(result.status).toBe(RoleClaimStatus.APPROVED);
+      expect(mockPrisma.mosqueStaff.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            name: 'Mawlana Tariq',
+            contactNumber: '01711223344',
+            role: MosqueStaffRole.IMAM,
+            imageUrl: 'https://example.com/tariq.jpg',
+          }),
+        }),
+      );
+    });
+
+    it('throws ForbiddenException if local MUTAWALLI attempts to approve a MUTAWALLI claim', async () => {
+      const claim = {
+        id: 'claim-mutawalli-takeover',
+        mosqueId: 'mosque-1',
+        userId: 'user-attacker',
+        role: MosqueStaffRole.MUTAWALLI,
+        status: RoleClaimStatus.OPEN,
+        user: { name: 'Attacker Mutawalli', phoneNumber: '01799999999' },
+      };
+
+      mockPrisma.mosqueRoleClaim.findUnique.mockResolvedValue(claim);
+
+      await expect(
+        service.reviewRoleClaim(
+          'claim-mutawalli-takeover',
+          { status: RoleClaimStatus.APPROVED },
+          userActor,
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('throws BadRequestException if submitting CUSTOM role claim without customRoleTitle', async () => {
+      mockPrisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1' });
+      mockPrisma.mosqueRoleClaim.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.submitRoleClaim(
+          'mosque-1',
+          {
+            role: MosqueStaffRole.CUSTOM,
+            name: 'Khademul Millat',
+            phoneNumber: '01811223344',
+            evidence: 'Appointed 5 years ago by resolution of trustees',
+          } as any,
+          userActor,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('allows submitting CUSTOM role claim with customRoleTitle and photo', async () => {
+      mockPrisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1' });
+      mockPrisma.mosqueRoleClaim.findFirst.mockResolvedValue(null);
+      mockPrisma.mosqueRoleClaim.create.mockResolvedValue({
+        id: 'claim-custom-1',
+        role: MosqueStaffRole.CUSTOM,
+        customRoleTitle: 'Assistant Imam & Mudarris',
+        name: 'Hafez Qari Jamil',
+        phoneNumber: '01911223344',
+        imageUrl: 'https://example.com/jamil.jpg',
+        status: RoleClaimStatus.OPEN,
+      });
+
+      const result = await service.submitRoleClaim(
+        'mosque-1',
+        {
+          role: MosqueStaffRole.CUSTOM,
+          customRoleTitle: 'Assistant Imam & Mudarris',
+          name: 'Hafez Qari Jamil',
+          phoneNumber: '01911223344',
+          imageUrl: 'https://example.com/jamil.jpg',
+          evidence: 'Appointed 5 years ago by resolution of trustees in 2021',
+        },
+        userActor,
+      );
+
+      expect(result.id).toBe('claim-custom-1');
+      expect(result.customRoleTitle).toBe('Assistant Imam & Mudarris');
+    });
+
     it('throws ForbiddenException if local MOSQUE_ADMIN attempts to approve a MOSQUE_ADMIN claim', async () => {
       const claim = {
         id: 'claim-admin-takeover',
@@ -323,6 +441,37 @@ describe('CommunityService', () => {
       await expect(
         service.removeStaff('mosque-1', 'staff-target-admin', userActor),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('updateStaff', () => {
+    it('updates staff member successfully when requested by platform admin', async () => {
+      mockPrisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1' });
+      mockPrisma.mosqueStaff.findFirst.mockResolvedValue({
+        id: 'staff-1',
+        mosqueId: 'mosque-1',
+        role: MosqueStaffRole.IMAM,
+        name: 'Imam Before',
+      });
+      mockPrisma.mosqueStaff.update.mockResolvedValue({
+        id: 'staff-1',
+        mosqueId: 'mosque-1',
+        role: MosqueStaffRole.IMAM,
+        name: 'Imam After',
+      });
+
+      const res = await service.updateStaff(
+        'mosque-1',
+        'staff-1',
+        { name: 'Imam After' },
+        adminActor,
+      );
+
+      expect(res.name).toBe('Imam After');
+      expect(mockPrisma.mosqueStaff.update).toHaveBeenCalled();
+      expect(mockAudit.record).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'MOSQUE_STAFF_UPDATED' }),
+      );
     });
   });
 

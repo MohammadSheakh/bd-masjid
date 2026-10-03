@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { RoleClaimStatus, MosqueStaffRole, Prisma } from '@prisma/client';
@@ -10,6 +11,7 @@ import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
 import type { UserPayload } from '@app/common';
 import { AddStaffDto } from './dto/add-staff.dto';
+import { UpdateStaffDto } from './dto/update-staff.dto';
 import { CreateRoleClaimDto } from './dto/create-claim.dto';
 import { ReviewRoleClaimDto } from './dto/review-claim.dto';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
@@ -70,6 +72,7 @@ export class CommunityService {
           role: {
             in: [
               MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
             ],
           },
@@ -84,21 +87,29 @@ export class CommunityService {
 
       if (
         dto.role === MosqueStaffRole.MOSQUE_ADMIN ||
+        dto.role === MosqueStaffRole.MUTAWALLI ||
         dto.role === MosqueStaffRole.COMMITTEE_PRESIDENT
       ) {
         throw new ForbiddenException(
-          'Only platform administrators can appoint Mosque Administrators and Committee Presidents',
+          'Only platform administrators can appoint Mosque Administrators, Mutawallis, and Committee Presidents',
         );
       }
+    }
+
+    if (dto.role === MosqueStaffRole.CUSTOM && !dto.customRoleTitle?.trim()) {
+      throw new BadRequestException('Custom role requires a specific title');
     }
 
     const staff = await this.prisma.mosqueStaff.create({
       data: {
         mosqueId,
         role: dto.role,
+        customRoleTitle: dto.role === MosqueStaffRole.CUSTOM ? dto.customRoleTitle?.trim() || null : null,
         name: dto.name.trim(),
         userId: dto.userId || null,
         contactNumber: dto.contactNumber?.trim() || null,
+        startDate: dto.startDate ? new Date(dto.startDate) : null,
+        imageUrl: dto.imageUrl?.trim() || null,
         isVerified: isPlatformAdmin || true,
         verifiedAt: new Date(),
         verifiedById: actor.userId,
@@ -111,7 +122,7 @@ export class CommunityService {
       entityId: staff.id,
       actor,
       newValue: staff,
-      metadata: { mosqueId, role: dto.role },
+      metadata: { mosqueId, role: dto.role, customRoleTitle: staff.customRoleTitle },
     });
 
     return staff;
@@ -139,6 +150,7 @@ export class CommunityService {
           role: {
             in: [
               MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
             ],
           },
@@ -153,10 +165,11 @@ export class CommunityService {
 
       if (
         staff.role === MosqueStaffRole.MOSQUE_ADMIN ||
+        staff.role === MosqueStaffRole.MUTAWALLI ||
         staff.role === MosqueStaffRole.COMMITTEE_PRESIDENT
       ) {
         throw new ForbiddenException(
-          'Only platform administrators can revoke Mosque Administrator or Committee President status',
+          'Only platform administrators can revoke Mosque Administrator, Mutawalli, or Committee President status',
         );
       }
     }
@@ -175,6 +188,129 @@ export class CommunityService {
     });
 
     return { removed: true, staffId };
+  }
+
+  async updateStaff(
+    mosqueId: string,
+    staffId: string,
+    dto: UpdateStaffDto,
+    actor: UserPayload,
+  ) {
+    const mosque = await this.prisma.mosque.findUnique({
+      where: { id: mosqueId, isDeleted: false },
+    });
+
+    if (!mosque) {
+      throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
+    }
+
+    const staff = await this.prisma.mosqueStaff.findFirst({
+      where: { id: staffId, mosqueId },
+    });
+
+    if (!staff) {
+      throw new NotFoundException(
+        `Staff member not found for mosque ${mosqueId}`,
+      );
+    }
+
+    const isPlatformAdmin =
+      actor.role === 'admin' || actor.role === 'moderator';
+
+    if (!isPlatformAdmin) {
+      const isMosqueAdmin = await this.prisma.mosqueStaff.findFirst({
+        where: {
+          mosqueId,
+          userId: actor.userId,
+          isVerified: true,
+          role: {
+            in: [
+              MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.MUTAWALLI,
+              MosqueStaffRole.COMMITTEE_PRESIDENT,
+            ],
+          },
+        },
+      });
+
+      if (!isMosqueAdmin) {
+        throw new ForbiddenException(
+          'You do not have permission to manage staff for this mosque',
+        );
+      }
+
+      // If trying to change role to or from admin/mutawalli/president
+      if (
+        (dto.role &&
+          (dto.role === MosqueStaffRole.MOSQUE_ADMIN ||
+            dto.role === MosqueStaffRole.MUTAWALLI ||
+            dto.role === MosqueStaffRole.COMMITTEE_PRESIDENT)) ||
+        staff.role === MosqueStaffRole.MOSQUE_ADMIN ||
+        staff.role === MosqueStaffRole.MUTAWALLI ||
+        staff.role === MosqueStaffRole.COMMITTEE_PRESIDENT
+      ) {
+        throw new ForbiddenException(
+          'Only platform administrators can modify Mosque Administrator, Mutawalli, or Committee President entries',
+        );
+      }
+    }
+
+    const newRole = dto.role !== undefined ? dto.role : staff.role;
+    if (
+      newRole === MosqueStaffRole.CUSTOM &&
+      dto.customRoleTitle !== undefined &&
+      !dto.customRoleTitle?.trim() &&
+      !staff.customRoleTitle
+    ) {
+      throw new BadRequestException('Custom role requires a specific title');
+    }
+
+    const updated = await this.prisma.mosqueStaff.update({
+      where: { id: staffId },
+      data: {
+        ...(dto.name && { name: dto.name.trim() }),
+        ...(dto.role !== undefined && { role: dto.role }),
+        ...(dto.customRoleTitle !== undefined && {
+          customRoleTitle:
+            dto.role === MosqueStaffRole.CUSTOM
+              ? dto.customRoleTitle?.trim() || null
+              : null,
+        }),
+        ...(dto.contactNumber !== undefined && {
+          contactNumber: dto.contactNumber?.trim() || null,
+        }),
+        ...(dto.startDate !== undefined && {
+          startDate: dto.startDate ? new Date(dto.startDate) : null,
+        }),
+        ...(dto.imageUrl !== undefined && {
+          imageUrl: dto.imageUrl?.trim() || null,
+        }),
+        ...(dto.isVerified !== undefined && {
+          isVerified: dto.isVerified,
+          ...(dto.isVerified &&
+            !staff.isVerified && {
+              verifiedAt: new Date(),
+              verifiedById: actor.userId,
+            }),
+        }),
+      },
+    });
+
+    await this.audit.record({
+      action: 'MOSQUE_STAFF_UPDATED',
+      entityType: 'MosqueStaff',
+      entityId: staffId,
+      actor,
+      previousValue: staff,
+      newValue: updated,
+      metadata: {
+        mosqueId,
+        previousRole: staff.role,
+        newRole: updated.role,
+      },
+    });
+
+    return updated;
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -209,11 +345,20 @@ export class CommunityService {
       );
     }
 
+    if (dto.role === MosqueStaffRole.CUSTOM && !dto.customRoleTitle?.trim()) {
+      throw new BadRequestException('Custom role requires a specific title');
+    }
+
     const claim = await this.prisma.mosqueRoleClaim.create({
       data: {
         mosqueId,
         userId: actor.userId,
         role: dto.role,
+        customRoleTitle: dto.role === MosqueStaffRole.CUSTOM ? dto.customRoleTitle?.trim() || null : null,
+        name: (dto.name || actor.email || 'Applicant').trim(),
+        phoneNumber: (dto.phoneNumber || '').trim(),
+        startDate: dto.startDate ? new Date(dto.startDate) : null,
+        imageUrl: dto.imageUrl?.trim() || null,
         evidence: dto.evidence.trim(),
         documentUrl: dto.documentUrl?.trim() || null,
         status: RoleClaimStatus.OPEN,
@@ -226,7 +371,7 @@ export class CommunityService {
       entityId: claim.id,
       actor,
       newValue: claim,
-      metadata: { mosqueId, role: dto.role },
+      metadata: { mosqueId, role: dto.role, customRoleTitle: claim.customRoleTitle },
     });
 
     this.logger.log(
@@ -291,6 +436,7 @@ export class CommunityService {
           role: {
             in: [
               MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
             ],
           },
@@ -337,11 +483,12 @@ export class CommunityService {
     // Tiered Authorization check
     if (
       claim.role === MosqueStaffRole.MOSQUE_ADMIN ||
+      claim.role === MosqueStaffRole.MUTAWALLI ||
       claim.role === MosqueStaffRole.COMMITTEE_PRESIDENT
     ) {
       if (!isPlatformAdmin) {
         throw new ForbiddenException(
-          'Only platform administrators can review Mosque Admin and Committee President claims',
+          'Only platform administrators can review Mosque Admin, Mutawalli, and Committee President claims',
         );
       }
     } else if (!isPlatformAdmin) {
@@ -353,6 +500,7 @@ export class CommunityService {
           role: {
             in: [
               MosqueStaffRole.MOSQUE_ADMIN,
+              MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
             ],
           },
@@ -378,15 +526,18 @@ export class CommunityService {
         },
       });
 
-      // 2. If approved, upsert verified MosqueStaff entry
+      // 2. If approved, upsert verified MosqueStaff entry with transferred identity
       if (dto.status === RoleClaimStatus.APPROVED) {
         await tx.mosqueStaff.create({
           data: {
             mosqueId: claim.mosqueId,
             userId: claim.userId,
             role: claim.role,
-            name: claim.user.name,
-            contactNumber: claim.user.phoneNumber,
+            customRoleTitle: claim.customRoleTitle,
+            name: claim.name || claim.user.name,
+            contactNumber: claim.phoneNumber || claim.user.phoneNumber,
+            startDate: claim.startDate,
+            imageUrl: claim.imageUrl || claim.user.profileImageUrl,
             isVerified: true,
             verifiedAt: new Date(),
             verifiedById: actor.userId,

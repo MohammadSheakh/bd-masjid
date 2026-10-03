@@ -1,37 +1,29 @@
 import {
+  IsBoolean,
   IsEnum,
-  IsNotEmpty,
   IsOptional,
   IsString,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { MosqueStaffRole } from '@prisma/client';
 
-export class AddStaffDto {
-  @ApiProperty({
+export class UpdateStaffDto {
+  @ApiPropertyOptional({
     enum: MosqueStaffRole,
     description: 'Role of the staff member at the mosque',
     example: MosqueStaffRole.IMAM,
   })
   @IsEnum(MosqueStaffRole)
-  @IsNotEmpty()
-  role: MosqueStaffRole;
+  @IsOptional()
+  role?: MosqueStaffRole;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Full name of the staff member',
     example: 'Maulana Mufti Abdullah',
   })
   @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiPropertyOptional({
-    description: 'Optional registered user ID if linked to an account',
-    example: 'clxxx1234',
-  })
-  @IsString()
   @IsOptional()
-  userId?: string;
+  name?: string;
 
   @ApiPropertyOptional({
     description: 'Custom role title if role is CUSTOM',
@@ -63,4 +55,12 @@ export class AddStaffDto {
   @IsString()
   @IsOptional()
   imageUrl?: string;
+
+  @ApiPropertyOptional({
+    description: 'Whether the staff member is officially verified',
+    example: true,
+  })
+  @IsBoolean()
+  @IsOptional()
+  isVerified?: boolean;
 }
