@@ -480,6 +480,26 @@ export async function toggleAttendance(
   }
 }
 
+export async function updatePrayerSchedule(
+  mosqueId: string,
+  data: Record<string, string | undefined>,
+) {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}/mosques/${mosqueId}/prayer-schedule`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to update prayer timetable');
+  }
+  return res.json();
+}
+
 export async function submitScheduleSuggestion(
   mosqueId: string,
   data: { suggestedTimes: Record<string, string | undefined>; description?: string },
