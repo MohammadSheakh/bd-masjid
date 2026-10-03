@@ -166,15 +166,17 @@ describe('PrayerSchedulesController', () => {
       expect(res.body.data.freshness).toBe('FRESH');
     });
 
-    it('rejects PUT /mosques/:id/prayer-schedule with 401 when no bearer token is supplied', async () => {
+    it('allows community updates on PUT /mosques/:id/prayer-schedule without bearer token (ADR-021)', async () => {
       const res = await request(app.getHttpServer())
         .put('/mosques/mosque-1/prayer-schedule')
         .send({ fajrAzan: '05:05' });
 
-      expect(res.status).toBe(401);
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('success', true);
+      expect(serviceMock.updateSchedule).toHaveBeenCalled();
     });
 
-    it('accepts authorized PUT /mosques/:id/prayer-schedule and returns updated timetable', async () => {
+    it('accepts authenticated PUT /mosques/:id/prayer-schedule with actor context and returns updated timetable', async () => {
       const res = await request(app.getHttpServer())
         .put('/mosques/mosque-1/prayer-schedule')
         .set('Authorization', 'Bearer valid-imam-token')

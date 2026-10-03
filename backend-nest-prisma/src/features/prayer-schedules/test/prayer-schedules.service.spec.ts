@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrayerSchedulesService } from '../prayer-schedules.service';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../../audit/audit.service';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 
 describe('PrayerSchedulesService', () => {
   let service: PrayerSchedulesService;
@@ -63,25 +63,72 @@ describe('PrayerSchedulesService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw ForbiddenException if caller is not authorized to edit this mosque', async () => {
+    it('should allow any community member to update timetable without authorization restriction (ADR-021)', async () => {
       prisma.mosque.findUnique.mockResolvedValue({
         id: 'mosque-1',
-        createdById: 'other-user',
+        createdById: 'original-creator',
       });
-      prisma.mosqueStaff.findFirst.mockResolvedValue(null);
+      const mockSchedule = {
+        id: 'sched-1',
+        mosqueId: 'mosque-1',
+        fajrJamaat: '05:25',
+        updatedAt: new Date(),
+      };
+      prisma.prayerSchedule.upsert.mockResolvedValue(mockSchedule);
 
-      await expect(
-        service.updateSchedule(
-          'mosque-1',
-          { fajrJamaat: '05:15' },
-          {
-            userId: 'unauthorized-user',
-            email: 'unauth@example.com',
-            role: 'user',
-            permissions: [],
-          },
-        ),
-      ).rejects.toThrow(ForbiddenException);
+      const result = await service.updateSchedule(
+        'mosque-1',
+        { fajrJamaat: '05:25' },
+        {
+          userId: 'community-member-99',
+          email: 'member@example.com',
+          role: 'user',
+          permissions: [],
+        },
+      );
+
+      expect(result.id).toBe('sched-1');
+      expect(prisma.prayerSchedule.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({
+            fajrJamaat: '05:25',
+            updatedById: 'community-member-99',
+          }),
+        }),
+      );
+    });
+
+    it('should allow anonymous guest updates and assign null changedById', async () => {
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+      });
+      const mockSchedule = {
+        id: 'sched-1',
+        mosqueId: 'mosque-1',
+        fajrJamaat: '05:20',
+        updatedAt: new Date(),
+      };
+      prisma.prayerSchedule.upsert.mockResolvedValue(mockSchedule);
+
+      const result = await service.updateSchedule('mosque-1', {
+        fajrJamaat: '05:20',
+      });
+
+      expect(result.id).toBe('sched-1');
+      expect(prisma.prayerSchedule.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({
+            updatedById: null,
+          }),
+        }),
+      );
+      expect(prisma.prayerScheduleHistory.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            changedById: null,
+          }),
+        }),
+      );
     });
 
     it('should atomically update schedule, create history snapshot, and touch mosque when authorized', async () => {

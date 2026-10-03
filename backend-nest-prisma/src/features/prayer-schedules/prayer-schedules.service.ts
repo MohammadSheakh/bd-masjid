@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '@app/database';
@@ -79,7 +78,7 @@ export class PrayerSchedulesService {
   async updateSchedule(
     mosqueId: string,
     dto: UpdatePrayerScheduleDto,
-    actor: UserPayload,
+    actor?: UserPayload,
   ) {
     const mosque = await this.prisma.mosque.findUnique({
       where: { id: mosqueId, isDeleted: false },
@@ -89,31 +88,8 @@ export class PrayerSchedulesService {
       throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
     }
 
-    // Authorization check: only admin, moderator, mosque creator, or verified staff
-    const isPrivileged = actor.role === 'admin' || actor.role === 'moderator';
-    const isCreator = mosque.createdById === actor.userId;
-
-    let isAuthorized = isPrivileged || isCreator;
-    if (!isAuthorized) {
-      const staff = await this.prisma.mosqueStaff.findFirst({
-        where: {
-          mosqueId,
-          userId: actor.userId,
-          isVerified: true,
-        },
-      });
-      if (staff) {
-        isAuthorized = true;
-      }
-    }
-
-    if (!isAuthorized) {
-      throw new ForbiddenException(
-        'You do not have permission to modify the prayer schedule for this mosque',
-      );
-    }
-
     const { reason, ...scheduleFields } = dto;
+    const userId = actor?.userId || null;
 
     const result = await this.prisma.$transaction(async (tx) => {
       // 1. Upsert prayer schedule
@@ -122,11 +98,11 @@ export class PrayerSchedulesService {
         create: {
           mosqueId,
           ...scheduleFields,
-          updatedById: actor.userId,
+          updatedById: userId,
         },
         update: {
           ...scheduleFields,
-          updatedById: actor.userId,
+          updatedById: userId,
         },
       });
 
@@ -135,7 +111,7 @@ export class PrayerSchedulesService {
         data: {
           mosqueId,
           scheduleSnapshot: updatedSchedule,
-          changedById: actor.userId,
+          changedById: userId,
           reason: reason?.trim() || null,
         },
       });
@@ -152,7 +128,11 @@ export class PrayerSchedulesService {
           action: 'PRAYER_SCHEDULE_UPDATED',
           entityType: 'PrayerSchedule',
           entityId: updatedSchedule.id,
-          actor,
+          actor: actor || {
+            userId: 'anonymous-community',
+            email: 'community@bd-masjid.internal',
+            role: 'user' as any,
+          },
           newValue: updatedSchedule,
           metadata: { mosqueId, reason },
         },
@@ -163,7 +143,7 @@ export class PrayerSchedulesService {
     });
 
     this.logger.log(
-      `Prayer schedule updated for mosque ${mosqueId} by user ${actor.userId}`,
+      `Prayer schedule updated for mosque ${mosqueId} by user ${userId || 'anonymous-community'}`,
     );
 
     return {

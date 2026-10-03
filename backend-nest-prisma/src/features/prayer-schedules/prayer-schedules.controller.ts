@@ -51,21 +51,21 @@ export class PrayerSchedulesController {
   }
 
   @Put()
+  @Public()
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 20 })
   @ApiOperation({
     summary: 'Update prayer schedule',
     description:
-      'Atomically updates timetable, writes immutable history snapshot, and touches freshness',
+      'Directly updates timetable, writes immutable history snapshot, and touches freshness without administrative gatekeeping',
   })
   @ApiParam({ name: 'id', description: 'Mosque UUID' })
   @ApiResponse({ status: 200, description: 'Updated prayer schedule' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Mosque not found' })
   async updateSchedule(
     @Param('id') id: string,
     @Body() dto: UpdatePrayerScheduleDto,
-    @CurrentUser() actor: UserPayload,
+    @CurrentUser() actor?: UserPayload,
   ) {
     return this.schedulesService.updateSchedule(id, dto, actor);
   }
