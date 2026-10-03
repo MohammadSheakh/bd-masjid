@@ -24,6 +24,7 @@ model User {
   devices             UserDevices[]
   createdMosques      Mosque[]         @relation("MosqueCreator")
   verifiedMosques     Mosque[]         @relation("MosqueVerifier")
+  unlistedMosques     Mosque[]         @relation("MosqueUnlister")
   attendanceRecords   UserMosqueAttendance[]
   suggestions         MosqueSuggestion[]
   reports             MosqueReport[]

@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -13,6 +14,12 @@ import {
   MosqueVerificationStatus,
 } from '@prisma/client';
 import { MOSQUE_CONSTANTS } from '../mosques.constants';
+
+const parseQueryBoolean = ({ value }: { value: any }) => {
+  if (value === 'true' || value === true) return true;
+  if (value === 'false' || value === false) return false;
+  return value;
+};
 
 export class MosqueQueryDto {
   @ApiPropertyOptional({
@@ -40,6 +47,16 @@ export class MosqueQueryDto {
   verificationStatus?: MosqueVerificationStatus;
 
   @ApiPropertyOptional({
+    description:
+      'Filter by public listing status (true for listed, false for unlisted)',
+    example: true,
+  })
+  @IsOptional()
+  @Transform(parseQueryBoolean)
+  @IsBoolean()
+  isListed?: boolean;
+
+  @ApiPropertyOptional({
     description: 'Filter by city',
     example: 'Dhaka',
   })
@@ -51,28 +68,28 @@ export class MosqueQueryDto {
     description: 'Filter by women prayer space availability',
   })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(parseQueryBoolean)
   hasSeparateWomenSpace?: boolean;
 
   @ApiPropertyOptional({
     description: 'Filter by air conditioning availability',
   })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(parseQueryBoolean)
   hasAirConditioning?: boolean;
 
   @ApiPropertyOptional({
     description: 'Filter by parking availability',
   })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(parseQueryBoolean)
   hasParking?: boolean;
 
   @ApiPropertyOptional({
     description: 'Filter by wheelchair accessibility',
   })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(parseQueryBoolean)
   hasWheelchairAccess?: boolean;
 
   @ApiPropertyOptional({

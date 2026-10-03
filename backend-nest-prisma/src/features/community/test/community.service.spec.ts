@@ -225,7 +225,9 @@ describe('CommunityService', () => {
         ...claim,
         status: RoleClaimStatus.APPROVED,
       });
-      mockPrisma.mosqueStaff.create.mockResolvedValue({ id: 'staff-created-imam' });
+      mockPrisma.mosqueStaff.create.mockResolvedValue({
+        id: 'staff-created-imam',
+      });
 
       const result = await service.reviewRoleClaim(
         'claim-imam',
@@ -248,7 +250,11 @@ describe('CommunityService', () => {
         startDate: new Date('2022-01-01'),
         imageUrl: 'https://example.com/tariq.jpg',
         status: RoleClaimStatus.OPEN,
-        user: { name: 'Mawlana Tariq', phoneNumber: '01711223344', profileImageUrl: '/uploads/tariq.png' },
+        user: {
+          name: 'Mawlana Tariq',
+          phoneNumber: '01711223344',
+          profileImageUrl: '/uploads/tariq.png',
+        },
       };
 
       mockPrisma.mosqueRoleClaim.findUnique.mockResolvedValue(claim);
@@ -263,7 +269,9 @@ describe('CommunityService', () => {
         ...claim,
         status: RoleClaimStatus.APPROVED,
       });
-      mockPrisma.mosqueStaff.create.mockResolvedValue({ id: 'staff-created-imam-2' });
+      mockPrisma.mosqueStaff.create.mockResolvedValue({
+        id: 'staff-created-imam-2',
+      });
 
       const result = await service.reviewRoleClaim(
         'claim-imam-by-mutawalli',
@@ -415,7 +423,11 @@ describe('CommunityService', () => {
 
       mockPrisma.mosqueStaff.delete.mockResolvedValue({ id: 'staff-muazzin' });
 
-      const res = await service.removeStaff('mosque-1', 'staff-muazzin', userActor);
+      const res = await service.removeStaff(
+        'mosque-1',
+        'staff-muazzin',
+        userActor,
+      );
       expect(res.removed).toBe(true);
       expect(mockPrisma.mosqueStaff.delete).toHaveBeenCalledWith({
         where: { id: 'staff-muazzin' },
@@ -633,4 +645,3 @@ describe('CommunityService', () => {
     });
   });
 });
-

@@ -603,7 +603,9 @@ export class AuthService {
     const normalizedEmail = email.trim().toLowerCase();
     const configuredAdminEmail = (
       this.configService.get<string>('ADMIN_EMAIL') || ''
-    ).trim().toLowerCase();
+    )
+      .trim()
+      .toLowerCase();
     const isAdmin = Boolean(
       configuredAdminEmail && normalizedEmail === configuredAdminEmail,
     );
@@ -687,7 +689,8 @@ export class AuthService {
   getOAuthConfig() {
     return {
       googleClientId:
-        (this.configService.get<string>('GOOGLE_CLIENT_ID') || '').trim() || null,
+        (this.configService.get<string>('GOOGLE_CLIENT_ID') || '').trim() ||
+        null,
     };
   }
 

@@ -67,10 +67,7 @@ export class AnnouncementsService {
       ...(allowExpired
         ? {}
         : {
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           }),
     };
 
@@ -159,7 +156,9 @@ export class AnnouncementsService {
     if (dto.expiresAt) {
       const expiryDate = new Date(dto.expiresAt);
       if (isNaN(expiryDate.getTime()) || expiryDate <= new Date()) {
-        throw new BadRequestException('Expiration date must be a valid future timestamp');
+        throw new BadRequestException(
+          'Expiration date must be a valid future timestamp',
+        );
       }
     }
 
@@ -235,7 +234,9 @@ export class AnnouncementsService {
     });
 
     if (!announcement) {
-      throw new NotFoundException(`Announcement with ID ${announcementId} not found`);
+      throw new NotFoundException(
+        `Announcement with ID ${announcementId} not found`,
+      );
     }
 
     await this.assertMutationPermission(announcement, actor, dto.category);
@@ -243,7 +244,9 @@ export class AnnouncementsService {
     if (dto.expiresAt !== undefined && dto.expiresAt !== null) {
       const expiryDate = new Date(dto.expiresAt);
       if (isNaN(expiryDate.getTime()) || expiryDate <= new Date()) {
-        throw new BadRequestException('Expiration date must be a valid future timestamp');
+        throw new BadRequestException(
+          'Expiration date must be a valid future timestamp',
+        );
       }
     }
 
@@ -311,7 +314,9 @@ export class AnnouncementsService {
     });
 
     if (!announcement) {
-      throw new NotFoundException(`Announcement with ID ${announcementId} not found`);
+      throw new NotFoundException(
+        `Announcement with ID ${announcementId} not found`,
+      );
     }
 
     await this.assertMutationPermission(announcement, actor);
@@ -369,8 +374,8 @@ export class AnnouncementsService {
         ...(dto.emergencyOnly
           ? { category: AnnouncementCategory.EMERGENCY_ALERT }
           : dto.category
-          ? { category: dto.category }
-          : {}),
+            ? { category: dto.category }
+            : {}),
       };
 
       const [items, total] = await Promise.all([
@@ -395,8 +400,8 @@ export class AnnouncementsService {
       const categoryClause = dto.emergencyOnly
         ? Prisma.sql`AND a."category" = 'EMERGENCY_ALERT'::"AnnouncementCategory"`
         : dto.category
-        ? Prisma.sql`AND a."category" = ${dto.category}::"AnnouncementCategory"`
-        : Prisma.empty;
+          ? Prisma.sql`AND a."category" = ${dto.category}::"AnnouncementCategory"`
+          : Prisma.empty;
 
       const rawAnnouncements = await this.prisma.$queryRaw<
         Array<{
@@ -468,8 +473,8 @@ export class AnnouncementsService {
       ...(dto.emergencyOnly
         ? { category: AnnouncementCategory.EMERGENCY_ALERT }
         : dto.category
-        ? { category: dto.category }
-        : {}),
+          ? { category: dto.category }
+          : {}),
     };
 
     const [items, total] = await Promise.all([

@@ -21,7 +21,8 @@ export class CreateRoleClaimDto {
 
   @ApiProperty({
     required: false,
-    description: 'Custom role title if role is CUSTOM (e.g. Assistant Imam, Treasurer)',
+    description:
+      'Custom role title if role is CUSTOM (e.g. Assistant Imam, Treasurer)',
     example: 'Assistant Imam & Quran Teacher',
   })
   @IsString()
@@ -80,7 +81,8 @@ export class CreateRoleClaimDto {
 
   @ApiProperty({
     required: false,
-    description: 'Optional URL or reference to supporting appointment document or certificate',
+    description:
+      'Optional URL or reference to supporting appointment document or certificate',
     example: 'https://example.com/uploads/appointment.pdf',
   })
   @IsString()

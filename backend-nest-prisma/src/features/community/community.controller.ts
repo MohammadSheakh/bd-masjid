@@ -125,7 +125,11 @@ export class CommunityController {
   // Role Claims
   // ──────────────────────────────────────────────────────────────────────────
 
-  @Post(['mosques/:id/role-claims', 'community/:id/role-claims', 'community/:id/claim-role'])
+  @Post([
+    'mosques/:id/role-claims',
+    'community/:id/role-claims',
+    'community/:id/claim-role',
+  ])
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 10 })
   @ApiOperation({
@@ -158,11 +162,10 @@ export class CommunityController {
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Upload person photo or document for role claim',
-    description: 'Accepts jpeg/png/webp image up to 5MB and returns data URL / reference',
+    description:
+      'Accepts jpeg/png/webp image up to 5MB and returns data URL / reference',
   })
-  async uploadClaimImage(
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
+  async uploadClaimImage(@UploadedFile() file?: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }
@@ -310,7 +313,10 @@ export class CommunityController {
     );
   }
 
-  @Delete(['mosques/:id/donations/:donationId', 'community/:id/donations/:donationId'])
+  @Delete([
+    'mosques/:id/donations/:donationId',
+    'community/:id/donations/:donationId',
+  ])
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 15 })
   @ApiOperation({

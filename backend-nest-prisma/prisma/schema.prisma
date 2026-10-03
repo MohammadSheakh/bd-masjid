@@ -96,6 +96,7 @@ model User {
   devices             UserDevices[]
   createdMosques      Mosque[]         @relation("MosqueCreator")
   verifiedMosques     Mosque[]         @relation("MosqueVerifier")
+  unlistedMosques     Mosque[]         @relation("MosqueUnlister")
   attendanceRecords   UserMosqueAttendance[]
   suggestions         MosqueSuggestion[]
   reports             MosqueReport[]
@@ -532,6 +533,12 @@ model Mosque {
   verifiedAt         DateTime?
   verificationNotes  String?
 
+  isListed           Boolean                  @default(true)
+  unlistedReason     String?
+  unlistedAt         DateTime?
+  unlistedById       String?
+  unlister           User?                    @relation("MosqueUnlister", fields: [unlistedById], references: [id], onDelete: SetNull)
+
   isDeleted          Boolean                  @default(false)
   deletedAt          DateTime?
   createdAt          DateTime                 @default(now())
@@ -563,6 +570,7 @@ model Mosque {
   notifications           UserNotification[]
 
   @@index([latitude, longitude])
+  @@index([isListed, isDeleted])
   @@index([verificationStatus, operationalStatus, isDeleted])
   @@index([name, isDeleted])
   @@index([createdById])

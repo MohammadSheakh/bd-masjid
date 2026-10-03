@@ -120,10 +120,10 @@ describe('OperationsHealthController', () => {
         .useValue({
           canActivate: (context: ExecutionContext) => {
             const reflector = new Reflector();
-            const requiredRoles = reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-              context.getHandler(),
-              context.getClass(),
-            ]);
+            const requiredRoles = reflector.getAllAndOverride<string[]>(
+              ROLES_KEY,
+              [context.getHandler(), context.getClass()],
+            );
             if (!requiredRoles || requiredRoles.length === 0) return true;
 
             const req = context.switchToHttp().getRequest();
@@ -152,7 +152,9 @@ describe('OperationsHealthController', () => {
     });
 
     it('GET /health/ready - returns 200 when database ping is successful', async () => {
-      mockOpsHealthService.checkReadiness.mockResolvedValueOnce({ ready: true });
+      mockOpsHealthService.checkReadiness.mockResolvedValueOnce({
+        ready: true,
+      });
       const res = await request(app.getHttpServer()).get('/health/ready');
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('ready');
@@ -168,7 +170,9 @@ describe('OperationsHealthController', () => {
     });
 
     it('GET /admin/operations/health - returns 401 when unauthenticated', async () => {
-      const res = await request(app.getHttpServer()).get('/admin/operations/health');
+      const res = await request(app.getHttpServer()).get(
+        '/admin/operations/health',
+      );
       expect(res.status).toBe(401);
     });
 
@@ -190,4 +194,3 @@ describe('OperationsHealthController', () => {
     });
   });
 });
-

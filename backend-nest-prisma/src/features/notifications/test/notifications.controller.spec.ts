@@ -7,12 +7,16 @@ import {
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Reflector } from '@nestjs/core';
-import { IS_PUBLIC_KEY, AuthGuard, SlidingWindowRateLimitGuard, UserPayload } from '@app/common';
+import {
+  IS_PUBLIC_KEY,
+  AuthGuard,
+  SlidingWindowRateLimitGuard,
+  UserPayload,
+} from '@app/common';
 import { NotificationType, UserRole } from '@prisma/client';
 import { NotificationsController } from '../notifications.controller';
 import { NotificationsService } from '../notifications.service';
 import { QueryNotificationsDto } from '../dto';
-
 
 describe('NotificationsController', () => {
   let controller: NotificationsController;
@@ -62,7 +66,10 @@ describe('NotificationsController', () => {
 
       const result = await controller.getNotifications(mockUser, query);
 
-      expect(service.getUserNotifications).toHaveBeenCalledWith('user-1', query);
+      expect(service.getUserNotifications).toHaveBeenCalledWith(
+        'user-1',
+        query,
+      );
       expect(result).toEqual(response);
     });
   });
@@ -129,17 +136,20 @@ describe('NotificationsController', () => {
   describe('getFollowStatus', () => {
     it('should retrieve follow status for authenticated user', async () => {
       const response = { isFollowing: true, followersCount: 42 };
-      service.getFollowStatus.mockResolvedValue(response as any);
+      service.getFollowStatus.mockResolvedValue(response);
 
       const result = await controller.getFollowStatus('mosque-1', mockUser);
 
-      expect(service.getFollowStatus).toHaveBeenCalledWith('user-1', 'mosque-1');
+      expect(service.getFollowStatus).toHaveBeenCalledWith(
+        'user-1',
+        'mosque-1',
+      );
       expect(result).toEqual(response);
     });
 
     it('should retrieve follow status for unauthenticated user with null userId', async () => {
       const response = { isFollowing: false, followersCount: 42 };
-      service.getFollowStatus.mockResolvedValue(response as any);
+      service.getFollowStatus.mockResolvedValue(response);
 
       const result = await controller.getFollowStatus('mosque-1', undefined);
 
@@ -163,14 +173,22 @@ describe('NotificationsController', () => {
 
     beforeAll(async () => {
       mockNotificationsService = {
-        getUserNotifications: jest.fn().mockResolvedValue({ notifications: [mockNotification], total: 1 }),
+        getUserNotifications: jest
+          .fn()
+          .mockResolvedValue({ notifications: [mockNotification], total: 1 }),
         getUnreadCount: jest.fn().mockResolvedValue(3),
-        markAsRead: jest.fn().mockResolvedValue({ ...mockNotification, isRead: true }),
+        markAsRead: jest
+          .fn()
+          .mockResolvedValue({ ...mockNotification, isRead: true }),
         markAllAsRead: jest.fn().mockResolvedValue({ count: 1 }),
         followMosque: jest.fn().mockResolvedValue({ success: true }),
         unfollowMosque: jest.fn().mockResolvedValue({ success: true }),
-        getFollowStatus: jest.fn().mockResolvedValue({ isFollowing: false, followersCount: 10 }),
-        getFollowedMosques: jest.fn().mockResolvedValue([{ id: 'mosque-1', name: 'Test Mosque' }]),
+        getFollowStatus: jest
+          .fn()
+          .mockResolvedValue({ isFollowing: false, followersCount: 10 }),
+        getFollowedMosques: jest
+          .fn()
+          .mockResolvedValue([{ id: 'mosque-1', name: 'Test Mosque' }]),
       };
 
       const moduleRef: TestingModule = await Test.createTestingModule({
@@ -186,15 +204,17 @@ describe('NotificationsController', () => {
           canActivate: (context: ExecutionContext) => {
             const req = context.switchToHttp().getRequest();
             const reflector = new Reflector();
-            const isPublic = reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-              context.getHandler(),
-              context.getClass(),
-            ]);
+            const isPublic = reflector.getAllAndOverride<boolean>(
+              IS_PUBLIC_KEY,
+              [context.getHandler(), context.getClass()],
+            );
             if (isPublic) return true;
 
             const authHeader = req.headers['authorization'];
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
-              throw new UnauthorizedException('Authentication token missing or invalid');
+              throw new UnauthorizedException(
+                'Authentication token missing or invalid',
+              );
             }
 
             req.user = mockUser;
@@ -234,7 +254,9 @@ describe('NotificationsController', () => {
     });
 
     it('GET /notifications/unread-count - returns 401 when unauthorized', async () => {
-      const res = await request(app.getHttpServer()).get('/notifications/unread-count');
+      const res = await request(app.getHttpServer()).get(
+        '/notifications/unread-count',
+      );
       expect(res.status).toBe(401);
     });
 
@@ -249,14 +271,18 @@ describe('NotificationsController', () => {
     });
 
     it('GET /mosques/:id/follow-status - allows public access with 200', async () => {
-      const res = await request(app.getHttpServer()).get('/mosques/mosque-1/follow-status');
+      const res = await request(app.getHttpServer()).get(
+        '/mosques/mosque-1/follow-status',
+      );
       expect(res.status).toBe(200);
       const data = res.body.data ?? res.body;
       expect(data.followersCount).toBe(10);
     });
 
     it('POST /mosques/:id/follow - rejects unauthenticated requests with 401', async () => {
-      const res = await request(app.getHttpServer()).post('/mosques/mosque-1/follow');
+      const res = await request(app.getHttpServer()).post(
+        '/mosques/mosque-1/follow',
+      );
       expect(res.status).toBe(401);
     });
 
@@ -271,4 +297,3 @@ describe('NotificationsController', () => {
     });
   });
 });
-

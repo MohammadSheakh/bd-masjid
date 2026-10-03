@@ -1,7 +1,12 @@
 import request from 'supertest';
 import { ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AuthGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
+import {
+  AuthGuard,
+  SlidingWindowRateLimitGuard,
+  TransformResponseInterceptor,
+  UserPayload,
+} from '@app/common';
 import { DonationsController } from '../donations.controller';
 import { DonationsService } from '../donations.service';
 import {
@@ -72,20 +77,34 @@ describe('DonationsController', () => {
 
       const result = await controller.submitDonation('mosque-1', dto, mockUser);
 
-      expect(service.submitDonationChannel).toHaveBeenCalledWith('mosque-1', dto, mockUser);
+      expect(service.submitDonationChannel).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        mockUser,
+      );
       expect(result).toEqual(mockChannel);
     });
   });
 
   describe('getMosqueDonations', () => {
     it('should query donation channels for mosque', async () => {
-      const query: QueryDonationsDto = { status: DonationChannelStatus.VERIFIED };
+      const query: QueryDonationsDto = {
+        status: DonationChannelStatus.VERIFIED,
+      };
       const list = [mockChannel];
       service.getMosqueDonationChannels.mockResolvedValue(list as any);
 
-      const result = await controller.getMosqueDonations('mosque-1', query, mockUser);
+      const result = await controller.getMosqueDonations(
+        'mosque-1',
+        query,
+        mockUser,
+      );
 
-      expect(service.getMosqueDonationChannels).toHaveBeenCalledWith('mosque-1', query, mockUser);
+      expect(service.getMosqueDonationChannels).toHaveBeenCalledWith(
+        'mosque-1',
+        query,
+        mockUser,
+      );
       expect(result).toEqual(list);
     });
   });
@@ -96,32 +115,58 @@ describe('DonationsController', () => {
 
       const result = await controller.getDonationById('channel-1', mockUser);
 
-      expect(service.getDonationChannelById).toHaveBeenCalledWith('channel-1', mockUser);
+      expect(service.getDonationChannelById).toHaveBeenCalledWith(
+        'channel-1',
+        mockUser,
+      );
       expect(result).toEqual(mockChannel);
     });
   });
 
   describe('verifyDonation', () => {
     it('should approve channel through two-person verification', async () => {
-      const dto: VerifyDonationChannelDto = { verificationNotes: 'Account details verified with bank passbook' };
+      const dto: VerifyDonationChannelDto = {
+        verificationNotes: 'Account details verified with bank passbook',
+      };
       service.verifyDonationChannel.mockResolvedValue(mockChannel as any);
 
-      const result = await controller.verifyDonation('channel-1', dto, mockUser);
+      const result = await controller.verifyDonation(
+        'channel-1',
+        dto,
+        mockUser,
+      );
 
-      expect(service.verifyDonationChannel).toHaveBeenCalledWith('channel-1', dto, mockUser);
+      expect(service.verifyDonationChannel).toHaveBeenCalledWith(
+        'channel-1',
+        dto,
+        mockUser,
+      );
       expect(result).toEqual(mockChannel);
     });
   });
 
   describe('rejectDonation', () => {
     it('should delegate rejection or archival to service', async () => {
-      const dto: RejectDonationChannelDto = { rejectionReason: 'Incorrect account title' };
-      const rejectedChannel = { ...mockChannel, status: DonationChannelStatus.REJECTED };
+      const dto: RejectDonationChannelDto = {
+        rejectionReason: 'Incorrect account title',
+      };
+      const rejectedChannel = {
+        ...mockChannel,
+        status: DonationChannelStatus.REJECTED,
+      };
       service.rejectDonationChannel.mockResolvedValue(rejectedChannel as any);
 
-      const result = await controller.rejectDonation('channel-1', dto, mockUser);
+      const result = await controller.rejectDonation(
+        'channel-1',
+        dto,
+        mockUser,
+      );
 
-      expect(service.rejectDonationChannel).toHaveBeenCalledWith('channel-1', dto, mockUser);
+      expect(service.rejectDonationChannel).toHaveBeenCalledWith(
+        'channel-1',
+        dto,
+        mockUser,
+      );
       expect(result).toEqual(rejectedChannel);
     });
   });
@@ -135,9 +180,17 @@ describe('DonationsController', () => {
       const reportResponse = { id: 'report-1', status: 'PENDING_REVIEW' };
       service.reportDonationChannel.mockResolvedValue(reportResponse as any);
 
-      const result = await controller.reportDonation('channel-1', dto, mockUser);
+      const result = await controller.reportDonation(
+        'channel-1',
+        dto,
+        mockUser,
+      );
 
-      expect(service.reportDonationChannel).toHaveBeenCalledWith('channel-1', dto, mockUser);
+      expect(service.reportDonationChannel).toHaveBeenCalledWith(
+        'channel-1',
+        dto,
+        mockUser,
+      );
       expect(result).toEqual(reportResponse);
     });
   });
@@ -154,9 +207,7 @@ describe('DonationsController', () => {
 
       const moduleRef = await Test.createTestingModule({
         controllers: [DonationsController],
-        providers: [
-          { provide: DonationsService, useValue: serviceMock },
-        ],
+        providers: [{ provide: DonationsService, useValue: serviceMock }],
       })
         .overrideGuard(AuthGuard)
         .useValue({
@@ -183,7 +234,9 @@ describe('DonationsController', () => {
         .compile();
 
       app = moduleRef.createNestApplication();
-      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalPipes(
+        new ValidationPipe({ whitelist: true, transform: true }),
+      );
       app.useGlobalInterceptors(new TransformResponseInterceptor());
       await app.init();
     });
@@ -195,8 +248,9 @@ describe('DonationsController', () => {
     });
 
     it('publicly returns verified channels on GET /mosques/:id/donations', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/mosques/mosque-1/donations');
+      const res = await request(app.getHttpServer()).get(
+        '/mosques/mosque-1/donations',
+      );
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('success', true);

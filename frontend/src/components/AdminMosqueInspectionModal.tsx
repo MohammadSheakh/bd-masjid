@@ -7,6 +7,7 @@ import {
   fetchMosqueStaff,
   removeMosqueStaff,
   updateMosqueDetails,
+  toggleMosqueListing,
   deleteMosque,
   getApiBase,
 } from '@/lib/api';
@@ -35,6 +36,8 @@ import {
   DollarSign,
   AlertCircle,
   FileText,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { formatTo12Hour } from '@/lib/time';
 
@@ -89,7 +92,8 @@ export const AdminMosqueInspectionModal: React.FC<AdminMosqueInspectionModalProp
   const [editLongitude, setEditLongitude] = useState('');
   const [editCapacity, setEditCapacity] = useState('');
   const [editOperationalStatus, setEditOperationalStatus] = useState('OPEN');
-  const [editVerificationStatus, setEditVerificationStatus] = useState('VERIFIED');
+  const [editIsListed, setEditIsListed] = useState(true);
+  const [editUnlistedReason, setEditUnlistedReason] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -149,7 +153,8 @@ export const AdminMosqueInspectionModal: React.FC<AdminMosqueInspectionModalProp
         setEditLongitude(String(mosqueData.longitude ?? ''));
         setEditCapacity(mosqueData.capacity ? String(mosqueData.capacity) : '');
         setEditOperationalStatus(mosqueData.operationalStatus || 'OPEN');
-        setEditVerificationStatus(mosqueData.verificationStatus || 'VERIFIED');
+        setEditIsListed(mosqueData.isListed !== false);
+        setEditUnlistedReason(mosqueData.unlistedReason || '');
       }
 
       if (Array.isArray(staffData)) {
@@ -187,7 +192,8 @@ export const AdminMosqueInspectionModal: React.FC<AdminMosqueInspectionModalProp
         landmark: editLandmark.trim() || null,
         city: editCity.trim(),
         operationalStatus: editOperationalStatus,
-        verificationStatus: editVerificationStatus,
+        isListed: editIsListed,
+        unlistedReason: !editIsListed ? editUnlistedReason.trim() || 'Unlisted by administrator' : null,
       };
 
       if (editLatitude && editLongitude) {
@@ -320,19 +326,22 @@ export const AdminMosqueInspectionModal: React.FC<AdminMosqueInspectionModalProp
                 {mosque && (
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                      mosque.verificationStatus === 'VERIFIED'
+                      mosque.isListed !== false
                         ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                        : mosque.verificationStatus === 'REJECTED'
-                        ? 'bg-red-50 text-red-800 border border-red-200'
                         : 'bg-amber-50 text-amber-800 border border-amber-200'
                     }`}
                   >
-                    {mosque.verificationStatus === 'VERIFIED' && <CheckCircle2 className="w-3 h-3" />}
-                    {mosque.verificationStatus === 'REJECTED' && <XCircle className="w-3 h-3" />}
-                    {mosque.verificationStatus !== 'VERIFIED' && mosque.verificationStatus !== 'REJECTED' && (
-                      <Clock className="w-3 h-3" />
+                    {mosque.isListed !== false ? (
+                      <>
+                        <Eye className="w-3 h-3" />
+                        <span>Listed on Map</span>
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="w-3 h-3" />
+                        <span>Unlisted</span>
+                      </>
                     )}
-                    <span>{mosque.verificationStatus || 'UNVERIFIED'}</span>
                   </span>
                 )}
                 {mosque && (
@@ -547,56 +556,63 @@ export const AdminMosqueInspectionModal: React.FC<AdminMosqueInspectionModalProp
                     </div>
                   </div>
 
-                  {/* Quick Verification Governance */}
+                  {/* Public Map Listing Governance */}
                   <div className="bg-white rounded-xl border border-[#e8e8ea] p-5 flex items-center justify-between flex-wrap gap-4">
                     <div>
-                      <h4 className="text-xs font-bold text-[#111114]">Moderation & Verification State</h4>
+                      <h4 className="text-xs font-bold text-[#111114]">Public Map Listing Status</h4>
                       <p className="text-xs text-[#6e6e73] mt-0.5">
-                        Current status is <strong className="text-[#111114]">{mosque.verificationStatus}</strong>. You can change it anytime.
+                        This mosque is currently{' '}
+                        <strong className={mosque.isListed !== false ? 'text-emerald-700' : 'text-amber-700'}>
+                          {mosque.isListed !== false ? 'LISTED on public map' : 'UNLISTED (hidden from map)'}
+                        </strong>
+                        .
+                        {mosque.isListed === false && mosque.unlistedReason && (
+                          <span className="block mt-0.5 text-zinc-500 italic">
+                            Reason: {mosque.unlistedReason}
+                          </span>
+                        )}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {mosque.verificationStatus !== 'VERIFIED' && (
+                      {mosque.isListed !== false ? (
                         <button
                           onClick={() => {
-                            updateMosqueDetails(mosque.id, { verificationStatus: 'VERIFIED' }).then(() => {
-                              setMosque((prev) => (prev ? { ...prev, verificationStatus: 'VERIFIED' } : null));
-                              setStatusMessage('Mosque marked as officially verified.');
-                              if (onMosqueUpdated) onMosqueUpdated({ ...mosque, verificationStatus: 'VERIFIED' });
+                            const reason = window.prompt(
+                              'Reason for unlisting this mosque from the public map (e.g., Inaccurate location, under review):',
+                            );
+                            if (reason === null) return;
+                            toggleMosqueListing(mosque.id, false, reason.trim() || 'Unlisted by administrator').then((res) => {
+                              if (res.success) {
+                                setMosque((prev) => (prev ? { ...prev, isListed: false, unlistedReason: reason } : null));
+                                setStatusMessage('Mosque unlisted from public map.');
+                                if (onMosqueUpdated) onMosqueUpdated({ ...mosque, isListed: false, unlistedReason: reason });
+                              } else {
+                                setErrorMessage(res.error || 'Failed to unlist mosque');
+                              }
+                            });
+                          }}
+                          className="px-3.5 py-1.5 text-xs font-semibold rounded-full border border-amber-300 text-amber-800 hover:bg-amber-50 transition-colors flex items-center gap-1.5"
+                        >
+                          <EyeOff className="w-3.5 h-3.5" />
+                          <span>Unlist from Map</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            toggleMosqueListing(mosque.id, true).then((res) => {
+                              if (res.success) {
+                                setMosque((prev) => (prev ? { ...prev, isListed: true, unlistedReason: null } : null));
+                                setStatusMessage('Mosque relisted on public map.');
+                                if (onMosqueUpdated) onMosqueUpdated({ ...mosque, isListed: true, unlistedReason: null });
+                              } else {
+                                setErrorMessage(res.error || 'Failed to relist mosque');
+                              }
                             });
                           }}
                           className="px-3.5 py-1.5 text-xs font-semibold rounded-full bg-emerald-800 text-white hover:bg-emerald-900 transition-colors flex items-center gap-1.5"
                         >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Approve & Verify</span>
-                        </button>
-                      )}
-                      {mosque.verificationStatus !== 'REJECTED' && (
-                        <button
-                          onClick={() => {
-                            updateMosqueDetails(mosque.id, { verificationStatus: 'REJECTED' }).then(() => {
-                              setMosque((prev) => (prev ? { ...prev, verificationStatus: 'REJECTED' } : null));
-                              setStatusMessage('Mosque rejected.');
-                              if (onMosqueUpdated) onMosqueUpdated({ ...mosque, verificationStatus: 'REJECTED' });
-                            });
-                          }}
-                          className="px-3.5 py-1.5 text-xs font-semibold rounded-full border border-red-300 text-red-700 hover:bg-red-50 transition-colors"
-                        >
-                          Mark Rejected
-                        </button>
-                      )}
-                      {mosque.verificationStatus !== 'UNVERIFIED' && (
-                        <button
-                          onClick={() => {
-                            updateMosqueDetails(mosque.id, { verificationStatus: 'UNVERIFIED' }).then(() => {
-                              setMosque((prev) => (prev ? { ...prev, verificationStatus: 'UNVERIFIED' } : null));
-                              setStatusMessage('Mosque returned to unverified queue.');
-                              if (onMosqueUpdated) onMosqueUpdated({ ...mosque, verificationStatus: 'UNVERIFIED' });
-                            });
-                          }}
-                          className="px-3.5 py-1.5 text-xs font-medium rounded-full border border-[#e8e8ea] text-[#6e6e73] hover:text-[#111114] hover:bg-zinc-100 transition-colors"
-                        >
-                          Reset to Unverified
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Relist on Map</span>
                         </button>
                       )}
                     </div>
@@ -1107,18 +1123,30 @@ export const AdminMosqueInspectionModal: React.FC<AdminMosqueInspectionModalProp
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#111114] mb-1">Verification Status</label>
+                  <label className="block text-xs font-semibold text-[#111114] mb-1">Public Map Listing Status</label>
                   <select
-                    value={editVerificationStatus}
-                    onChange={(e) => setEditVerificationStatus(e.target.value)}
+                    value={editIsListed ? 'LISTED' : 'UNLISTED'}
+                    onChange={(e) => setEditIsListed(e.target.value === 'LISTED')}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-[#e8e8ea] bg-white text-[#111114] focus:outline-none focus:ring-1 focus:ring-[#111114]"
                   >
-                    <option value="VERIFIED">VERIFIED</option>
-                    <option value="UNVERIFIED">UNVERIFIED (Pending)</option>
-                    <option value="REJECTED">REJECTED</option>
+                    <option value="LISTED">LISTED on Map</option>
+                    <option value="UNLISTED">UNLISTED (Hidden from Map)</option>
                   </select>
                 </div>
               </div>
+
+              {!editIsListed && (
+                <div>
+                  <label className="block text-xs font-semibold text-[#111114] mb-1">Unlisting Reason / Audit Note</label>
+                  <input
+                    type="text"
+                    value={editUnlistedReason}
+                    onChange={(e) => setEditUnlistedReason(e.target.value)}
+                    placeholder="e.g. Reported inaccurate location / temporarily closed"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-[#e8e8ea] bg-white text-[#111114] focus:outline-none focus:ring-1 focus:ring-[#111114]"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-[#111114] mb-1">Total Capacity</label>

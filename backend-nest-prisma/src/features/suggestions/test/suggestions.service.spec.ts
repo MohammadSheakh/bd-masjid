@@ -69,7 +69,10 @@ describe('SuggestionsService', () => {
     });
 
     it('creates suggestion successfully for valid mosque', async () => {
-      mockPrisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', name: 'Test Mosque' });
+      mockPrisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        name: 'Test Mosque',
+      });
       mockPrisma.mosqueSuggestion.create.mockResolvedValue({
         id: 'sugg-1',
         mosqueId: 'mosque-1',
@@ -79,7 +82,10 @@ describe('SuggestionsService', () => {
 
       const res = await service.createSuggestion(
         'mosque-1',
-        { suggestedTimes: { fajrJamaat: '05:20' }, description: 'Summer time change' },
+        {
+          suggestedTimes: { fajrJamaat: '05:20' },
+          description: 'Summer time change',
+        },
         'user-1',
       );
 
@@ -107,7 +113,10 @@ describe('SuggestionsService', () => {
     });
 
     it('creates discrepancy report successfully', async () => {
-      mockPrisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', name: 'Test Mosque' });
+      mockPrisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        name: 'Test Mosque',
+      });
       mockPrisma.mosqueReport.create.mockResolvedValue({
         id: 'rep-1',
         mosqueId: 'mosque-1',
@@ -162,7 +171,10 @@ describe('SuggestionsService', () => {
 
       const res = await service.updateSuggestionStatus(
         'sugg-1',
-        { status: SuggestionStatus.RESOLVED, resolutionNotes: 'Applied new Jamaat schedule' },
+        {
+          status: SuggestionStatus.RESOLVED,
+          resolutionNotes: 'Applied new Jamaat schedule',
+        },
         adminActor,
       );
 

@@ -49,7 +49,10 @@ export class AnnouncementsController {
     description:
       'Returns active announcements within PostGIS spherical radius, bookmarked mosques, or filtered by emergency category',
   })
-  @ApiResponse({ status: 200, description: 'List of announcements in the feed' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of announcements in the feed',
+  })
   async getFeed(
     @Query() dto: FeedAnnouncementsDto,
     @CurrentUser() user?: UserPayload,
@@ -97,9 +100,18 @@ export class AnnouncementsController {
       'Requires verified staff or admin role. EMERGENCY_ALERT requires Mosque Admin or Committee President.',
   })
   @ApiParam({ name: 'id', description: 'Mosque ID' })
-  @ApiResponse({ status: 201, description: 'Announcement created successfully' })
-  @ApiResponse({ status: 400, description: 'Validation error or pin limit exceeded' })
-  @ApiResponse({ status: 403, description: 'Forbidden: Insufficient permissions' })
+  @ApiResponse({
+    status: 201,
+    description: 'Announcement created successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error or pin limit exceeded',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden: Insufficient permissions',
+  })
   @ApiResponse({ status: 404, description: 'Mosque not found' })
   async createAnnouncement(
     @Param('id') mosqueId: string,

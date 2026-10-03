@@ -46,7 +46,11 @@ describe('MosqueVerificationService', () => {
   describe('getPendingMosques', () => {
     it('should paginate pending and unverified mosques', async () => {
       const mockItems = [
-        { id: 'm-1', name: 'Pending Mosque', verificationStatus: MosqueVerificationStatus.UNVERIFIED },
+        {
+          id: 'm-1',
+          name: 'Pending Mosque',
+          verificationStatus: MosqueVerificationStatus.UNVERIFIED,
+        },
       ];
       prisma.mosque.findMany.mockResolvedValue(mockItems);
       prisma.mosque.count.mockResolvedValue(1);
@@ -80,7 +84,11 @@ describe('MosqueVerificationService', () => {
       prisma.mosque.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.verifyMosque('nonexistent-id', { notes: 'Verified physically' }, mockActor),
+        service.verifyMosque(
+          'nonexistent-id',
+          { notes: 'Verified physically' },
+          mockActor,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -126,7 +134,11 @@ describe('MosqueVerificationService', () => {
       prisma.mosque.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.rejectMosque('nonexistent-id', { reason: 'Duplicate coordinates' }, mockActor),
+        service.rejectMosque(
+          'nonexistent-id',
+          { reason: 'Duplicate coordinates' },
+          mockActor,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 

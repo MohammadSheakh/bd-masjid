@@ -66,7 +66,10 @@ describe('NotificationsService', () => {
         .mockResolvedValueOnce(1) // total
         .mockResolvedValueOnce(1); // unreadCount
 
-      const res = await service.getUserNotifications('user-1', { page: 1, limit: 20 });
+      const res = await service.getUserNotifications('user-1', {
+        page: 1,
+        limit: 20,
+      });
 
       expect(res.items).toHaveLength(1);
       expect(res.total).toBe(1);
@@ -76,16 +79,26 @@ describe('NotificationsService', () => {
 
   describe('markAsRead', () => {
     it('should update notification and emit updated count', async () => {
-      mockPrisma.userNotification.findFirst.mockResolvedValue({ id: 'notif-1', userId: 'user-1' });
-      mockPrisma.userNotification.update.mockResolvedValue({ id: 'notif-1', isRead: true });
+      mockPrisma.userNotification.findFirst.mockResolvedValue({
+        id: 'notif-1',
+        userId: 'user-1',
+      });
+      mockPrisma.userNotification.update.mockResolvedValue({
+        id: 'notif-1',
+        isRead: true,
+      });
       mockPrisma.userNotification.count.mockResolvedValue(0);
 
       const res = await service.markAsRead('user-1', 'notif-1');
 
       expect(res.isRead).toBe(true);
-      expect(mockGateway.sendToUser).toHaveBeenCalledWith('user-1', 'notification:unread_count', {
-        unreadCount: 0,
-      });
+      expect(mockGateway.sendToUser).toHaveBeenCalledWith(
+        'user-1',
+        'notification:unread_count',
+        {
+          unreadCount: 0,
+        },
+      );
     });
 
     it('should throw NotFoundException if notification does not belong to user', async () => {
@@ -104,15 +117,22 @@ describe('NotificationsService', () => {
       const res = await service.markAllAsRead('user-1');
 
       expect(res.updatedCount).toBe(5);
-      expect(mockGateway.sendToUser).toHaveBeenCalledWith('user-1', 'notification:unread_count', {
-        unreadCount: 0,
-      });
+      expect(mockGateway.sendToUser).toHaveBeenCalledWith(
+        'user-1',
+        'notification:unread_count',
+        {
+          unreadCount: 0,
+        },
+      );
     });
   });
 
   describe('followMosque', () => {
     it('should upsert follower and return updated count', async () => {
-      mockPrisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', name: 'Baitul Mukarram' });
+      mockPrisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        name: 'Baitul Mukarram',
+      });
       mockPrisma.mosqueFollower.upsert.mockResolvedValue({});
       mockPrisma.mosqueFollower.count.mockResolvedValue(42);
 
@@ -130,9 +150,9 @@ describe('NotificationsService', () => {
     it('should throw NotFoundException if mosque does not exist', async () => {
       mockPrisma.mosque.findUnique.mockResolvedValue(null);
 
-      await expect(service.followMosque('user-1', 'nonexistent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.followMosque('user-1', 'nonexistent'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -154,7 +174,9 @@ describe('NotificationsService', () => {
         { userId: 'user-1' },
         { userId: 'user-2' },
       ]);
-      mockPrisma.mosque.findUnique.mockResolvedValue({ name: 'Central Mosque' });
+      mockPrisma.mosque.findUnique.mockResolvedValue({
+        name: 'Central Mosque',
+      });
       mockPrisma.userNotification.createMany.mockResolvedValue({ count: 2 });
 
       const res = await service.fanOutMosqueNotification('mosque-1', {
@@ -175,7 +197,9 @@ describe('NotificationsService', () => {
 
     it('should return 0 deliveredCount if mosque has no followers', async () => {
       mockPrisma.mosqueFollower.findMany.mockResolvedValue([]);
-      mockPrisma.mosque.findUnique.mockResolvedValue({ name: 'Central Mosque' });
+      mockPrisma.mosque.findUnique.mockResolvedValue({
+        name: 'Central Mosque',
+      });
 
       const res = await service.fanOutMosqueNotification('mosque-1', {
         type: NotificationType.ANNOUNCEMENT,

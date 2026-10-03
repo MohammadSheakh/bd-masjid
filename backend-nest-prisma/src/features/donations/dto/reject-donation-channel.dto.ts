@@ -3,7 +3,8 @@ import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class RejectDonationChannelDto {
   @ApiProperty({
-    example: 'Account title does not match mosque official registration documents.',
+    example:
+      'Account title does not match mosque official registration documents.',
     description: 'Mandatory reason for rejection or archival',
   })
   @IsString()

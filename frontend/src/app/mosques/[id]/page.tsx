@@ -132,14 +132,9 @@ export default async function MosquePage({ params }: MosquePageProps) {
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#111114]">
                   {mosque.name}
                 </h1>
-                {mosque.verificationStatus === 'VERIFIED' ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Verified
-                  </span>
-                ) : (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">
-                    Unverified
+                {mosque.isListed === false && (
+                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                    Unlisted
                   </span>
                 )}
               </div>

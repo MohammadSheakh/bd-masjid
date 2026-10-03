@@ -1,7 +1,12 @@
 import request from 'supertest';
 import { ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AuthGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
+import {
+  AuthGuard,
+  SlidingWindowRateLimitGuard,
+  TransformResponseInterceptor,
+  UserPayload,
+} from '@app/common';
 import { FacilitiesController } from '../facilities.controller';
 import { FacilitiesService } from '../facilities.service';
 import { UpsertFacilityDto } from '../dto/upsert-facility.dto';
@@ -63,9 +68,17 @@ describe('FacilitiesController', () => {
       const updated = { ...mockFacilities, capacity: 3000 };
       service.upsertFacilities.mockResolvedValue(updated as any);
 
-      const result = await controller.upsertFacilities('mosque-1', dto, mockAdminActor);
+      const result = await controller.upsertFacilities(
+        'mosque-1',
+        dto,
+        mockAdminActor,
+      );
 
-      expect(service.upsertFacilities).toHaveBeenCalledWith('mosque-1', dto, mockAdminActor);
+      expect(service.upsertFacilities).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        mockAdminActor,
+      );
       expect(result).toEqual(updated);
     });
   });
@@ -82,9 +95,7 @@ describe('FacilitiesController', () => {
 
       const moduleRef = await Test.createTestingModule({
         controllers: [FacilitiesController],
-        providers: [
-          { provide: FacilitiesService, useValue: serviceMock },
-        ],
+        providers: [{ provide: FacilitiesService, useValue: serviceMock }],
       })
         .overrideGuard(AuthGuard)
         .useValue({
@@ -111,7 +122,9 @@ describe('FacilitiesController', () => {
         .compile();
 
       app = moduleRef.createNestApplication();
-      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalPipes(
+        new ValidationPipe({ whitelist: true, transform: true }),
+      );
       app.useGlobalInterceptors(new TransformResponseInterceptor());
       await app.init();
     });
@@ -123,8 +136,9 @@ describe('FacilitiesController', () => {
     });
 
     it('publicly returns 200 and wrapped data on GET /mosques/:id/facilities', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/mosques/mosque-1/facilities');
+      const res = await request(app.getHttpServer()).get(
+        '/mosques/mosque-1/facilities',
+      );
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('success', true);

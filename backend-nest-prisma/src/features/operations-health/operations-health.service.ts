@@ -64,7 +64,8 @@ export class OperationsHealthService {
   private async postgisProbe(): Promise<DependencyProbe> {
     const start = Date.now();
     try {
-      await this.prisma.$queryRaw`SELECT ST_Distance(ST_SetSRID(ST_MakePoint(90.4125, 23.8103), 4326)::geography, ST_SetSRID(ST_MakePoint(90.4125, 23.8103), 4326)::geography)`;
+      await this.prisma
+        .$queryRaw`SELECT ST_Distance(ST_SetSRID(ST_MakePoint(90.4125, 23.8103), 4326)::geography, ST_SetSRID(ST_MakePoint(90.4125, 23.8103), 4326)::geography)`;
       return {
         available: true,
         latencyMs: Date.now() - start,
@@ -73,8 +74,7 @@ export class OperationsHealthService {
       return {
         available: false,
         latencyMs: Date.now() - start,
-        detail:
-          error instanceof Error ? error.message : 'PostGIS probe failed',
+        detail: error instanceof Error ? error.message : 'PostGIS probe failed',
       };
     }
   }

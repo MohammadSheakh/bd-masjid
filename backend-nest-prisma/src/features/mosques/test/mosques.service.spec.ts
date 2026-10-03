@@ -2,7 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MosquesService } from '../mosques.service';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../../audit/audit.service';
-import { ConflictException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 
 describe('MosquesService', () => {
   let service: MosquesService;
@@ -220,8 +224,14 @@ describe('MosquesService', () => {
 
   describe('softDelete', () => {
     it('should mark mosque as deleted and record audit event', async () => {
-      prisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', isDeleted: false });
-      prisma.mosque.update.mockResolvedValue({ id: 'mosque-1', isDeleted: true });
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        isDeleted: false,
+      });
+      prisma.mosque.update.mockResolvedValue({
+        id: 'mosque-1',
+        isDeleted: true,
+      });
 
       const actor: any = { userId: 'admin-1', role: 'admin' };
       const res = await service.softDelete('mosque-1', actor);
@@ -236,6 +246,195 @@ describe('MosquesService', () => {
       );
     });
   });
+
+  describe('updateListingStatus', () => {
+    it('should delist a mosque with reason and record MOSQUE_UNLISTED audit event', async () => {
+      const mockExisting = { id: 'mosque-1', isListed: true, isDeleted: false };
+      prisma.mosque.findUnique.mockResolvedValue(mockExisting);
+      prisma.mosque.update.mockResolvedValue({
+        id: 'mosque-1',
+        isListed: false,
+        unlistedReason: 'Spam location',
+      });
+
+      const actor: any = { userId: 'admin-1', role: 'admin' };
+      const res = await service.updateListingStatus(
+        'mosque-1',
+        false,
+        'Spam location',
+        actor,
+      );
+
+      expect(res.isListed).toBe(false);
+      expect(prisma.mosque.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'mosque-1' },
+          data: expect.objectContaining({
+            isListed: false,
+            unlistedReason: 'Spam location',
+            unlistedById: 'admin-1',
+          }),
+        }),
+      );
+      expect(audit.record).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'MOSQUE_UNLISTED' }),
+        expect.anything(),
+      );
+    });
+
+    it('should relist a mosque and clear unlistedReason with MOSQUE_LISTED audit event', async () => {
+      const mockExisting = {
+        id: 'mosque-1',
+        isListed: false,
+        unlistedReason: 'Spam',
+        isDeleted: false,
+      };
+      prisma.mosque.findUnique.mockResolvedValue(mockExisting);
+      prisma.mosque.update.mockResolvedValue({
+        id: 'mosque-1',
+        isListed: true,
+        unlistedReason: null,
+      });
+
+      const actor: any = { userId: 'admin-1', role: 'admin' };
+      const res = await service.updateListingStatus(
+        'mosque-1',
+        true,
+        undefined,
+        actor,
+      );
+
+      expect(res.isListed).toBe(true);
+      expect(prisma.mosque.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'mosque-1' },
+          data: expect.objectContaining({
+            isListed: true,
+            unlistedReason: null,
+            unlistedAt: null,
+            unlistedById: null,
+          }),
+        }),
+      );
+      expect(audit.record).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'MOSQUE_LISTED' }),
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('findById listing protection (Invariant 5)', () => {
+    it('should throw NotFoundException if mosque is unlisted and requester is anonymous or unprivileged', async () => {
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'unlisted-1',
+        name: 'Hidden Mosque',
+        isListed: false,
+        createdById: 'owner-uuid',
+        isDeleted: false,
+      });
+
+      await expect(service.findById('unlisted-1', undefined)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(
+        service.findById('unlisted-1', {
+          userId: 'stranger-uuid',
+          role: 'user',
+        } as any),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should allow access to unlisted mosque if requester is admin or creator', async () => {
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'unlisted-1',
+        name: 'Hidden Mosque',
+        isListed: false,
+        createdById: 'owner-uuid',
+        isDeleted: false,
+      });
+
+      const resAdmin = await service.findById('unlisted-1', {
+        userId: 'admin-uuid',
+        role: 'admin',
+      } as any);
+      expect(resAdmin.id).toBe('unlisted-1');
+
+      const resOwner = await service.findById('unlisted-1', {
+        userId: 'owner-uuid',
+        role: 'user',
+      } as any);
+      expect(resOwner.id).toBe('unlisted-1');
+    });
+  });
+
+  describe('findAll listing enforcement (Invariant 2)', () => {
+    it('should force where.isListed = true for public / non-admin requests', async () => {
+      prisma.mosque.findMany.mockResolvedValue([]);
+      prisma.mosque.count.mockResolvedValue(0);
+
+      await service.findAll({ isListed: false }, undefined);
+
+      expect(prisma.mosque.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ isListed: true, isDeleted: false }),
+        }),
+      );
+    });
+
+    it('should respect isListed filter when requested by an admin', async () => {
+      prisma.mosque.findMany.mockResolvedValue([]);
+      prisma.mosque.count.mockResolvedValue(0);
+
+      const adminUser: any = { userId: 'admin-1', role: 'admin' };
+      await service.findAll({ isListed: false }, adminUser);
+
+      expect(prisma.mosque.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ isListed: false, isDeleted: false }),
+        }),
+      );
+    });
+  });
+
+  describe('update listing governance authorization', () => {
+    it('should reject non-admin attempt to modify isListed with ForbiddenException', async () => {
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        isListed: true,
+        isDeleted: false,
+      });
+
+      const normalUser: any = { userId: 'user-1', role: 'user' };
+      await expect(
+        service.update('mosque-1', { isListed: false }, normalUser),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow admin to modify isListed and record MOSQUE_UNLISTED audit log', async () => {
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        isListed: true,
+        unlistedReason: null,
+        isDeleted: false,
+      });
+      prisma.mosque.update.mockResolvedValue({
+        id: 'mosque-1',
+        isListed: false,
+        unlistedReason: 'Community report verified',
+      });
+
+      const adminUser: any = { userId: 'admin-1', role: 'admin' };
+      const res = await service.update(
+        'mosque-1',
+        { isListed: false, unlistedReason: 'Community report verified' },
+        adminUser,
+      );
+
+      expect(res.isListed).toBe(false);
+      expect(audit.record).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'MOSQUE_UNLISTED' }),
+        expect.anything(),
+      );
+    });
+  });
 });
-
-

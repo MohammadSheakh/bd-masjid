@@ -61,7 +61,8 @@ export class CommunityService {
       throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
     }
 
-    const isPlatformAdmin = actor.role === 'admin' || actor.role === 'moderator';
+    const isPlatformAdmin =
+      actor.role === 'admin' || actor.role === 'moderator';
 
     if (!isPlatformAdmin) {
       const isMosqueAdmin = await this.prisma.mosqueStaff.findFirst({
@@ -104,7 +105,10 @@ export class CommunityService {
       data: {
         mosqueId,
         role: dto.role,
-        customRoleTitle: dto.role === MosqueStaffRole.CUSTOM ? dto.customRoleTitle?.trim() || null : null,
+        customRoleTitle:
+          dto.role === MosqueStaffRole.CUSTOM
+            ? dto.customRoleTitle?.trim() || null
+            : null,
         name: dto.name.trim(),
         userId: dto.userId || null,
         contactNumber: dto.contactNumber?.trim() || null,
@@ -122,7 +126,11 @@ export class CommunityService {
       entityId: staff.id,
       actor,
       newValue: staff,
-      metadata: { mosqueId, role: dto.role, customRoleTitle: staff.customRoleTitle },
+      metadata: {
+        mosqueId,
+        role: dto.role,
+        customRoleTitle: staff.customRoleTitle,
+      },
     });
 
     return staff;
@@ -139,7 +147,8 @@ export class CommunityService {
       );
     }
 
-    const isPlatformAdmin = actor.role === 'admin' || actor.role === 'moderator';
+    const isPlatformAdmin =
+      actor.role === 'admin' || actor.role === 'moderator';
 
     if (!isPlatformAdmin) {
       const isMosqueAdmin = await this.prisma.mosqueStaff.findFirst({
@@ -354,7 +363,10 @@ export class CommunityService {
         mosqueId,
         userId: actor.userId,
         role: dto.role,
-        customRoleTitle: dto.role === MosqueStaffRole.CUSTOM ? dto.customRoleTitle?.trim() || null : null,
+        customRoleTitle:
+          dto.role === MosqueStaffRole.CUSTOM
+            ? dto.customRoleTitle?.trim() || null
+            : null,
         name: (dto.name || actor.email || 'Applicant').trim(),
         phoneNumber: (dto.phoneNumber || '').trim(),
         startDate: dto.startDate ? new Date(dto.startDate) : null,
@@ -371,7 +383,11 @@ export class CommunityService {
       entityId: claim.id,
       actor,
       newValue: claim,
-      metadata: { mosqueId, role: dto.role, customRoleTitle: claim.customRoleTitle },
+      metadata: {
+        mosqueId,
+        role: dto.role,
+        customRoleTitle: claim.customRoleTitle,
+      },
     });
 
     this.logger.log(
@@ -425,7 +441,8 @@ export class CommunityService {
     actor: UserPayload,
     status?: RoleClaimStatus,
   ) {
-    const isPlatformAdmin = actor.role === 'admin' || actor.role === 'moderator';
+    const isPlatformAdmin =
+      actor.role === 'admin' || actor.role === 'moderator';
 
     if (!isPlatformAdmin) {
       const isMosqueAdmin = await this.prisma.mosqueStaff.findFirst({
@@ -478,7 +495,8 @@ export class CommunityService {
       throw new NotFoundException(`Role claim with ID ${claimId} not found`);
     }
 
-    const isPlatformAdmin = actor.role === 'admin' || actor.role === 'moderator';
+    const isPlatformAdmin =
+      actor.role === 'admin' || actor.role === 'moderator';
 
     // Tiered Authorization check
     if (
@@ -789,7 +807,9 @@ export class CommunityService {
     });
 
     if (!method) {
-      throw new NotFoundException(`Donation method with ID ${donationMethodId} not found`);
+      throw new NotFoundException(
+        `Donation method with ID ${donationMethodId} not found`,
+      );
     }
 
     const updated = await this.prisma.mosqueDonationMethod.update({

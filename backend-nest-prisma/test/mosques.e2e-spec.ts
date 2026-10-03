@@ -62,7 +62,8 @@ describe('Mosque Platform Endpoints & Lifecycle (e2e)', () => {
     });
     testAdminUserId = adminUser.id;
 
-    const jwtSecret = configService.get<string>('JWT_ACCESS_SECRET') || 'test-secret';
+    const jwtSecret =
+      configService.get<string>('JWT_ACCESS_SECRET') || 'test-secret';
 
     regularUserToken = jwtService.sign(
       {
@@ -103,7 +104,9 @@ describe('Mosque Platform Endpoints & Lifecycle (e2e)', () => {
       }
       if (testRegularUserId || testAdminUserId) {
         await prisma.user.deleteMany({
-          where: { id: { in: [testRegularUserId, testAdminUserId].filter(Boolean) } },
+          where: {
+            id: { in: [testRegularUserId, testAdminUserId].filter(Boolean) },
+          },
         });
       }
     } catch {
@@ -255,7 +258,9 @@ describe('Mosque Platform Endpoints & Lifecycle (e2e)', () => {
         .expect(200);
 
       const payload = response.body.data || response.body;
-      const historyList = Array.isArray(payload) ? payload : payload.items || [];
+      const historyList = Array.isArray(payload)
+        ? payload
+        : payload.items || [];
       expect(historyList.length).toBeGreaterThan(0);
       const latest = historyList[0];
       expect(latest.mosqueId).toBe(createdMosqueId);

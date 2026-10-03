@@ -250,14 +250,9 @@ export function MosqueDetailModal({
               <h2 id="mosque-detail-title" className="text-lg font-bold text-[#111114] tracking-tight">
                 {mosque.name}
               </h2>
-              {mosque.verificationStatus === 'VERIFIED' ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                  Verified
-                </span>
-              ) : (
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">
-                  Unverified
+              {mosque.isListed === false && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                  Unlisted
                 </span>
               )}
             </div>

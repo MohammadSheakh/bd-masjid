@@ -73,7 +73,8 @@ export class NearbyMosquesQueryDto {
   hasAirConditioning?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Filter mosques by Janaza funeral preparation service availability',
+    description:
+      'Filter mosques by Janaza funeral preparation service availability',
     example: true,
   })
   @IsOptional()

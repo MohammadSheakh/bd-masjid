@@ -50,8 +50,13 @@ export class DonationsService {
 
     await this.assertCanSubmit(mosqueId, actor);
 
-    if (dto.channelType === DonationChannelType.BANK_TRANSFER && !dto.bankName) {
-      throw new BadRequestException('bankName is required when channelType is BANK_TRANSFER');
+    if (
+      dto.channelType === DonationChannelType.BANK_TRANSFER &&
+      !dto.bankName
+    ) {
+      throw new BadRequestException(
+        'bankName is required when channelType is BANK_TRANSFER',
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -113,7 +118,9 @@ export class DonationsService {
       throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
     }
 
-    const isStaff = actor ? await this.isAuthorizedStaff(mosqueId, actor) : false;
+    const isStaff = actor
+      ? await this.isAuthorizedStaff(mosqueId, actor)
+      : false;
 
     const where: Prisma.MosqueDonationChannelWhereInput = {
       mosqueId,
@@ -124,7 +131,13 @@ export class DonationsService {
     if (isStaff && query.status) {
       where.status = query.status;
     } else if (isStaff) {
-      where.status = { in: [DonationChannelStatus.VERIFIED, DonationChannelStatus.PENDING_VERIFICATION, DonationChannelStatus.FLAGGED] };
+      where.status = {
+        in: [
+          DonationChannelStatus.VERIFIED,
+          DonationChannelStatus.PENDING_VERIFICATION,
+          DonationChannelStatus.FLAGGED,
+        ],
+      };
     } else {
       where.status = DonationChannelStatus.VERIFIED;
     }
@@ -161,7 +174,9 @@ export class DonationsService {
     }
 
     if (channel.status !== DonationChannelStatus.VERIFIED) {
-      const isStaff = actor ? await this.isAuthorizedStaff(channel.mosqueId, actor) : false;
+      const isStaff = actor
+        ? await this.isAuthorizedStaff(channel.mosqueId, actor)
+        : false;
       if (!isStaff) {
         throw new NotFoundException(`Donation channel with ID ${id} not found`);
       }
@@ -184,7 +199,9 @@ export class DonationsService {
     });
 
     if (!channel) {
-      throw new NotFoundException(`Donation channel with ID ${channelId} not found`);
+      throw new NotFoundException(
+        `Donation channel with ID ${channelId} not found`,
+      );
     }
 
     if (channel.status === DonationChannelStatus.VERIFIED) {
@@ -238,7 +255,9 @@ export class DonationsService {
     });
 
     if (!channel) {
-      throw new NotFoundException(`Donation channel with ID ${channelId} not found`);
+      throw new NotFoundException(
+        `Donation channel with ID ${channelId} not found`,
+      );
     }
 
     await this.assertCanReject(channel.mosqueId, channel.createdById, actor);
@@ -287,7 +306,9 @@ export class DonationsService {
     });
 
     if (!channel) {
-      throw new NotFoundException(`Donation channel with ID ${channelId} not found`);
+      throw new NotFoundException(
+        `Donation channel with ID ${channelId} not found`,
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -305,7 +326,8 @@ export class DonationsService {
         where: { id: channelId },
         data: {
           disputeCount: { increment: 1 },
-          ...(channel.disputeCount + 1 >= 3 && channel.status === DonationChannelStatus.VERIFIED
+          ...(channel.disputeCount + 1 >= 3 &&
+          channel.status === DonationChannelStatus.VERIFIED
             ? { status: DonationChannelStatus.FLAGGED }
             : {}),
         },
@@ -324,7 +346,8 @@ export class DonationsService {
       );
 
       return {
-        message: 'Report submitted successfully. Mosque administration has been notified.',
+        message:
+          'Report submitted successfully. Mosque administration has been notified.',
         reportId: report.id,
       };
     });
@@ -440,7 +463,10 @@ export class DonationsService {
   /**
    * Helper: Check if user is verified staff for a mosque
    */
-  private async isAuthorizedStaff(mosqueId: string, actor: UserPayload): Promise<boolean> {
+  private async isAuthorizedStaff(
+    mosqueId: string,
+    actor: UserPayload,
+  ): Promise<boolean> {
     if (actor.role === 'admin' || actor.role === 'moderator') {
       return true;
     }

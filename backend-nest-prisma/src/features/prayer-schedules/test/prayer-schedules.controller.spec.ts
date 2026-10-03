@@ -1,7 +1,12 @@
 import request from 'supertest';
 import { ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AuthGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
+import {
+  AuthGuard,
+  SlidingWindowRateLimitGuard,
+  TransformResponseInterceptor,
+  UserPayload,
+} from '@app/common';
 import { PrayerSchedulesController } from '../prayer-schedules.controller';
 import { PrayerSchedulesService } from '../prayer-schedules.service';
 import { UpdatePrayerScheduleDto } from '../dto/update-prayer-schedule.dto';
@@ -70,9 +75,17 @@ describe('PrayerSchedulesController', () => {
       const updatedSchedule = { ...mockSchedule, ...dto };
       service.updateSchedule.mockResolvedValue(updatedSchedule as any);
 
-      const result = await controller.updateSchedule('mosque-1', dto, mockActor);
+      const result = await controller.updateSchedule(
+        'mosque-1',
+        dto,
+        mockActor,
+      );
 
-      expect(service.updateSchedule).toHaveBeenCalledWith('mosque-1', dto, mockActor);
+      expect(service.updateSchedule).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        mockActor,
+      );
       expect(result).toEqual(updatedSchedule);
     });
   });
@@ -95,15 +108,15 @@ describe('PrayerSchedulesController', () => {
 
     beforeAll(async () => {
       serviceMock = {
-        getCurrentSchedule: jest.fn().mockResolvedValue({ schedule: mockSchedule, freshness: 'FRESH' }),
+        getCurrentSchedule: jest
+          .fn()
+          .mockResolvedValue({ schedule: mockSchedule, freshness: 'FRESH' }),
         updateSchedule: jest.fn().mockResolvedValue(mockSchedule),
       };
 
       const moduleRef = await Test.createTestingModule({
         controllers: [PrayerSchedulesController],
-        providers: [
-          { provide: PrayerSchedulesService, useValue: serviceMock },
-        ],
+        providers: [{ provide: PrayerSchedulesService, useValue: serviceMock }],
       })
         .overrideGuard(AuthGuard)
         .useValue({
@@ -130,7 +143,9 @@ describe('PrayerSchedulesController', () => {
         .compile();
 
       app = moduleRef.createNestApplication();
-      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalPipes(
+        new ValidationPipe({ whitelist: true, transform: true }),
+      );
       app.useGlobalInterceptors(new TransformResponseInterceptor());
       await app.init();
     });
@@ -142,8 +157,9 @@ describe('PrayerSchedulesController', () => {
     });
 
     it('publicly returns current schedule with 200 on GET /mosques/:id/prayer-schedule', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/mosques/mosque-1/prayer-schedule');
+      const res = await request(app.getHttpServer()).get(
+        '/mosques/mosque-1/prayer-schedule',
+      );
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('success', true);

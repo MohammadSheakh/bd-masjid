@@ -116,7 +116,8 @@ export class UpdatePrayerScheduleDto {
 
   @ApiPropertyOptional({
     example: '14:15',
-    description: 'Second Jumuah Jamaat time for large mosques with multiple sessions (HH:mm)',
+    description:
+      'Second Jumuah Jamaat time for large mosques with multiple sessions (HH:mm)',
   })
   @IsOptional()
   @IsString()

@@ -92,12 +92,18 @@ export class CreateMosqueDto {
   allowDuplicateWarningBypass?: boolean;
 
   // Facilities
-  @ApiPropertyOptional({ description: 'Has dedicated wudu area', default: true })
+  @ApiPropertyOptional({
+    description: 'Has dedicated wudu area',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   hasWuduArea?: boolean;
 
-  @ApiPropertyOptional({ description: 'Has separate women prayer space', default: false })
+  @ApiPropertyOptional({
+    description: 'Has separate women prayer space',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   hasSeparateWomenSpace?: boolean;
@@ -107,22 +113,34 @@ export class CreateMosqueDto {
   @IsBoolean()
   hasAirConditioning?: boolean;
 
-  @ApiPropertyOptional({ description: 'Has parking facilities', default: false })
+  @ApiPropertyOptional({
+    description: 'Has parking facilities',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   hasParking?: boolean;
 
-  @ApiPropertyOptional({ description: 'Has wheelchair accessible entrance', default: false })
+  @ApiPropertyOptional({
+    description: 'Has wheelchair accessible entrance',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   hasWheelchairAccess?: boolean;
 
-  @ApiPropertyOptional({ description: 'Has janaza/funeral prayer facility', default: false })
+  @ApiPropertyOptional({
+    description: 'Has janaza/funeral prayer facility',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   hasJanazaFacility?: boolean;
 
-  @ApiPropertyOptional({ description: 'Estimated congregation capacity', example: 1500 })
+  @ApiPropertyOptional({
+    description: 'Estimated congregation capacity',
+    example: 1500,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()

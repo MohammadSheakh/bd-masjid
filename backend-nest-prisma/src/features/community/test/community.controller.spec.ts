@@ -1,7 +1,13 @@
 import request from 'supertest';
 import { ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AuthGuard, RolesGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
+import {
+  AuthGuard,
+  RolesGuard,
+  SlidingWindowRateLimitGuard,
+  TransformResponseInterceptor,
+  UserPayload,
+} from '@app/common';
 import { CommunityController } from '../community.controller';
 import { CommunityService } from '../community.service';
 import { AddStaffDto } from '../dto/add-staff.dto';
@@ -87,9 +93,17 @@ describe('CommunityController', () => {
       const response = { success: true };
       service.removeStaff.mockResolvedValue(response as any);
 
-      const result = await controller.removeStaff('mosque-1', 'staff-2', mockAdmin);
+      const result = await controller.removeStaff(
+        'mosque-1',
+        'staff-2',
+        mockAdmin,
+      );
 
-      expect(service.removeStaff).toHaveBeenCalledWith('mosque-1', 'staff-2', mockAdmin);
+      expect(service.removeStaff).toHaveBeenCalledWith(
+        'mosque-1',
+        'staff-2',
+        mockAdmin,
+      );
       expect(result).toEqual(response);
     });
 
@@ -98,9 +112,19 @@ describe('CommunityController', () => {
       const response = { id: 'staff-2', name: 'Updated Imam' };
       service.updateStaff.mockResolvedValue(response as any);
 
-      const result = await controller.updateStaff('mosque-1', 'staff-2', dto, mockAdmin);
+      const result = await controller.updateStaff(
+        'mosque-1',
+        'staff-2',
+        dto,
+        mockAdmin,
+      );
 
-      expect(service.updateStaff).toHaveBeenCalledWith('mosque-1', 'staff-2', dto, mockAdmin);
+      expect(service.updateStaff).toHaveBeenCalledWith(
+        'mosque-1',
+        'staff-2',
+        dto,
+        mockAdmin,
+      );
       expect(result).toEqual(response);
     });
   });
@@ -114,9 +138,17 @@ describe('CommunityController', () => {
       const response = { id: 'claim-1', ...dto };
       service.submitRoleClaim.mockResolvedValue(response as any);
 
-      const result = await controller.submitRoleClaim('mosque-1', dto, mockUser);
+      const result = await controller.submitRoleClaim(
+        'mosque-1',
+        dto,
+        mockUser,
+      );
 
-      expect(service.submitRoleClaim).toHaveBeenCalledWith('mosque-1', dto, mockUser);
+      expect(service.submitRoleClaim).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        mockUser,
+      );
       expect(result).toEqual(response);
     });
 
@@ -124,9 +156,17 @@ describe('CommunityController', () => {
       const claims = [{ id: 'claim-1' }];
       service.getMosqueRoleClaims.mockResolvedValue(claims as any);
 
-      const result = await controller.getMosqueRoleClaims('mosque-1', RoleClaimStatus.PENDING, mockAdmin);
+      const result = await controller.getMosqueRoleClaims(
+        'mosque-1',
+        RoleClaimStatus.PENDING,
+        mockAdmin,
+      );
 
-      expect(service.getMosqueRoleClaims).toHaveBeenCalledWith('mosque-1', mockAdmin, RoleClaimStatus.PENDING);
+      expect(service.getMosqueRoleClaims).toHaveBeenCalledWith(
+        'mosque-1',
+        mockAdmin,
+        RoleClaimStatus.PENDING,
+      );
       expect(result).toEqual(claims);
     });
 
@@ -134,9 +174,19 @@ describe('CommunityController', () => {
       const claims = [{ id: 'claim-1' }];
       service.getRoleClaims.mockResolvedValue(claims as any);
 
-      const result = await controller.getRoleClaims(RoleClaimStatus.PENDING, 'mosque-1', 1, 10);
+      const result = await controller.getRoleClaims(
+        RoleClaimStatus.PENDING,
+        'mosque-1',
+        1,
+        10,
+      );
 
-      expect(service.getRoleClaims).toHaveBeenCalledWith(RoleClaimStatus.PENDING, 'mosque-1', 1, 10);
+      expect(service.getRoleClaims).toHaveBeenCalledWith(
+        RoleClaimStatus.PENDING,
+        'mosque-1',
+        1,
+        10,
+      );
       expect(result).toEqual(claims);
     });
 
@@ -148,9 +198,17 @@ describe('CommunityController', () => {
       const response = { id: 'claim-1', status: RoleClaimStatus.APPROVED };
       service.reviewRoleClaim.mockResolvedValue(response as any);
 
-      const result = await controller.reviewRoleClaim('claim-1', dto, mockAdmin);
+      const result = await controller.reviewRoleClaim(
+        'claim-1',
+        dto,
+        mockAdmin,
+      );
 
-      expect(service.reviewRoleClaim).toHaveBeenCalledWith('claim-1', dto, mockAdmin);
+      expect(service.reviewRoleClaim).toHaveBeenCalledWith(
+        'claim-1',
+        dto,
+        mockAdmin,
+      );
       expect(result).toEqual(response);
     });
   });
@@ -172,7 +230,10 @@ describe('CommunityController', () => {
 
       const result = await controller.getDonationMethods('mosque-1', mockUser);
 
-      expect(service.getDonationMethods).toHaveBeenCalledWith('mosque-1', mockUser);
+      expect(service.getDonationMethods).toHaveBeenCalledWith(
+        'mosque-1',
+        mockUser,
+      );
       expect(result).toEqual(list);
     });
 
@@ -185,9 +246,17 @@ describe('CommunityController', () => {
       const response = { id: 'dm-1', ...dto };
       service.addDonationMethod.mockResolvedValue(response as any);
 
-      const result = await controller.addDonationMethod('mosque-1', dto, mockUser);
+      const result = await controller.addDonationMethod(
+        'mosque-1',
+        dto,
+        mockUser,
+      );
 
-      expect(service.addDonationMethod).toHaveBeenCalledWith('mosque-1', dto, mockUser);
+      expect(service.addDonationMethod).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        mockUser,
+      );
       expect(result).toEqual(response);
     });
 
@@ -199,9 +268,17 @@ describe('CommunityController', () => {
       const response = { id: 'dm-1', verified: true };
       service.reviewDonationMethod.mockResolvedValue(response as any);
 
-      const result = await controller.reviewDonationMethod('dm-1', dto, mockAdmin);
+      const result = await controller.reviewDonationMethod(
+        'dm-1',
+        dto,
+        mockAdmin,
+      );
 
-      expect(service.reviewDonationMethod).toHaveBeenCalledWith('dm-1', dto, mockAdmin);
+      expect(service.reviewDonationMethod).toHaveBeenCalledWith(
+        'dm-1',
+        dto,
+        mockAdmin,
+      );
       expect(result).toEqual(response);
     });
 
@@ -209,9 +286,17 @@ describe('CommunityController', () => {
       const response = { success: true };
       service.deleteDonationMethod.mockResolvedValue(response as any);
 
-      const result = await controller.deleteDonationMethod('mosque-1', 'dm-1', mockUser);
+      const result = await controller.deleteDonationMethod(
+        'mosque-1',
+        'dm-1',
+        mockUser,
+      );
 
-      expect(service.deleteDonationMethod).toHaveBeenCalledWith('mosque-1', 'dm-1', mockUser);
+      expect(service.deleteDonationMethod).toHaveBeenCalledWith(
+        'mosque-1',
+        'dm-1',
+        mockUser,
+      );
       expect(result).toEqual(response);
     });
   });
@@ -244,15 +329,17 @@ describe('CommunityController', () => {
 
     beforeAll(async () => {
       serviceMock = {
-        getStaff: jest.fn().mockResolvedValue([{ id: 'staff-1', role: MosqueStaffRole.IMAM }]),
-        submitRoleClaim: jest.fn().mockResolvedValue({ id: 'claim-1', role: MosqueStaffRole.IMAM }),
+        getStaff: jest
+          .fn()
+          .mockResolvedValue([{ id: 'staff-1', role: MosqueStaffRole.IMAM }]),
+        submitRoleClaim: jest
+          .fn()
+          .mockResolvedValue({ id: 'claim-1', role: MosqueStaffRole.IMAM }),
       };
 
       const moduleRef = await Test.createTestingModule({
         controllers: [CommunityController],
-        providers: [
-          { provide: CommunityService, useValue: serviceMock },
-        ],
+        providers: [{ provide: CommunityService, useValue: serviceMock }],
       })
         .overrideGuard(AuthGuard)
         .useValue({
@@ -281,7 +368,9 @@ describe('CommunityController', () => {
         .compile();
 
       app = moduleRef.createNestApplication();
-      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalPipes(
+        new ValidationPipe({ whitelist: true, transform: true }),
+      );
       app.useGlobalInterceptors(new TransformResponseInterceptor());
       await app.init();
     });
@@ -293,8 +382,9 @@ describe('CommunityController', () => {
     });
 
     it('publicly returns staff directory on GET /mosques/:id/staff', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/mosques/mosque-1/staff');
+      const res = await request(app.getHttpServer()).get(
+        '/mosques/mosque-1/staff',
+      );
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('success', true);

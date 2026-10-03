@@ -1,7 +1,13 @@
 import request from 'supertest';
 import { ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AuthGuard, RolesGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
+import {
+  AuthGuard,
+  RolesGuard,
+  SlidingWindowRateLimitGuard,
+  TransformResponseInterceptor,
+  UserPayload,
+} from '@app/common';
 import { SuggestionsController } from '../suggestions.controller';
 import { SuggestionsService } from '../suggestions.service';
 import { CreateSuggestionDto } from '../dto/create-suggestion.dto';
@@ -51,9 +57,17 @@ describe('SuggestionsController', () => {
       const response = { id: 'sugg-1', ...dto };
       service.createSuggestion.mockResolvedValue(response as any);
 
-      const result = await controller.createSuggestion('mosque-1', dto, mockUser);
+      const result = await controller.createSuggestion(
+        'mosque-1',
+        dto,
+        mockUser,
+      );
 
-      expect(service.createSuggestion).toHaveBeenCalledWith('mosque-1', dto, 'user-1');
+      expect(service.createSuggestion).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        'user-1',
+      );
       expect(result).toEqual(response);
     });
   });
@@ -69,7 +83,11 @@ describe('SuggestionsController', () => {
 
       const result = await controller.createReport('mosque-1', dto, mockUser);
 
-      expect(service.createReport).toHaveBeenCalledWith('mosque-1', dto, 'user-1');
+      expect(service.createReport).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        'user-1',
+      );
       expect(result).toEqual(response);
     });
   });
@@ -79,9 +97,19 @@ describe('SuggestionsController', () => {
       const list = { suggestions: [{ id: 'sugg-1' }], total: 1 };
       service.getSuggestions.mockResolvedValue(list as any);
 
-      const result = await controller.getSuggestions(SuggestionStatus.PENDING, 'mosque-1', 1, 10);
+      const result = await controller.getSuggestions(
+        SuggestionStatus.PENDING,
+        'mosque-1',
+        1,
+        10,
+      );
 
-      expect(service.getSuggestions).toHaveBeenCalledWith(SuggestionStatus.PENDING, 'mosque-1', 1, 10);
+      expect(service.getSuggestions).toHaveBeenCalledWith(
+        SuggestionStatus.PENDING,
+        'mosque-1',
+        1,
+        10,
+      );
       expect(result).toEqual(list);
     });
   });
@@ -95,9 +123,17 @@ describe('SuggestionsController', () => {
       const response = { id: 'sugg-1', status: SuggestionStatus.RESOLVED };
       service.updateSuggestionStatus.mockResolvedValue(response as any);
 
-      const result = await controller.updateSuggestionStatus('sugg-1', dto, mockAdmin);
+      const result = await controller.updateSuggestionStatus(
+        'sugg-1',
+        dto,
+        mockAdmin,
+      );
 
-      expect(service.updateSuggestionStatus).toHaveBeenCalledWith('sugg-1', dto, mockAdmin);
+      expect(service.updateSuggestionStatus).toHaveBeenCalledWith(
+        'sugg-1',
+        dto,
+        mockAdmin,
+      );
       expect(result).toEqual(response);
     });
   });
@@ -135,9 +171,17 @@ describe('SuggestionsController', () => {
       const response = { id: 'report-1', status: SuggestionStatus.RESOLVED };
       service.updateReportStatus.mockResolvedValue(response as any);
 
-      const result = await controller.updateReportStatus('report-1', dto, mockAdmin);
+      const result = await controller.updateReportStatus(
+        'report-1',
+        dto,
+        mockAdmin,
+      );
 
-      expect(service.updateReportStatus).toHaveBeenCalledWith('report-1', dto, mockAdmin);
+      expect(service.updateReportStatus).toHaveBeenCalledWith(
+        'report-1',
+        dto,
+        mockAdmin,
+      );
       expect(result).toEqual(response);
     });
   });
@@ -148,15 +192,19 @@ describe('SuggestionsController', () => {
 
     beforeAll(async () => {
       serviceMock = {
-        createSuggestion: jest.fn().mockResolvedValue({ id: 'sugg-1', status: SuggestionStatus.PENDING }),
-        createReport: jest.fn().mockResolvedValue({ id: 'report-1', status: SuggestionStatus.PENDING }),
+        createSuggestion: jest.fn().mockResolvedValue({
+          id: 'sugg-1',
+          status: SuggestionStatus.PENDING,
+        }),
+        createReport: jest.fn().mockResolvedValue({
+          id: 'report-1',
+          status: SuggestionStatus.PENDING,
+        }),
       };
 
       const moduleRef = await Test.createTestingModule({
         controllers: [SuggestionsController],
-        providers: [
-          { provide: SuggestionsService, useValue: serviceMock },
-        ],
+        providers: [{ provide: SuggestionsService, useValue: serviceMock }],
       })
         .overrideGuard(AuthGuard)
         .useValue({
@@ -185,7 +233,9 @@ describe('SuggestionsController', () => {
         .compile();
 
       app = moduleRef.createNestApplication();
-      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalPipes(
+        new ValidationPipe({ whitelist: true, transform: true }),
+      );
       app.useGlobalInterceptors(new TransformResponseInterceptor());
       await app.init();
     });

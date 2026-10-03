@@ -174,7 +174,11 @@ export interface Mosque {
   city?: string | null;
   country?: string;
   operationalStatus: MosqueOperationalStatus;
-  verificationStatus: MosqueVerificationStatus;
+  verificationStatus?: MosqueVerificationStatus;
+  isListed?: boolean;
+  unlistedReason?: string | null;
+  unlistedAt?: string | null;
+  unlistedById?: string | null;
   distanceMeters?: number;
   facility?: MosqueFacility | null;
   prayerSchedule?: PrayerSchedule | null;

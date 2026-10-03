@@ -18,7 +18,9 @@ import type { UserPayload } from '@app/common';
     credentials: true,
   },
 })
-export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   private readonly logger = new Logger(NotificationsGateway.name);
 
   @WebSocketServer()
@@ -33,8 +35,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   async handleConnection(client: Socket) {
     try {
       const rawToken =
-        client.handshake.auth?.token ||
-        client.handshake.headers?.authorization;
+        client.handshake.auth?.token || client.handshake.headers?.authorization;
 
       if (!rawToken) {
         this.logger.debug(`Anonymous client connected: ${client.id}`);
@@ -71,7 +72,9 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         `Authenticated socket connected: user ${payload.userId} (socket ${client.id}) joined ${followed.length} mosque rooms`,
       );
     } catch (err: any) {
-      this.logger.warn(`Socket auth handshake failed (${client.id}): ${err?.message}`);
+      this.logger.warn(
+        `Socket auth handshake failed (${client.id}): ${err?.message}`,
+      );
       client.disconnect();
     }
   }

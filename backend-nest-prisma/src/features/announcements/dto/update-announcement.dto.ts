@@ -12,7 +12,7 @@ import { AnnouncementCategory } from '@prisma/client';
 
 export class UpdateAnnouncementDto {
   @ApiPropertyOptional({
-    example: 'Updated: Jumu\'ah Khutbah Timing Adjustment',
+    example: "Updated: Jumu'ah Khutbah Timing Adjustment",
     description: 'Updated title of the announcement',
   })
   @IsOptional()

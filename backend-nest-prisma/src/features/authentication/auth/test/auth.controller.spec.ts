@@ -10,7 +10,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthGuard, SlidingWindowRateLimitGuard } from '@app/common';
 
 jest.mock('../auth.service', () => ({ AuthService: class AuthService {} }));
-jest.mock('../../two-factor/two-factor.service', () => ({ TwoFactorService: class TwoFactorService {} }));
+jest.mock('../../two-factor/two-factor.service', () => ({
+  TwoFactorService: class TwoFactorService {},
+}));
 
 import { AuthService } from '../auth.service';
 import { TwoFactorService } from '../../two-factor/two-factor.service';
@@ -128,7 +130,11 @@ describe('AuthController native session contract', () => {
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
               throw new UnauthorizedException('Authentication token missing');
             }
-            req.user = { userId: 'u1', email: 'test@example.com', role: 'MEMBER' };
+            req.user = {
+              userId: 'u1',
+              email: 'test@example.com',
+              role: 'MEMBER',
+            };
             return true;
           },
         })
@@ -209,4 +215,3 @@ describe('AuthController native session contract', () => {
     });
   });
 });
-

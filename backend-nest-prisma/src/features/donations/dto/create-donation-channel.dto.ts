@@ -17,7 +17,8 @@ export class CreateDonationChannelDto {
   @ApiProperty({
     enum: DonationChannelType,
     example: DonationChannelType.BKASH,
-    description: 'Payment channel type (bKash, Nagad, Rocket, Upay, Bank Transfer)',
+    description:
+      'Payment channel type (bKash, Nagad, Rocket, Upay, Bank Transfer)',
   })
   @IsEnum(DonationChannelType)
   @IsNotEmpty()
@@ -30,7 +31,8 @@ export class CreateDonationChannelDto {
   })
   @IsOptional()
   @IsEnum(DonationChannelAccountType)
-  accountType?: DonationChannelAccountType = DonationChannelAccountType.PERSONAL;
+  accountType?: DonationChannelAccountType =
+    DonationChannelAccountType.PERSONAL;
 
   @ApiPropertyOptional({
     enum: DonationPurpose,
@@ -89,7 +91,8 @@ export class CreateDonationChannelDto {
   routingNumber?: string;
 
   @ApiPropertyOptional({
-    example: 'Please mention your name or fund purpose in reference if possible.',
+    example:
+      'Please mention your name or fund purpose in reference if possible.',
     description: 'Payment instructions or reference guidelines for musallis',
   })
   @IsOptional()
@@ -98,7 +101,8 @@ export class CreateDonationChannelDto {
   paymentInstructions?: string;
 
   @ApiPropertyOptional({
-    example: 'https://res.cloudinary.com/masjid/image/upload/v1234/qr-bkash.png',
+    example:
+      'https://res.cloudinary.com/masjid/image/upload/v1234/qr-bkash.png',
     description: 'Optional URL for official channel QR code image',
   })
   @IsOptional()

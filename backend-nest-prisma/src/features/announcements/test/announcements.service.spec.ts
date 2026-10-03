@@ -302,7 +302,11 @@ describe('AnnouncementsService', () => {
       prisma.mosqueStaff.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.updateAnnouncement('ann-1', { title: 'Hacked' }, mockRegularUser),
+        service.updateAnnouncement(
+          'ann-1',
+          { title: 'Hacked' },
+          mockRegularUser,
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
   });

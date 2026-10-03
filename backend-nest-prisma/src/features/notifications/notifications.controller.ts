@@ -50,7 +50,9 @@ export class NotificationsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get total unread notifications count' })
   async getUnreadCount(@CurrentUser() user: UserPayload) {
-    const unreadCount = await this.notificationsService.getUnreadCount(user.userId);
+    const unreadCount = await this.notificationsService.getUnreadCount(
+      user.userId,
+    );
     return { unreadCount };
   }
 
@@ -59,10 +61,7 @@ export class NotificationsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Mark a notification as read' })
   @ApiParam({ name: 'id', description: 'Notification ID' })
-  async markAsRead(
-    @CurrentUser() user: UserPayload,
-    @Param('id') id: string,
-  ) {
+  async markAsRead(@CurrentUser() user: UserPayload, @Param('id') id: string) {
     return this.notificationsService.markAsRead(user.userId, id);
   }
 

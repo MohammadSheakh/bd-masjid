@@ -33,7 +33,8 @@ describe('Security, RBAC & Parameter Integrity (e2e)', () => {
     jwtService = app.get(JwtService);
     configService = app.get(ConfigService);
 
-    const jwtSecret = configService.get<string>('JWT_ACCESS_SECRET') || 'test-secret';
+    const jwtSecret =
+      configService.get<string>('JWT_ACCESS_SECRET') || 'test-secret';
 
     // Generate authenticated test tokens
     regularUserToken = jwtService.sign(

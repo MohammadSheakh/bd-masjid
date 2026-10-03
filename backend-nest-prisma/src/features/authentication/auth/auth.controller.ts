@@ -246,7 +246,8 @@ export class AuthController {
   @RateLimit(GLOBAL_RATE_LIMITS.user)
   @ApiOperation({
     summary: 'OAuth client configuration',
-    description: 'Returns public client configurations including Google Client ID',
+    description:
+      'Returns public client configurations including Google Client ID',
   })
   @ApiResponse({ status: 200, description: 'OAuth configuration returned' })
   getOAuthConfig() {

@@ -1,4 +1,11 @@
-import { IsBoolean, IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  Max,
+  Min,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { NotificationType } from '@prisma/client';
@@ -10,7 +17,10 @@ export class QueryNotificationsDto {
   @Transform(({ value }) => value === 'true' || value === true)
   isRead?: boolean;
 
-  @ApiPropertyOptional({ enum: NotificationType, description: 'Filter by notification category' })
+  @ApiPropertyOptional({
+    enum: NotificationType,
+    description: 'Filter by notification category',
+  })
   @IsOptional()
   @IsEnum(NotificationType)
   type?: NotificationType;

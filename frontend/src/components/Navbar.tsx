@@ -91,9 +91,6 @@ export function Navbar({ onAddMosqueClick, onLocateMe, isLocating }: NavbarProps
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-base tracking-tight text-[#111114]">BD Masjid</span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#fafafa] text-emerald-800 border border-[#e8e8ea]">
-                Verified
-              </span>
             </div>
             <p className="text-xs text-[#6e6e73] hidden sm:block">Community Mosques & Prayer Timetables</p>
           </div>

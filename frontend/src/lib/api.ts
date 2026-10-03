@@ -357,6 +357,7 @@ export async function fetchPaginatedMosques(params: {
   page?: number;
   limit?: number;
   search?: string;
+  isListed?: boolean | 'ALL' | 'LISTED' | 'UNLISTED';
   verificationStatus?: string;
   operationalStatus?: string;
   city?: string;
@@ -368,6 +369,13 @@ export async function fetchPaginatedMosques(params: {
   if (params.page) query.append('page', String(params.page));
   if (params.limit) query.append('limit', String(params.limit));
   if (params.search?.trim()) query.append('search', params.search.trim());
+  if (params.isListed !== undefined && params.isListed !== 'ALL') {
+    if (params.isListed === true || params.isListed === 'LISTED') {
+      query.append('isListed', 'true');
+    } else if (params.isListed === false || params.isListed === 'UNLISTED') {
+      query.append('isListed', 'false');
+    }
+  }
   if (params.verificationStatus && params.verificationStatus !== 'ALL') {
     query.append('verificationStatus', params.verificationStatus);
   }
@@ -395,6 +403,23 @@ export async function fetchPaginatedMosques(params: {
       totalPages: 1,
     },
   };
+}
+
+export async function toggleMosqueListing(id: string, isListed: boolean, reason?: string) {
+  try {
+    const res = await fetch(`${API_BASE}/mosques/${id}/listing`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ isListed, reason }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Failed to update listing status' };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
 }
 
 export async function updateMosqueDetails(id: string, data: any) {

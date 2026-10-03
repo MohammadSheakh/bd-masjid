@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   DonationChannelAccountType,
   DonationChannelStatus,
@@ -78,7 +82,10 @@ describe('DonationsService', () => {
 
   describe('submitDonationChannel', () => {
     it('should submit a donation channel in PENDING_VERIFICATION status for verified Mutawalli', async () => {
-      prisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', name: 'Baitul Mukarram' });
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        name: 'Baitul Mukarram',
+      });
       prisma.mosqueStaff.findFirst.mockResolvedValue({
         id: 'staff-1',
         mosqueId: 'mosque-1',

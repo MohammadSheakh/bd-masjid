@@ -68,13 +68,9 @@ export function MosqueCard({
             <h3 className="font-semibold text-base text-[#111114] tracking-tight truncate group-hover:text-emerald-700 transition-colors">
               {mosque.name}
             </h3>
-            {mosque.verificationStatus === 'VERIFIED' ? (
-              <span title="Verified Mosque Listing" className="inline-flex items-center text-emerald-600">
-                <CheckCircle2 className="w-4 h-4 fill-emerald-50" />
-              </span>
-            ) : (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 font-medium">
-                Unverified
+            {mosque.isListed === false && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-medium">
+                Unlisted
               </span>
             )}
           </div>

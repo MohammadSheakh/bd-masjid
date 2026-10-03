@@ -5,6 +5,7 @@ import {
   MinLength,
   MaxLength,
   IsEnum,
+  IsBoolean,
 } from 'class-validator';
 import { MosqueOperationalStatus } from '@prisma/client';
 
@@ -81,4 +82,21 @@ export class UpdateMosqueDto {
   })
   @IsOptional()
   capacity?: number;
+
+  @ApiPropertyOptional({
+    description: 'Whether the mosque is publicly listed or unlisted',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isListed?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Reason for unlisting the mosque',
+    example: 'Inaccurate location reported by community',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  unlistedReason?: string;
 }

@@ -1,7 +1,13 @@
 import request from 'supertest';
 import { ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AuthGuard, RolesGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
+import {
+  AuthGuard,
+  RolesGuard,
+  SlidingWindowRateLimitGuard,
+  TransformResponseInterceptor,
+  UserPayload,
+} from '@app/common';
 import { MosqueVerificationController } from '../mosque-verification.controller';
 import { MosqueVerificationService } from '../mosque-verification.service';
 import { VerifyMosqueDto, RejectMosqueDto } from '../dto/verification.dto';
@@ -58,7 +64,11 @@ describe('MosqueVerificationController', () => {
 
       const result = await controller.verifyMosque('mosque-1', dto, mockAdmin);
 
-      expect(service.verifyMosque).toHaveBeenCalledWith('mosque-1', dto, mockAdmin);
+      expect(service.verifyMosque).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        mockAdmin,
+      );
       expect(result).toEqual(mockMosque);
     });
   });
@@ -76,7 +86,11 @@ describe('MosqueVerificationController', () => {
 
       const result = await controller.rejectMosque('mosque-1', dto, mockAdmin);
 
-      expect(service.rejectMosque).toHaveBeenCalledWith('mosque-1', dto, mockAdmin);
+      expect(service.rejectMosque).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        mockAdmin,
+      );
       expect(result).toEqual(rejectedMosque);
     });
   });
@@ -87,7 +101,9 @@ describe('MosqueVerificationController', () => {
 
     beforeAll(async () => {
       serviceMock = {
-        getPendingMosques: jest.fn().mockResolvedValue({ items: [mockMosque], total: 1 }),
+        getPendingMosques: jest
+          .fn()
+          .mockResolvedValue({ items: [mockMosque], total: 1 }),
         verifyMosque: jest.fn().mockResolvedValue(mockMosque),
         rejectMosque: jest.fn().mockResolvedValue(mockMosque),
       };
@@ -117,7 +133,9 @@ describe('MosqueVerificationController', () => {
         .compile();
 
       app = moduleRef.createNestApplication();
-      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalPipes(
+        new ValidationPipe({ whitelist: true, transform: true }),
+      );
       app.useGlobalInterceptors(new TransformResponseInterceptor());
       await app.init();
     });
@@ -129,8 +147,9 @@ describe('MosqueVerificationController', () => {
     });
 
     it('rejects GET /admin/mosques/pending-verification with 401 when no token is provided', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/admin/mosques/pending-verification');
+      const res = await request(app.getHttpServer()).get(
+        '/admin/mosques/pending-verification',
+      );
 
       expect(res.status).toBe(401);
     });

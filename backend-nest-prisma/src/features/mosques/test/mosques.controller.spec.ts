@@ -1,7 +1,18 @@
 import request from 'supertest';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  UnauthorizedException,
+  ValidationPipe,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { AuthGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
+import {
+  AuthGuard,
+  IS_PUBLIC_KEY,
+  SlidingWindowRateLimitGuard,
+  TransformResponseInterceptor,
+  UserPayload,
+} from '@app/common';
 import { MosquesController } from '../mosques.controller';
 import { MosquesService } from '../mosques.service';
 import { CreateMosqueDto } from '../dto/create-mosque.dto';
@@ -38,6 +49,7 @@ describe('MosquesController', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
       update: jest.fn(),
+      updateListingStatus: jest.fn(),
       softDelete: jest.fn(),
     } as unknown as jest.Mocked<MosquesService>;
 
@@ -93,7 +105,10 @@ describe('MosquesController', () => {
         longitude: 90.39,
       });
 
-      expect(service.findDuplicateCandidates).toHaveBeenCalledWith(23.75, 90.39);
+      expect(service.findDuplicateCandidates).toHaveBeenCalledWith(
+        23.75,
+        90.39,
+      );
       expect(result).toEqual({ candidates });
     });
   });
@@ -121,16 +136,16 @@ describe('MosquesController', () => {
   });
 
   describe('findById', () => {
-    it('should retrieve mosque by ID passing user ID when authenticated', async () => {
+    it('should retrieve mosque by ID passing user context when authenticated', async () => {
       service.findById.mockResolvedValue(mockMosque as any);
 
       const result = await controller.findById('mosque-uuid-1', mockUser);
 
-      expect(service.findById).toHaveBeenCalledWith('mosque-uuid-1', 'user-123');
+      expect(service.findById).toHaveBeenCalledWith('mosque-uuid-1', mockUser);
       expect(result).toEqual(mockMosque);
     });
 
-    it('should retrieve mosque by ID passing undefined user ID when unauthenticated', async () => {
+    it('should retrieve mosque by ID passing undefined user when unauthenticated', async () => {
       service.findById.mockResolvedValue(mockMosque as any);
 
       const result = await controller.findById('mosque-uuid-1', undefined);
@@ -143,12 +158,17 @@ describe('MosquesController', () => {
   describe('findAll', () => {
     it('should query paginated mosques', async () => {
       const query: MosqueQueryDto = { search: 'Baitul', page: 1, limit: 10 };
-      const paginatedResult = { items: [mockMosque], total: 1, page: 1, limit: 10 };
+      const paginatedResult = {
+        items: [mockMosque],
+        total: 1,
+        page: 1,
+        limit: 10,
+      };
       service.findAll.mockResolvedValue(paginatedResult as any);
 
-      const result = await controller.findAll(query);
+      const result = await controller.findAll(query, undefined);
 
-      expect(service.findAll).toHaveBeenCalledWith(query);
+      expect(service.findAll).toHaveBeenCalledWith(query, undefined);
       expect(result).toEqual(paginatedResult);
     });
   });
@@ -159,9 +179,17 @@ describe('MosquesController', () => {
       const updatedMosque = { ...mockMosque, address: 'New Address' };
       service.update.mockResolvedValue(updatedMosque as any);
 
-      const result = await controller.update('mosque-uuid-1', updateDto, mockUser);
+      const result = await controller.update(
+        'mosque-uuid-1',
+        updateDto,
+        mockUser,
+      );
 
-      expect(service.update).toHaveBeenCalledWith('mosque-uuid-1', updateDto, mockUser);
+      expect(service.update).toHaveBeenCalledWith(
+        'mosque-uuid-1',
+        updateDto,
+        mockUser,
+      );
       expect(result).toEqual(updatedMosque);
     });
   });
@@ -169,12 +197,40 @@ describe('MosquesController', () => {
   describe('remove', () => {
     it('should delegate soft-delete to service with actor context', async () => {
       const deleteResult = { deleted: true, id: 'mosque-uuid-1' };
-      service.softDelete.mockResolvedValue(deleteResult as any);
+      service.softDelete.mockResolvedValue(deleteResult);
 
       const result = await controller.remove('mosque-uuid-1', mockUser);
 
-      expect(service.softDelete).toHaveBeenCalledWith('mosque-uuid-1', mockUser);
+      expect(service.softDelete).toHaveBeenCalledWith(
+        'mosque-uuid-1',
+        mockUser,
+      );
       expect(result).toEqual(deleteResult);
+    });
+  });
+
+  describe('toggleListing', () => {
+    it('should delegate listing update to service with actor and reason', async () => {
+      const updatedMosque = {
+        ...mockMosque,
+        isListed: false,
+        unlistedReason: 'Reported duplicate',
+      };
+      service.updateListingStatus.mockResolvedValue(updatedMosque as any);
+
+      const result = await controller.toggleListing(
+        'mosque-uuid-1',
+        { isListed: false, reason: 'Reported duplicate' },
+        mockUser,
+      );
+
+      expect(service.updateListingStatus).toHaveBeenCalledWith(
+        'mosque-uuid-1',
+        false,
+        'Reported duplicate',
+        mockUser,
+      );
+      expect(result).toEqual(updatedMosque);
     });
   });
 
@@ -186,25 +242,38 @@ describe('MosquesController', () => {
       serviceMock = {
         create: jest.fn().mockResolvedValue(mockMosque),
         findNearby: jest.fn().mockResolvedValue([mockMosque]),
+        findAll: jest.fn().mockResolvedValue({
+          data: [mockMosque],
+          meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
+        }),
         update: jest.fn().mockResolvedValue(mockMosque),
+        updateListingStatus: jest
+          .fn()
+          .mockResolvedValue({ ...mockMosque, isListed: false }),
       };
 
       const moduleRef = await Test.createTestingModule({
         controllers: [MosquesController],
-        providers: [
-          { provide: MosquesService, useValue: serviceMock },
-        ],
+        providers: [{ provide: MosquesService, useValue: serviceMock }],
       })
         .overrideGuard(AuthGuard)
         .useValue({
           canActivate: (context: any) => {
-            const reflector = new (require('@nestjs/core').Reflector)();
-            const isPublic = reflector.getAllAndOverride(
-              require('@app/common').IS_PUBLIC_KEY,
-              [context.getHandler(), context.getClass()],
-            );
+            const reflector = new Reflector();
+            const isPublic = reflector.getAllAndOverride(IS_PUBLIC_KEY, [
+              context.getHandler(),
+              context.getClass(),
+            ]);
             const req = context.switchToHttp().getRequest();
             const auth = req.headers['authorization'];
+            if (auth && auth.startsWith('Bearer admin-token')) {
+              req.user = {
+                userId: 'admin-123',
+                email: 'admin@example.com',
+                role: 'admin' as any,
+              };
+              return true;
+            }
             if (auth && auth.startsWith('Bearer valid')) {
               req.user = mockUser;
               return true;
@@ -212,7 +281,7 @@ describe('MosquesController', () => {
             if (isPublic) {
               return true;
             }
-            throw new (require('@nestjs/common').UnauthorizedException)();
+            throw new UnauthorizedException();
           },
         })
         .overrideGuard(SlidingWindowRateLimitGuard)
@@ -220,7 +289,9 @@ describe('MosquesController', () => {
         .compile();
 
       app = moduleRef.createNestApplication();
-      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalPipes(
+        new ValidationPipe({ whitelist: true, transform: true }),
+      );
       app.useGlobalInterceptors(new TransformResponseInterceptor());
       await app.init();
     });
@@ -241,14 +312,12 @@ describe('MosquesController', () => {
     });
 
     it('accepts POST /mosques with valid DTO and wraps response in transform interceptor', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/mosques')
-        .send({
-          name: 'Baitul Mukarram National Mosque',
-          latitude: 23.75,
-          longitude: 90.39,
-          address: 'Topkhana Road, Dhaka',
-        });
+      const res = await request(app.getHttpServer()).post('/mosques').send({
+        name: 'Baitul Mukarram National Mosque',
+        latitude: 23.75,
+        longitude: 90.39,
+        address: 'Topkhana Road, Dhaka',
+      });
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('success', true);
@@ -262,6 +331,59 @@ describe('MosquesController', () => {
 
       expect(res.status).toBe(401);
     });
+
+    it('rejects PATCH /mosques/:id/listing with 401 when no token is provided', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/mosques/mosque-uuid-1/listing')
+        .send({ isListed: false });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('rejects PATCH /mosques/:id/listing with 403 when user is not admin or moderator', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/mosques/mosque-uuid-1/listing')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ isListed: false });
+
+      expect(res.status).toBe(403);
+    });
+
+    it('rejects PATCH /mosques/:id/listing with 400 when isListed is not a boolean', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/mosques/mosque-uuid-1/listing')
+        .set('Authorization', 'Bearer admin-token')
+        .send({ isListed: 'invalid-string' });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('accepts PATCH /mosques/:id/listing with valid boolean payload and admin token', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/mosques/mosque-uuid-1/listing')
+        .set('Authorization', 'Bearer admin-token')
+        .send({ isListed: false, reason: 'Temporarily closed for renovation' });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('success', true);
+      expect(serviceMock.updateListingStatus).toHaveBeenCalledWith(
+        'mosque-uuid-1',
+        false,
+        'Temporarily closed for renovation',
+        expect.objectContaining({ role: 'admin' }),
+      );
+    });
+
+    it('correctly transforms GET /mosques?isListed=false to boolean false', async () => {
+      const res = await request(app.getHttpServer()).get(
+        '/mosques?isListed=false',
+      );
+
+      expect(res.status).toBe(200);
+      expect(serviceMock.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({ isListed: false }),
+        null,
+      );
+    });
   });
 });
-

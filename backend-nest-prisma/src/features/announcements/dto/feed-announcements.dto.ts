@@ -65,7 +65,7 @@ export class FeedAnnouncementsDto {
 
   @ApiPropertyOptional({
     example: false,
-    description: 'Filter only announcements from user\'s bookmarked mosques',
+    description: "Filter only announcements from user's bookmarked mosques",
   })
   @IsOptional()
   @Type(() => Boolean)

@@ -64,7 +64,10 @@ describe('PrayerSchedulesService', () => {
     });
 
     it('should throw ForbiddenException if caller is not authorized to edit this mosque', async () => {
-      prisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', createdById: 'other-user' });
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        createdById: 'other-user',
+      });
       prisma.mosqueStaff.findFirst.mockResolvedValue(null);
 
       await expect(
@@ -82,7 +85,10 @@ describe('PrayerSchedulesService', () => {
     });
 
     it('should atomically update schedule, create history snapshot, and touch mosque when authorized', async () => {
-      prisma.mosque.findUnique.mockResolvedValue({ id: 'mosque-1', createdById: 'user-1' });
+      prisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        createdById: 'user-1',
+      });
       const mockSchedule = {
         id: 'sched-1',
         mosqueId: 'mosque-1',

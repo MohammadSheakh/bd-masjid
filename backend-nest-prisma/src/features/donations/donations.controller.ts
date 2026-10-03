@@ -75,7 +75,11 @@ export class DonationsController {
     @Query() query: QueryDonationsDto,
     @CurrentUser() user?: UserPayload,
   ) {
-    return this.donationsService.getMosqueDonationChannels(mosqueId, query, user);
+    return this.donationsService.getMosqueDonationChannels(
+      mosqueId,
+      query,
+      user,
+    );
   }
 
   @Get('donations/:id')
@@ -83,7 +87,8 @@ export class DonationsController {
   @RateLimit({ windowMs: 60 * 1000, max: 60 })
   @ApiOperation({
     summary: 'Get single donation channel details and provenance',
-    description: 'Returns channel details including creator and verifier provenance info.',
+    description:
+      'Returns channel details including creator and verifier provenance info.',
   })
   @ApiParam({ name: 'id', description: 'Donation Channel ID' })
   @ApiResponse({ status: 200, description: 'Donation channel details' })
@@ -105,7 +110,10 @@ export class DonationsController {
   })
   @ApiParam({ name: 'id', description: 'Donation Channel ID' })
   @ApiResponse({ status: 200, description: 'Donation channel verified' })
-  @ApiResponse({ status: 403, description: 'Forbidden - self-approval or unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - self-approval or unauthorized',
+  })
   async verifyDonation(
     @Param('id') id: string,
     @Body() dto: VerifyDonationChannelDto,
@@ -123,7 +131,10 @@ export class DonationsController {
       'Requires submitter, Imam, Committee President, or Mosque Admin.',
   })
   @ApiParam({ name: 'id', description: 'Donation Channel ID' })
-  @ApiResponse({ status: 200, description: 'Donation channel rejected/archived' })
+  @ApiResponse({
+    status: 200,
+    description: 'Donation channel rejected/archived',
+  })
   async rejectDonation(
     @Param('id') id: string,
     @Body() dto: RejectDonationChannelDto,

@@ -59,7 +59,11 @@ describe('AttendanceController', () => {
 
       const result = await controller.setAttendance('mosque-1', dto, mockUser);
 
-      expect(service.setAttendance).toHaveBeenCalledWith('mosque-1', 'user-1', dto);
+      expect(service.setAttendance).toHaveBeenCalledWith(
+        'mosque-1',
+        'user-1',
+        dto,
+      );
       expect(result).toEqual(mockAttendance);
     });
   });
@@ -71,14 +75,21 @@ describe('AttendanceController', () => {
 
       const result = await controller.removeAttendance('mosque-1', mockUser);
 
-      expect(service.removeAttendance).toHaveBeenCalledWith('mosque-1', 'user-1');
+      expect(service.removeAttendance).toHaveBeenCalledWith(
+        'mosque-1',
+        'user-1',
+      );
       expect(result).toEqual(response);
     });
   });
 
   describe('getSummary', () => {
     it('should retrieve attendance summary with user affiliation when authenticated', async () => {
-      const summary = { regularCount: 15, occasionalCount: 4, myStatus: AttendanceStatus.REGULAR };
+      const summary = {
+        regularCount: 15,
+        occasionalCount: 4,
+        myStatus: AttendanceStatus.REGULAR,
+      };
       service.getSummary.mockResolvedValue(summary as any);
 
       const result = await controller.getSummary('mosque-1', mockUser);
@@ -100,7 +111,9 @@ describe('AttendanceController', () => {
 
   describe('getMyMosques', () => {
     it('should retrieve mosques attended by user', async () => {
-      const attended = [{ mosqueId: 'mosque-1', status: AttendanceStatus.REGULAR }];
+      const attended = [
+        { mosqueId: 'mosque-1', status: AttendanceStatus.REGULAR },
+      ];
       service.getMyMosques.mockResolvedValue(attended as any);
 
       const result = await controller.getMyMosques(mockUser);
@@ -123,8 +136,16 @@ describe('AttendanceController', () => {
       mockAttendanceService = {
         setAttendance: jest.fn().mockResolvedValue(mockAttendance),
         removeAttendance: jest.fn().mockResolvedValue({ success: true }),
-        getSummary: jest.fn().mockResolvedValue({ regularCount: 15, occasionalCount: 4, myStatus: null }),
-        getMyMosques: jest.fn().mockResolvedValue([{ mosqueId: 'mosque-1', status: AttendanceStatus.REGULAR }]),
+        getSummary: jest.fn().mockResolvedValue({
+          regularCount: 15,
+          occasionalCount: 4,
+          myStatus: null,
+        }),
+        getMyMosques: jest
+          .fn()
+          .mockResolvedValue([
+            { mosqueId: 'mosque-1', status: AttendanceStatus.REGULAR },
+          ]),
       };
 
       const moduleRef: TestingModule = await Test.createTestingModule({
@@ -140,15 +161,17 @@ describe('AttendanceController', () => {
           canActivate: (context: ExecutionContext) => {
             const req = context.switchToHttp().getRequest();
             const reflector = new Reflector();
-            const isPublic = reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-              context.getHandler(),
-              context.getClass(),
-            ]);
+            const isPublic = reflector.getAllAndOverride<boolean>(
+              IS_PUBLIC_KEY,
+              [context.getHandler(), context.getClass()],
+            );
             if (isPublic) return true;
 
             const authHeader = req.headers['authorization'];
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
-              throw new UnauthorizedException('Authentication token missing or invalid');
+              throw new UnauthorizedException(
+                'Authentication token missing or invalid',
+              );
             }
 
             req.user = mockUser;
@@ -173,7 +196,9 @@ describe('AttendanceController', () => {
     });
 
     it('GET /mosques/:id/attendance-summary - allows public access with 200', async () => {
-      const res = await request(app.getHttpServer()).get('/mosques/mosque-1/attendance-summary');
+      const res = await request(app.getHttpServer()).get(
+        '/mosques/mosque-1/attendance-summary',
+      );
       expect(res.status).toBe(200);
       const data = res.body.data ?? res.body;
       expect(data.regularCount).toBe(15);
@@ -208,7 +233,9 @@ describe('AttendanceController', () => {
     });
 
     it('DELETE /mosques/:id/attendance - rejects unauthenticated requests with 401', async () => {
-      const res = await request(app.getHttpServer()).delete('/mosques/mosque-1/attendance');
+      const res = await request(app.getHttpServer()).delete(
+        '/mosques/mosque-1/attendance',
+      );
       expect(res.status).toBe(401);
     });
 
@@ -223,7 +250,9 @@ describe('AttendanceController', () => {
     });
 
     it('GET /attendance/my-mosques - rejects unauthenticated requests with 401', async () => {
-      const res = await request(app.getHttpServer()).get('/attendance/my-mosques');
+      const res = await request(app.getHttpServer()).get(
+        '/attendance/my-mosques',
+      );
       expect(res.status).toBe(401);
     });
 
@@ -239,4 +268,3 @@ describe('AttendanceController', () => {
     });
   });
 });
-

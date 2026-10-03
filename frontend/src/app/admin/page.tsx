@@ -35,23 +35,14 @@ import {
   X,
   Building2,
   Loader2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { formatTo12Hour } from '@/lib/time';
 import { AuthModal } from '@/components/AuthModal';
 import { AdminMosqueInspectionModal } from '@/components/AdminMosqueInspectionModal';
-import { fetchPaginatedMosques, deleteMosque, updateMosqueDetails, getApiBase } from '@/lib/api';
+import { fetchPaginatedMosques, deleteMosque, updateMosqueDetails, toggleMosqueListing, getApiBase } from '@/lib/api';
 import { Mosque } from '@/types/mosque';
-
-interface PendingMosque {
-  id: string;
-  name: string;
-  city: string | null;
-  address: string | null;
-  latitude: number;
-  longitude: number;
-  createdAt: string;
-  prayerSchedule?: any;
-}
 
 interface SuggestionItem {
   id: string;
@@ -138,7 +129,7 @@ interface SystemHealthData {
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<
-    'directory' | 'reports' | 'verifications' | 'claims' | 'suggestions' | 'donations' | 'audit' | 'health'
+    'directory' | 'reports' | 'claims' | 'suggestions' | 'donations' | 'audit' | 'health'
   >('directory');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -150,7 +141,7 @@ export default function AdminPage() {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [verificationFilter, setVerificationFilter] = useState('ALL');
+  const [listingFilter, setListingFilter] = useState<'ALL' | 'LISTED' | 'UNLISTED'>('ALL');
   const [operationalFilter, setOperationalFilter] = useState('ALL');
   const [cityFilter, setCityFilter] = useState('');
   const [jumpPageInput, setJumpPageInput] = useState('');
@@ -160,8 +151,7 @@ export default function AdminPage() {
   const [inspectorTab, setInspectorTab] = useState<'overview' | 'staff' | 'facilities' | 'schedule' | 'reports'>('overview');
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
 
-  // Legacy data states
-  const [pendingMosques, setPendingMosques] = useState<PendingMosque[]>([]);
+  // Operational data states
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [roleClaims, setRoleClaims] = useState<RoleClaimItem[]>([]);
@@ -172,8 +162,6 @@ export default function AdminPage() {
   const [readyProbeStatus, setReadyProbeStatus] = useState<string | null>(null);
 
   // Feedback states
-  const [rejectId, setRejectId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [tokenInput, setTokenInput] = useState('');
@@ -231,7 +219,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadData();
-  }, [activeTab, page, limit, debouncedSearch, verificationFilter, operationalFilter, cityFilter]);
+  }, [activeTab, page, limit, debouncedSearch, listingFilter, operationalFilter, cityFilter]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -245,24 +233,13 @@ export default function AdminPage() {
           page,
           limit,
           search: debouncedSearch,
-          verificationStatus: verificationFilter,
+          isListed: listingFilter,
           operationalStatus: operationalFilter,
           city: cityFilter,
         });
         setDirectoryMosques(res.items);
         setTotalCount(res.meta.total);
         setTotalPages(res.meta.totalPages);
-      } else if (activeTab === 'verifications') {
-        const res = await fetch(`${API_BASE}/admin/mosques/pending-verification`, { headers });
-        if (res.ok) {
-          const json = await res.json();
-          setPendingMosques(json.data?.items || json.items || []);
-        } else if (res.status === 401 || res.status === 403) {
-          setAuthError('Authentication required: Admin credentials missing or expired (401/403).');
-          setPendingMosques([]);
-        } else {
-          setPendingMosques([]);
-        }
       } else if (activeTab === 'suggestions') {
         const res = await fetch(`${API_BASE}/admin/suggestions?status=OPEN`, { headers });
         if (res.ok) {
@@ -367,19 +344,37 @@ export default function AdminPage() {
     handleInspectMosque(mosqueId, targetTab);
   };
 
-  const handleQuickVerify = async (id: string) => {
+  const handleToggleListing = async (id: string, currentListed: boolean) => {
+    let reason: string | undefined;
+    if (currentListed) {
+      const input = window.prompt(
+        'Reason for unlisting this mosque from the public map (e.g. Inaccurate location, under review, closed):',
+      );
+      if (input === null) return;
+      reason = input.trim() || 'Unlisted by administrator';
+    }
     try {
-      const res = await updateMosqueDetails(id, { verificationStatus: 'VERIFIED' });
+      const res = await toggleMosqueListing(id, !currentListed, reason);
       if (res.success) {
         setDirectoryMosques((prev) =>
-          prev.map((m) => (m.id === id ? { ...m, verificationStatus: 'VERIFIED' } : m)),
+          prev.map((m) =>
+            m.id === id
+              ? {
+                  ...m,
+                  isListed: !currentListed,
+                  unlistedReason: !currentListed ? null : reason,
+                }
+              : m,
+          ),
         );
-        setStatusMessage('Mosque verified successfully.');
+        setStatusMessage(
+          !currentListed ? 'Mosque relisted on public map.' : 'Mosque unlisted from public map.',
+        );
       } else {
         setStatusMessage(`Error: ${res.error}`);
       }
     } catch {
-      setStatusMessage('Network error updating mosque.');
+      setStatusMessage('Network error updating listing status.');
     }
   };
 
@@ -408,46 +403,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleVerifyMosque = async (id: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/admin/mosques/${id}/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-        body: JSON.stringify({ notes: 'Verified via moderation console' }),
-      });
-      if (res.ok) {
-        setPendingMosques((prev) => prev.filter((m) => m.id !== id));
-        setStatusMessage('Mosque verified and approved successfully.');
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setStatusMessage(`Error: ${err.message || 'Failed to verify mosque.'}`);
-      }
-    } catch {
-      setStatusMessage('Network error: Failed to connect to server.');
-    }
-  };
-
-  const handleRejectMosque = async (id: string) => {
-    if (!rejectReason.trim()) return;
-    try {
-      const res = await fetch(`${API_BASE}/admin/mosques/${id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-        body: JSON.stringify({ reason: rejectReason }),
-      });
-      if (res.ok) {
-        setPendingMosques((prev) => prev.filter((m) => m.id !== id));
-        setRejectId(null);
-        setRejectReason('');
-        setStatusMessage('Mosque rejected.');
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setStatusMessage(`Error: ${err.message || 'Failed to reject mosque.'}`);
-      }
-    } catch {
-      setStatusMessage('Network error: Failed to connect to server.');
-    }
-  };
 
   const handleApproveClaim = async (id: string) => {
     try {
@@ -652,17 +607,6 @@ export default function AdminPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('verifications')}
-            className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-              activeTab === 'verifications'
-                ? 'bg-[#111114] text-white shadow-sm'
-                : 'bg-white text-[#6e6e73] hover:text-black border border-[#e8e8ea]'
-            }`}
-          >
-            Pending Queue ({pendingMosques.length})
-          </button>
-
-          <button
             onClick={() => setActiveTab('claims')}
             className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
               activeTab === 'claims'
@@ -780,21 +724,20 @@ export default function AdminPage() {
                   )}
                 </div>
 
-                {/* Verification Status Filter */}
+                {/* Listing Status Filter */}
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-semibold text-[#6e6e73] whitespace-nowrap">Verification:</span>
+                  <span className="text-[11px] font-semibold text-[#6e6e73] whitespace-nowrap">Listing Status:</span>
                   <select
-                    value={verificationFilter}
+                    value={listingFilter}
                     onChange={(e) => {
-                      setVerificationFilter(e.target.value);
+                      setListingFilter(e.target.value as any);
                       setPage(1);
                     }}
                     className="px-2.5 py-2 text-xs rounded-lg border border-[#e8e8ea] bg-white text-[#111114] focus:outline-none focus:ring-1 focus:ring-[#111114]"
                   >
                     <option value="ALL">All Statuses</option>
-                    <option value="VERIFIED">Verified</option>
-                    <option value="UNVERIFIED">Unverified / Pending</option>
-                    <option value="REJECTED">Rejected</option>
+                    <option value="LISTED">Listed on Map</option>
+                    <option value="UNLISTED">Unlisted</option>
                   </select>
                 </div>
 
@@ -934,22 +877,20 @@ export default function AdminPage() {
 
                           <td className="py-3.5 px-4">
                             <div className="flex flex-col gap-1 items-start">
-                              <span
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                  m.verificationStatus === 'VERIFIED'
-                                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                    : m.verificationStatus === 'REJECTED'
-                                    ? 'bg-red-50 text-red-800 border border-red-200'
-                                    : 'bg-amber-50 text-amber-800 border border-amber-200'
-                                }`}
-                              >
-                                {m.verificationStatus === 'VERIFIED' && <CheckCircle2 className="w-2.5 h-2.5" />}
-                                {m.verificationStatus === 'REJECTED' && <XCircle className="w-2.5 h-2.5" />}
-                                {m.verificationStatus !== 'VERIFIED' && m.verificationStatus !== 'REJECTED' && (
-                                  <Clock className="w-2.5 h-2.5" />
-                                )}
-                                <span>{m.verificationStatus || 'UNVERIFIED'}</span>
-                              </span>
+                              {m.isListed !== false ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                  <Eye className="w-2.5 h-2.5" />
+                                  <span>LISTED</span>
+                                </span>
+                              ) : (
+                                <span
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
+                                  title={m.unlistedReason || 'Unlisted by administrator'}
+                                >
+                                  <EyeOff className="w-2.5 h-2.5" />
+                                  <span>UNLISTED</span>
+                                </span>
+                              )}
 
                               <span className="text-[10px] text-[#6e6e73] font-medium">
                                 {m.operationalStatus || 'OPEN'}
@@ -996,13 +937,21 @@ export default function AdminPage() {
                                 <span>Inspect & Manage</span>
                               </button>
 
-                              {m.verificationStatus !== 'VERIFIED' && (
+                              {m.isListed !== false ? (
                                 <button
-                                  onClick={() => handleQuickVerify(m.id)}
-                                  className="p-1.5 rounded-full border border-emerald-300 text-emerald-800 hover:bg-emerald-50 transition-colors"
-                                  title="Approve & Verify"
+                                  onClick={() => handleToggleListing(m.id, true)}
+                                  className="p-1.5 rounded-full border border-amber-300 text-amber-800 hover:bg-amber-50 transition-colors"
+                                  title="Unlist mosque from public map"
                                 >
-                                  <Check className="w-3.5 h-3.5" />
+                                  <EyeOff className="w-3.5 h-3.5" />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleToggleListing(m.id, false)}
+                                  className="p-1.5 rounded-full border border-emerald-300 text-emerald-800 hover:bg-emerald-50 transition-colors"
+                                  title="Relist mosque on public map"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
                                 </button>
                               )}
 
@@ -1195,85 +1144,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Tab 3: Pending Verifications */}
-        {activeTab === 'verifications' && (
-          <div className="space-y-4">
-            {pendingMosques.length === 0 ? (
-              <div className="p-12 text-center rounded-xl bg-white border border-[#e8e8ea] text-xs text-[#6e6e73] space-y-2">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-                <p className="font-semibold text-sm text-[#111114]">All caught up!</p>
-                <p>There are no unverified mosques awaiting moderation.</p>
-              </div>
-            ) : (
-              pendingMosques.map((m) => (
-                <div
-                  key={m.id}
-                  className="p-5 rounded-xl bg-white border border-[#e8e8ea] shadow-sm space-y-3"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h2 className="text-sm font-bold text-[#111114]">{m.name}</h2>
-                      <p className="text-xs text-[#6e6e73] mt-0.5">
-                        {m.address || 'Address unlisted'} • {m.city || 'Bangladesh'}
-                      </p>
-                    </div>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
-                      Pending
-                    </span>
-                  </div>
-
-                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#f0f0f2]">
-                    <button
-                      onClick={() => handleInspectMosque(m.id, 'overview')}
-                      className="px-3.5 py-1.5 rounded-full border border-[#e8e8ea] text-xs font-semibold hover:bg-zinc-100"
-                    >
-                      Inspect Full Record
-                    </button>
-                    <button
-                      onClick={() => setRejectId(m.id)}
-                      className="px-4 py-1.5 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-semibold"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      onClick={() => handleVerifyMosque(m.id)}
-                      className="px-4 py-1.5 rounded-full bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold shadow-sm"
-                    >
-                      Approve & Verify
-                    </button>
-                  </div>
-
-                  {rejectId === m.id && (
-                    <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 space-y-2">
-                      <label className="block text-xs font-semibold text-rose-900">
-                        Reason for rejection:
-                      </label>
-                      <input
-                        type="text"
-                        value={rejectReason}
-                        onChange={(e) => setRejectReason(e.target.value)}
-                        placeholder="e.g. Duplicate listing or inaccurate location."
-                        className="w-full px-3 py-1.5 text-xs rounded-lg border border-rose-300 bg-white"
-                      />
-                      <div className="flex justify-end gap-2 pt-1">
-                        <button onClick={() => setRejectId(null)} className="px-3 py-1 text-xs text-zinc-600">
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => handleRejectMosque(m.id)}
-                          disabled={!rejectReason.trim()}
-                          className="px-3 py-1 text-xs font-semibold rounded-full bg-rose-600 text-white disabled:opacity-50"
-                        >
-                          Confirm Rejection
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        )}
 
         {/* Tab 4: Role Claims */}
         {activeTab === 'claims' && (

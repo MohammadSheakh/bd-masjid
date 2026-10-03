@@ -1,7 +1,12 @@
 import request from 'supertest';
 import { ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AuthGuard, SlidingWindowRateLimitGuard, TransformResponseInterceptor, UserPayload } from '@app/common';
+import {
+  AuthGuard,
+  SlidingWindowRateLimitGuard,
+  TransformResponseInterceptor,
+  UserPayload,
+} from '@app/common';
 import { AnnouncementsController } from '../announcements.controller';
 import { AnnouncementsService } from '../announcements.service';
 import {
@@ -52,7 +57,11 @@ describe('AnnouncementsController', () => {
 
   describe('getFeed', () => {
     it('should retrieve discovery feed with query dto and user context', async () => {
-      const dto: FeedAnnouncementsDto = { latitude: 23.75, longitude: 90.39, radius: 5000 };
+      const dto: FeedAnnouncementsDto = {
+        latitude: 23.75,
+        longitude: 90.39,
+        radius: 5000,
+      };
       const feed = [mockAnnouncement];
       service.getAnnouncementsFeed.mockResolvedValue(feed as any);
 
@@ -69,9 +78,17 @@ describe('AnnouncementsController', () => {
       const list = { announcements: [mockAnnouncement], total: 1 };
       service.getMosqueAnnouncements.mockResolvedValue(list as any);
 
-      const result = await controller.getMosqueAnnouncements('mosque-1', query, mockUser);
+      const result = await controller.getMosqueAnnouncements(
+        'mosque-1',
+        query,
+        mockUser,
+      );
 
-      expect(service.getMosqueAnnouncements).toHaveBeenCalledWith('mosque-1', query, mockUser);
+      expect(service.getMosqueAnnouncements).toHaveBeenCalledWith(
+        'mosque-1',
+        query,
+        mockUser,
+      );
       expect(result).toEqual(list);
     });
   });
@@ -85,9 +102,17 @@ describe('AnnouncementsController', () => {
       };
       service.createAnnouncement.mockResolvedValue(mockAnnouncement as any);
 
-      const result = await controller.createAnnouncement('mosque-1', dto, mockUser);
+      const result = await controller.createAnnouncement(
+        'mosque-1',
+        dto,
+        mockUser,
+      );
 
-      expect(service.createAnnouncement).toHaveBeenCalledWith('mosque-1', dto, mockUser);
+      expect(service.createAnnouncement).toHaveBeenCalledWith(
+        'mosque-1',
+        dto,
+        mockUser,
+      );
       expect(result).toEqual(mockAnnouncement);
     });
   });
@@ -98,9 +123,17 @@ describe('AnnouncementsController', () => {
       const updated = { ...mockAnnouncement, title: 'Updated Eid Timings' };
       service.updateAnnouncement.mockResolvedValue(updated as any);
 
-      const result = await controller.updateAnnouncement('ann-1', dto, mockUser);
+      const result = await controller.updateAnnouncement(
+        'ann-1',
+        dto,
+        mockUser,
+      );
 
-      expect(service.updateAnnouncement).toHaveBeenCalledWith('ann-1', dto, mockUser);
+      expect(service.updateAnnouncement).toHaveBeenCalledWith(
+        'ann-1',
+        dto,
+        mockUser,
+      );
       expect(result).toEqual(updated);
     });
   });
@@ -112,7 +145,10 @@ describe('AnnouncementsController', () => {
 
       const result = await controller.deleteAnnouncement('ann-1', mockUser);
 
-      expect(service.deleteAnnouncement).toHaveBeenCalledWith('ann-1', mockUser);
+      expect(service.deleteAnnouncement).toHaveBeenCalledWith(
+        'ann-1',
+        mockUser,
+      );
       expect(result).toEqual(deleteResponse);
     });
   });
@@ -129,9 +165,7 @@ describe('AnnouncementsController', () => {
 
       const moduleRef = await Test.createTestingModule({
         controllers: [AnnouncementsController],
-        providers: [
-          { provide: AnnouncementsService, useValue: serviceMock },
-        ],
+        providers: [{ provide: AnnouncementsService, useValue: serviceMock }],
       })
         .overrideGuard(AuthGuard)
         .useValue({
@@ -158,7 +192,9 @@ describe('AnnouncementsController', () => {
         .compile();
 
       app = moduleRef.createNestApplication();
-      app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+      app.useGlobalPipes(
+        new ValidationPipe({ whitelist: true, transform: true }),
+      );
       app.useGlobalInterceptors(new TransformResponseInterceptor());
       await app.init();
     });
@@ -170,8 +206,7 @@ describe('AnnouncementsController', () => {
     });
 
     it('publicly returns feed with 200 on GET /announcements/feed', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/announcements/feed');
+      const res = await request(app.getHttpServer()).get('/announcements/feed');
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('success', true);

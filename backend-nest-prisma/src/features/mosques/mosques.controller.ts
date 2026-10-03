@@ -35,6 +35,7 @@ import type { UserPayload } from '@app/common';
 import { MosquesService } from './mosques.service';
 import { CreateMosqueDto } from './dto/create-mosque.dto';
 import { UpdateMosqueDto } from './dto/update-mosque.dto';
+import { ToggleMosqueListingDto } from './dto/toggle-listing.dto';
 import { NearbyMosquesQueryDto } from './dto/nearby-mosques.dto';
 import { MosqueQueryDto } from './dto/mosque-query.dto';
 
@@ -112,8 +113,15 @@ export class MosquesController {
       'Translates latitude and longitude coordinates into place name, road, suburb, and city using OpenStreetMap Nominatim with caching',
   })
   @ApiQuery({ name: 'latitude', description: 'WGS84 Latitude', example: 23.75 })
-  @ApiQuery({ name: 'longitude', description: 'WGS84 Longitude', example: 90.39 })
-  @ApiResponse({ status: 200, description: 'Reverse geocoded location details' })
+  @ApiQuery({
+    name: 'longitude',
+    description: 'WGS84 Longitude',
+    example: 90.39,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reverse geocoded location details',
+  })
   @ApiResponse({ status: 400, description: 'Invalid coordinates' })
   async reverseGeocode(
     @Query('latitude') lat: string,
@@ -141,7 +149,7 @@ export class MosquesController {
   @ApiResponse({ status: 200, description: 'Mosque profile' })
   @ApiResponse({ status: 404, description: 'Mosque not found' })
   async findById(@Param('id') id: string, @CurrentUser() user?: UserPayload) {
-    return this.mosquesService.findById(id, user?.userId);
+    return this.mosquesService.findById(id, user);
   }
 
   @Get()
@@ -153,8 +161,11 @@ export class MosquesController {
       'Paginated search with text query and operational/verification filters',
   })
   @ApiResponse({ status: 200, description: 'Paginated mosque list' })
-  async findAll(@Query() query: MosqueQueryDto) {
-    return this.mosquesService.findAll(query);
+  async findAll(
+    @Query() query: MosqueQueryDto,
+    @CurrentUser() actor?: UserPayload,
+  ) {
+    return this.mosquesService.findAll(query, actor);
   }
 
   @Patch(':id')
@@ -176,6 +187,36 @@ export class MosquesController {
     return this.mosquesService.update(id, dto, actor);
   }
 
+  @Patch(':id/listing')
+  @Roles('admin', 'moderator')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 20 })
+  @ApiOperation({
+    summary: 'Toggle mosque listing status (delist / relist)',
+    description:
+      'Makes mosque listed or unlisted on the public map (Platform admin or moderator)',
+  })
+  @ApiParam({ name: 'id', description: 'Mosque UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Mosque listing status updated successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Mosque not found' })
+  async toggleListing(
+    @Param('id') id: string,
+    @Body() dto: ToggleMosqueListingDto,
+    @CurrentUser() actor: UserPayload,
+  ) {
+    return this.mosquesService.updateListingStatus(
+      id,
+      dto.isListed,
+      dto.reason,
+      actor,
+    );
+  }
+
   @Delete(':id')
   @Roles('admin', 'moderator')
   @ApiBearerAuth()
@@ -189,10 +230,7 @@ export class MosquesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Mosque not found' })
-  async remove(
-    @Param('id') id: string,
-    @CurrentUser() actor: UserPayload,
-  ) {
+  async remove(@Param('id') id: string, @CurrentUser() actor: UserPayload) {
     return this.mosquesService.softDelete(id, actor);
   }
 }

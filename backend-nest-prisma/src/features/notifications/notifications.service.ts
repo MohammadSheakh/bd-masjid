@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@app/database';
 import { NotificationType, Prisma } from '@prisma/client';
 import { NotificationsGateway } from './notifications.gateway';
@@ -83,7 +79,9 @@ export class NotificationsService {
     });
 
     const unreadCount = await this.getUnreadCount(userId);
-    this.gateway.sendToUser(userId, 'notification:unread_count', { unreadCount });
+    this.gateway.sendToUser(userId, 'notification:unread_count', {
+      unreadCount,
+    });
 
     return updated;
   }
@@ -97,7 +95,9 @@ export class NotificationsService {
       data: { isRead: true, readAt: new Date() },
     });
 
-    this.gateway.sendToUser(userId, 'notification:unread_count', { unreadCount: 0 });
+    this.gateway.sendToUser(userId, 'notification:unread_count', {
+      unreadCount: 0,
+    });
 
     return { success: true, updatedCount: result.count };
   }
@@ -151,9 +151,11 @@ export class NotificationsService {
   async getFollowStatus(userId: string | null, mosqueId: string) {
     const [isFollowing, followersCount] = await Promise.all([
       userId
-        ? this.prisma.mosqueFollower.findUnique({
-            where: { userId_mosqueId: { userId, mosqueId } },
-          }).then(Boolean)
+        ? this.prisma.mosqueFollower
+            .findUnique({
+              where: { userId_mosqueId: { userId, mosqueId } },
+            })
+            .then(Boolean)
         : Promise.resolve(false),
       this.prisma.mosqueFollower.count({ where: { mosqueId } }),
     ]);
@@ -241,7 +243,11 @@ export class NotificationsService {
 
       // Notify individual user rooms for instant badge increment
       for (const follower of followers) {
-        this.gateway.sendToUser(follower.userId, 'notification:new', broadcastPayload);
+        this.gateway.sendToUser(
+          follower.userId,
+          'notification:new',
+          broadcastPayload,
+        );
       }
 
       this.logger.log(
@@ -250,7 +256,9 @@ export class NotificationsService {
 
       return { deliveredCount: followers.length };
     } catch (err: any) {
-      this.logger.error(`Fan-out notification failed for mosque ${mosqueId}: ${err?.message}`);
+      this.logger.error(
+        `Fan-out notification failed for mosque ${mosqueId}: ${err?.message}`,
+      );
       return { deliveredCount: 0 };
     }
   }

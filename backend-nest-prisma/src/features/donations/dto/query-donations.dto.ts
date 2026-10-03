@@ -9,7 +9,8 @@ import {
 export class QueryDonationsDto {
   @ApiPropertyOptional({
     enum: DonationChannelStatus,
-    description: 'Filter by channel status (Staff can view PENDING_VERIFICATION)',
+    description:
+      'Filter by channel status (Staff can view PENDING_VERIFICATION)',
   })
   @IsOptional()
   @IsEnum(DonationChannelStatus)
@@ -25,7 +26,8 @@ export class QueryDonationsDto {
 
   @ApiPropertyOptional({
     enum: DonationPurpose,
-    description: 'Filter by fund purpose (GENERAL_FUND, CONSTRUCTION_EXPANSION, etc.)',
+    description:
+      'Filter by fund purpose (GENERAL_FUND, CONSTRUCTION_EXPANSION, etc.)',
   })
   @IsOptional()
   @IsEnum(DonationPurpose)

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import {
@@ -157,7 +158,8 @@ export class MosquesService {
           city: dto.city?.trim() || MOSQUE_CONSTANTS.DEFAULT_CITY,
           country: dto.country?.trim() || MOSQUE_CONSTANTS.DEFAULT_COUNTRY,
           operationalStatus: MosqueOperationalStatus.OPEN,
-          verificationStatus: MosqueVerificationStatus.UNVERIFIED,
+          verificationStatus: MosqueVerificationStatus.VERIFIED,
+          isListed: true,
           createdById: actor?.userId || null,
           hasWuduArea: dto.hasWuduArea ?? true,
           hasSeparateWomenSpace: dto.hasSeparateWomenSpace ?? false,
@@ -245,6 +247,7 @@ export class MosquesService {
 
     const conditions: Prisma.Sql[] = [
       Prisma.sql`m."isDeleted" = false`,
+      Prisma.sql`m."isListed" = true`,
       Prisma.sql`ST_DWithin(
         ST_SetSRID(ST_MakePoint(m.longitude, m.latitude), 4326)::geography,
         ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
@@ -299,6 +302,8 @@ export class MosquesService {
         hasWheelchairAccess: boolean;
         hasJanazaFacility: boolean;
         capacity: number | null;
+        isListed: boolean;
+        unlistedReason: string | null;
         createdAt: Date;
         updatedAt: Date;
         distanceMeters: number;
@@ -315,6 +320,8 @@ export class MosquesService {
         m.country,
         m."operationalStatus",
         m."verificationStatus",
+        m."isListed",
+        m."unlistedReason",
         m."hasWuduArea",
         m."hasSeparateWomenSpace",
         m."hasAirConditioning",
@@ -371,7 +378,10 @@ export class MosquesService {
   /**
    * Find single mosque profile by ID
    */
-  async findById(id: string, currentUserId?: string) {
+  async findById(id: string, actor?: UserPayload | string) {
+    const currentUserId = typeof actor === 'string' ? actor : actor?.userId;
+    const actorPayload = typeof actor === 'object' ? actor : undefined;
+
     const mosque = await this.prisma.mosque.findUnique({
       where: { id, isDeleted: false },
       include: {
@@ -420,6 +430,18 @@ export class MosquesService {
       throw new NotFoundException(`Mosque with ID ${id} not found`);
     }
 
+    if (!mosque.isListed) {
+      const isPrivileged =
+        actorPayload &&
+        (actorPayload.role === 'admin' ||
+          actorPayload.role === 'moderator' ||
+          actorPayload.userId === mosque.createdById);
+
+      if (!isPrivileged) {
+        throw new NotFoundException(`Mosque with ID ${id} not found`);
+      }
+    }
+
     // Compute attendance aggregates
     const [regularCount, occasionalCount, userAttendance] = await Promise.all([
       this.prisma.userMosqueAttendance.count({
@@ -454,7 +476,7 @@ export class MosquesService {
   /**
    * Query mosques with pagination and filters
    */
-  async findAll(query: MosqueQueryDto) {
+  async findAll(query: MosqueQueryDto, actor?: UserPayload) {
     const page = query.page || 1;
     const limit = query.limit || MOSQUE_CONSTANTS.DEFAULT_LIMIT;
     const skip = (page - 1) * limit;
@@ -462,6 +484,15 @@ export class MosquesService {
     const where: Prisma.MosqueWhereInput = {
       isDeleted: false,
     };
+
+    const isPrivileged =
+      actor && (actor.role === 'admin' || actor.role === 'moderator');
+
+    if (!isPrivileged) {
+      where.isListed = true;
+    } else if (query.isListed !== undefined) {
+      where.isListed = query.isListed;
+    }
 
     if (query.search) {
       where.OR = [
@@ -540,6 +571,14 @@ export class MosquesService {
       throw new NotFoundException(`Mosque with ID ${id} not found`);
     }
 
+    if (dto.isListed !== undefined || dto.unlistedReason !== undefined) {
+      if (actor.role !== 'admin' && actor.role !== 'moderator') {
+        throw new ForbiddenException(
+          'Only administrators or moderators can change mosque listing status',
+        );
+      }
+    }
+
     const updated = await this.prisma.$transaction(async (tx) => {
       const data: Prisma.MosqueUpdateInput = {};
       if (dto.name) data.name = dto.name.trim();
@@ -550,13 +589,30 @@ export class MosquesService {
       if (dto.operationalStatus) data.operationalStatus = dto.operationalStatus;
       if (dto.verificationStatus) {
         data.verificationStatus = dto.verificationStatus;
-        if (dto.verificationStatus === MosqueVerificationStatus.VERIFIED && !previous.verifiedAt) {
+        if (
+          dto.verificationStatus === MosqueVerificationStatus.VERIFIED &&
+          !previous.verifiedAt
+        ) {
           data.verifiedAt = new Date();
         }
       }
       if (dto.latitude !== undefined) data.latitude = Number(dto.latitude);
       if (dto.longitude !== undefined) data.longitude = Number(dto.longitude);
-      if (dto.capacity !== undefined) data.capacity = dto.capacity !== null ? Number(dto.capacity) : null;
+      if (dto.capacity !== undefined)
+        data.capacity = dto.capacity !== null ? Number(dto.capacity) : null;
+      if (dto.isListed !== undefined) {
+        data.isListed = dto.isListed;
+        if (!dto.isListed) {
+          data.unlistedReason =
+            dto.unlistedReason || 'Unlisted by administrator';
+          data.unlistedAt = new Date();
+          data.unlistedById = actor.userId;
+        } else {
+          data.unlistedReason = null;
+          data.unlistedAt = null;
+          data.unlistedById = null;
+        }
+      }
 
       const saved = await tx.mosque.update({
         where: { id },
@@ -575,8 +631,92 @@ export class MosquesService {
         tx,
       );
 
+      if (dto.isListed !== undefined && dto.isListed !== previous.isListed) {
+        await this.audit.record(
+          {
+            action: dto.isListed ? 'MOSQUE_LISTED' : 'MOSQUE_UNLISTED',
+            entityType: 'Mosque',
+            entityId: id,
+            actor,
+            previousValue: {
+              isListed: previous.isListed,
+              unlistedReason: previous.unlistedReason,
+            },
+            newValue: {
+              isListed: saved.isListed,
+              unlistedReason: saved.unlistedReason,
+            },
+            metadata: { reason: dto.unlistedReason },
+          },
+          tx,
+        );
+      }
+
       return saved;
     });
+
+    return updated;
+  }
+
+  /**
+   * Toggle mosque listing status (delist / relist)
+   */
+  async updateListingStatus(
+    id: string,
+    isListed: boolean,
+    reason: string | undefined,
+    actor: UserPayload,
+  ) {
+    const previous = await this.prisma.mosque.findUnique({
+      where: { id, isDeleted: false },
+    });
+
+    if (!previous) {
+      throw new NotFoundException(`Mosque with ID ${id} not found`);
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const mosque = await tx.mosque.update({
+        where: { id },
+        data: {
+          isListed,
+          unlistedReason: isListed
+            ? null
+            : reason || 'Unlisted by administrator',
+          unlistedAt: isListed ? null : new Date(),
+          unlistedById: isListed ? null : actor.userId,
+        },
+      });
+
+      await this.audit.record(
+        {
+          action: isListed ? 'MOSQUE_LISTED' : 'MOSQUE_UNLISTED',
+          entityType: 'Mosque',
+          entityId: id,
+          actor,
+          previousValue: {
+            isListed: previous.isListed,
+            unlistedReason: previous.unlistedReason,
+          },
+          newValue: {
+            isListed: mosque.isListed,
+            unlistedReason: mosque.unlistedReason,
+          },
+          metadata: { reason },
+        },
+        tx,
+      );
+
+      return mosque;
+    });
+
+    if (!isListed) {
+      this.logger.warn(
+        `Mosque ${id} delisted by user ${actor.userId}. Reason: ${reason || 'Unlisted by administrator'}`,
+      );
+    } else {
+      this.logger.log(`Mosque ${id} relisted by user ${actor.userId}`);
+    }
 
     return updated;
   }
@@ -648,15 +788,14 @@ export class MosquesService {
       const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=en,bn`;
       const response = await fetch(url, {
         headers: {
-          'User-Agent':
-            'BD-Masjid-Platform/1.0 (contact: info@bd-masjid.org)',
+          'User-Agent': 'BD-Masjid-Platform/1.0 (contact: info@bd-masjid.org)',
           Accept: 'application/json',
         },
         signal: controller.signal,
       });
 
       if (response.ok) {
-        const raw = (await response.json()) as any;
+        const raw = await response.json();
         const address = raw.address || {};
         const road =
           address.road ||
@@ -680,8 +819,7 @@ export class MosquesService {
         const state = address.state || address.region || '';
         const postcode = address.postcode || '';
         const country = address.country || 'Bangladesh';
-        const placeName =
-          raw.name || address.amenity || address.building || '';
+        const placeName = raw.name || address.amenity || address.building || '';
 
         const addressParts = [road, suburb, city].filter(Boolean);
         const formattedAddress =

@@ -42,7 +42,9 @@ describe('OperationsHealthService', () => {
     });
 
     it('returns degraded status when database query fails', async () => {
-      mockPrisma.$queryRaw.mockRejectedValue(new Error('Connection terminated'));
+      mockPrisma.$queryRaw.mockRejectedValue(
+        new Error('Connection terminated'),
+      );
 
       const health = await service.getHealth();
 
@@ -63,7 +65,9 @@ describe('OperationsHealthService', () => {
     });
 
     it('returns ready: false with reason when DB is unreachable', async () => {
-      mockPrisma.$queryRaw.mockRejectedValue(new Error('Timeout acquiring connection'));
+      mockPrisma.$queryRaw.mockRejectedValue(
+        new Error('Timeout acquiring connection'),
+      );
 
       const res = await service.checkReadiness();
 

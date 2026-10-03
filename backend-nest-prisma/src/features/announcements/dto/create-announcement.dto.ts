@@ -13,7 +13,7 @@ import { AnnouncementCategory } from '@prisma/client';
 
 export class CreateAnnouncementDto {
   @ApiProperty({
-    example: 'Jumu\'ah Khutbah: Preparation for Ramadan & Community Unity',
+    example: "Jumu'ah Khutbah: Preparation for Ramadan & Community Unity",
     description: 'Title of the announcement',
   })
   @IsString()
@@ -24,7 +24,7 @@ export class CreateAnnouncementDto {
 
   @ApiProperty({
     example:
-      'Special guest Khatib Mawlana Abdullah will deliver this Friday\'s sermon. First Azan is at 12:45 PM.',
+      "Special guest Khatib Mawlana Abdullah will deliver this Friday's sermon. First Azan is at 12:45 PM.",
     description: 'Detailed announcement body',
   })
   @IsString()
