@@ -2,7 +2,7 @@
 id: F-035
 name: Followed Mosques First Feed with Dynamic Discovery Search
 phase: 3
-status: in-progress
+status: completed
 
 depends_on:
   - F-001
@@ -46,7 +46,7 @@ This specification prioritizes personalized utility for worshippers across Bangl
 
 ## 3. Implementation Checklist
 - [x] Author ADR-022 and Feature Specification F-035
-- [ ] Frontend: Implement `fetchFollowedMosques()` in `frontend/src/lib/api.ts`
-- [ ] Frontend: Update `frontend/src/app/page.tsx` default feed to render followed mosques
-- [ ] Frontend: Maintain instant search and filter fallback behavior
-- [ ] Verify TypeScript compilation and production build
+- [x] Frontend: Implement `fetchFollowedMosques()` in `frontend/src/lib/api.ts`
+- [x] Frontend: Update `frontend/src/app/page.tsx` default feed to render followed mosques
+- [x] Frontend: Maintain instant search and filter fallback behavior
+- [x] Verify TypeScript compilation and production build
