@@ -44,15 +44,6 @@ import { AdminMosqueInspectionModal } from '@/components/AdminMosqueInspectionMo
 import { fetchPaginatedMosques, deleteMosque, updateMosqueDetails, toggleMosqueListing, getApiBase } from '@/lib/api';
 import { Mosque } from '@/types/mosque';
 
-interface SuggestionItem {
-  id: string;
-  mosqueId: string;
-  mosque?: { name: string; city: string | null };
-  suggestedTimes: any;
-  description: string | null;
-  status: string;
-  createdAt: string;
-}
 
 interface ReportItem {
   id: string;
@@ -129,7 +120,7 @@ interface SystemHealthData {
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<
-    'directory' | 'reports' | 'claims' | 'suggestions' | 'donations' | 'audit' | 'health'
+    'directory' | 'reports' | 'claims' | 'donations' | 'audit' | 'health'
   >('directory');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -151,8 +142,7 @@ export default function AdminPage() {
   const [inspectorTab, setInspectorTab] = useState<'overview' | 'staff' | 'facilities' | 'schedule' | 'reports'>('overview');
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
 
-  // Operational data states
-  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
+
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [roleClaims, setRoleClaims] = useState<RoleClaimItem[]>([]);
   const [donations, setDonations] = useState<DonationChannelItem[]>([]);
@@ -240,17 +230,6 @@ export default function AdminPage() {
         setDirectoryMosques(res.items);
         setTotalCount(res.meta.total);
         setTotalPages(res.meta.totalPages);
-      } else if (activeTab === 'suggestions') {
-        const res = await fetch(`${API_BASE}/admin/suggestions?status=OPEN`, { headers });
-        if (res.ok) {
-          const json = await res.json();
-          setSuggestions(json.data?.items || json.items || []);
-        } else if (res.status === 401 || res.status === 403) {
-          setAuthError('Authentication required: Admin credentials missing or expired (401/403).');
-          setSuggestions([]);
-        } else {
-          setSuggestions([]);
-        }
       } else if (activeTab === 'reports') {
         const res = await fetch(`${API_BASE}/admin/reports?status=OPEN`, { headers });
         if (res.ok) {
@@ -442,24 +421,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleResolveSuggestion = async (id: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/admin/suggestions/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-        body: JSON.stringify({ status: 'RESOLVED', resolutionNotes: 'Applied by moderator' }),
-      });
-      if (res.ok) {
-        setSuggestions((prev) => prev.filter((s) => s.id !== id));
-        setStatusMessage('Suggestion resolved.');
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setStatusMessage(`Error: ${err.message || 'Failed to resolve suggestion.'}`);
-      }
-    } catch {
-      setStatusMessage('Network error: Failed to connect to server.');
-    }
-  };
 
   const handleDismissReport = async (id: string) => {
     try {
@@ -617,16 +578,6 @@ export default function AdminPage() {
             Role Claims ({roleClaims.length})
           </button>
 
-          <button
-            onClick={() => setActiveTab('suggestions')}
-            className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-              activeTab === 'suggestions'
-                ? 'bg-[#111114] text-white shadow-sm'
-                : 'bg-white text-[#6e6e73] hover:text-black border border-[#e8e8ea]'
-            }`}
-          >
-            Schedule Suggestions ({suggestions.length})
-          </button>
 
           <button
             onClick={() => setActiveTab('donations')}
@@ -1197,63 +1148,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Tab 5: Schedule Suggestions */}
-        {activeTab === 'suggestions' && (
-          <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-zinc-50 border border-[#e8e8ea] text-xs space-y-1">
-              <div className="flex items-center gap-2 font-semibold text-[#111114]">
-                <Clock className="w-4 h-4 text-emerald-600" />
-                <span>Immediate Community Timetable Updates Active (ADR-021)</span>
-              </div>
-              <p className="text-[#6e6e73]">
-                Community timetable edits persist directly to active mosque schedules with immutable audit snapshots. Approval bottlenecks have been decommissioned. Any legacy or non-timetable suggestions awaiting review appear below.
-              </p>
-            </div>
-
-            {suggestions.length === 0 ? (
-              <div className="p-12 text-center rounded-xl bg-white border border-[#e8e8ea] text-xs text-[#6e6e73]">
-                No pending suggestions. All community prayer timetable changes take effect immediately without moderation queue delays.
-              </div>
-            ) : (
-              suggestions.map((s) => (
-                <div
-                  key={s.id}
-                  className="p-5 rounded-xl bg-white border border-[#e8e8ea] shadow-sm space-y-3"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h2 className="text-sm font-bold text-[#111114]">{s.mosque?.name || 'Unknown Mosque'}</h2>
-                      <p className="text-xs text-[#6e6e73]">{s.description || 'No additional note'}</p>
-                    </div>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-semibold">
-                      {s.status}
-                    </span>
-                  </div>
-
-                  {s.suggestedTimes && (
-                    <div className="p-3 rounded-lg bg-[#fafafa] border border-[#e8e8ea] flex items-center gap-4 text-xs font-mono">
-                      {Object.entries(s.suggestedTimes).map(([k, v]) => (
-                        <div key={k}>
-                          <span className="text-[10px] uppercase text-[#6e6e73] block">{k}</span>
-                          <span className="font-bold">{formatTo12Hour(String(v))}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-[#f0f0f2]">
-                    <button
-                      onClick={() => handleResolveSuggestion(s.id)}
-                      className="px-4 py-1.5 rounded-full bg-[#111114] text-white text-xs font-semibold hover:bg-zinc-800"
-                    >
-                      Apply & Resolve
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
 
         {/* Tab 6: Donations */}
         {activeTab === 'donations' && (
