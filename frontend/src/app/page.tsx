@@ -222,6 +222,14 @@ export default function HomePage() {
     return mosques;
   }, [isSearchingOrFiltering, followedMosques, mosques, filterBookmarked, bookmarkedIds]);
 
+  // Map mosques: ensures all listed mosques are visible on the map, along with any followed mosques
+  const mapMosques = useMemo(() => {
+    const mosqueMap = new Map<string, Mosque>();
+    mosques.forEach((m) => mosqueMap.set(m.id, m));
+    followedMosques.forEach((m) => mosqueMap.set(m.id, m));
+    return Array.from(mosqueMap.values());
+  }, [mosques, followedMosques]);
+
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#fafafa]">
       {/* Top Navigation */}
@@ -406,13 +414,14 @@ export default function HomePage() {
           }`}
         >
           <MosqueMap
-            mosques={displayedMosques}
+            mosques={mapMosques}
             selectedMosque={selectedMosque}
             onSelectMosque={(m) => setSelectedMosque(m)}
             userLocation={userLocation}
             isPinDropMode={isPinDropMode}
             pinLocation={droppedPin}
             onPinDrop={handleMapPinDrop}
+            bookmarkedIds={bookmarkedIds}
           />
         </div>
 

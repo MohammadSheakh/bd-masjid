@@ -54,6 +54,6 @@ This specification prioritizes personalized utility for worshippers across Bangl
 - [x] Frontend: Implement `fetchFollowedMosques()` in `frontend/src/lib/api.ts`
 - [x] Frontend: Update `frontend/src/app/page.tsx` default feed to render followed mosques
 - [x] Frontend: Maintain instant search and filter fallback behavior
-- [ ] Frontend: Feed all listed mosques to `MosqueMap` while retaining followed list in sidebar
-- [ ] Frontend: Implement regular vs smaller marker styling based on followed status in `MosqueMap`
-- [ ] Verify TypeScript compilation and production build
+- [x] Frontend: Feed all listed mosques to `MosqueMap` while retaining followed list in sidebar
+- [x] Frontend: Implement regular vs smaller marker styling based on followed status in `MosqueMap`
+- [x] Verify TypeScript compilation and production build

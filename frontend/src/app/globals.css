@@ -20,12 +20,15 @@
 }
 
 /* Custom map marker styles */
+.mosque-pin-container {
+  background: transparent !important;
+  border: none !important;
+}
+
 .custom-mosque-pin {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
   background-color: #111114;
   color: white;
   border-radius: 9999px;
@@ -33,17 +36,33 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.custom-mosque-pin.followed {
+  width: 34px;
+  height: 34px;
+}
+
+.custom-mosque-pin.unfollowed {
+  width: 22px;
+  height: 22px;
+  background-color: #27272a;
+  border: 1.5px solid #f4f4f5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  opacity: 0.92;
 }
 
 .custom-mosque-pin:hover {
-  transform: scale(1.12);
+  transform: scale(1.15);
+  opacity: 1;
 }
 
 .custom-mosque-pin.active {
   background-color: #059669;
   border-color: #ecfdf5;
   transform: scale(1.18);
+  opacity: 1;
 }
 
 /* Custom scrollbars */

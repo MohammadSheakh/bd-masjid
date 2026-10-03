@@ -12,6 +12,7 @@ interface MosqueMapProps {
   isPinDropMode?: boolean;
   pinLocation?: { lat: number; lng: number } | null;
   onPinDrop?: (coords: { lat: number; lng: number }) => void;
+  bookmarkedIds?: string[];
 }
 
 export function MosqueMap({
@@ -22,6 +23,7 @@ export function MosqueMap({
   isPinDropMode,
   pinLocation,
   onPinDrop,
+  bookmarkedIds = [],
 }: MosqueMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -170,24 +172,33 @@ export function MosqueMap({
 
     markersLayer.clearLayers();
 
+    const followedSet = new Set(bookmarkedIds);
+
     mosques.forEach((mosque) => {
       const isSelected = selectedMosque?.id === mosque.id;
+      const isFollowed = followedSet.has(mosque.id);
+
+      const iconSize: [number, number] = isFollowed ? [34, 34] : [22, 22];
+      const iconAnchor: [number, number] = isFollowed ? [17, 17] : [11, 11];
 
       const icon = L.divIcon({
         className: 'mosque-pin-container',
         html: `
-          <div class="custom-mosque-pin ${isSelected ? 'active' : ''}">
-            <span style="font-size: 14px;">🕌</span>
+          <div class="custom-mosque-pin ${isFollowed ? 'followed' : 'unfollowed'} ${isSelected ? 'active' : ''}">
+            <span style="font-size: ${isFollowed ? '14px' : '9px'}; line-height: 1;">🕌</span>
           </div>
         `,
-        iconSize: [34, 34],
-        iconAnchor: [17, 17],
+        iconSize,
+        iconAnchor,
       });
 
-      const marker = L.marker([mosque.latitude, mosque.longitude], { icon });
+      const marker = L.marker([mosque.latitude, mosque.longitude], {
+        icon,
+        zIndexOffset: isSelected ? 1000 : (isFollowed ? 50 : 10),
+      });
 
       marker.bindTooltip(
-        `<strong>${mosque.name}</strong><br/><span style="color: #6e6e73; font-size: 11px;">${mosque.city || 'Dhaka'}</span>`,
+        `<strong>${mosque.name}</strong>${isFollowed ? ' <span style="color: #059669; font-size: 11px;">(Followed)</span>' : ''}<br/><span style="color: #6e6e73; font-size: 11px;">${mosque.city || 'Dhaka'}</span>`,
         { direction: 'top', offset: [0, -10] },
       );
 
@@ -197,7 +208,7 @@ export function MosqueMap({
 
       markersLayer.addLayer(marker);
     });
-  }, [mosques, selectedMosque, onSelectMosque]);
+  }, [mosques, selectedMosque, onSelectMosque, bookmarkedIds]);
 
   // Pan to selected mosque when selected externally
   useEffect(() => {
