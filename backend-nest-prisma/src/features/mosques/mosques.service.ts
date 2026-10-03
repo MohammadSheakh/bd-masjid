@@ -580,7 +580,7 @@ export class MosquesService {
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      const data: Prisma.MosqueUpdateInput = {};
+      const data: Prisma.MosqueUncheckedUpdateInput = {};
       if (dto.name) data.name = dto.name.trim();
       if (dto.address !== undefined) data.address = dto.address?.trim() || null;
       if (dto.landmark !== undefined)
