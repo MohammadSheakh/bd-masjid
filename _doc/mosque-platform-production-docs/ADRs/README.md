@@ -27,6 +27,8 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-019](ADR-019-mosque-admin-mutawalli-governance-and-custom-role-claims.md) | Mosque Admin & Mutawalli Dual Super-Role Governance, Custom Roles, and Identity Verification Claims | Accepted | 2026-10-01 | Governance, RBAC & Role Claims |
 | [ADR-020](ADR-020-elimination-of-verification-states-in-favor-of-listing-and-moderated-delisting.md) | Elimination of Mosque Verification States in Favor of Sovereign Listing and Moderated Delisting | Accepted | 2026-10-03 | Moderation, Discovery & UI Governance |
 | [ADR-021](ADR-021-immediate-community-timetable-updates-in-place-of-moderation-bottleneck.md) | Immediate Community Timetable Updates in Place of Suggestion Review Bottleneck | Accepted | 2026-10-03 | Timetable Governance & Community Edits |
+| [ADR-022](ADR-022-followed-mosques-first-feed-with-search-fallback.md) | Followed Mosques First Feed with Dynamic Discovery and Search Fallback | Accepted | 2026-10-03 | Personalization, Feed & Search Fallback |
+| [ADR-023](ADR-023-map-all-listed-mosques-with-differentiated-marker-hierarchy.md) | Map Viewport All Listed Mosques with Differentiated Followed Marker Hierarchy | Accepted | 2026-10-03 | Interactive Map, Geospatial Discovery & Pin Hierarchy |
 
 
 ---
