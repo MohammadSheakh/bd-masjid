@@ -23,13 +23,15 @@ source:
 # Feature Specification: Mosque Attendance Tracking
 
 ## 1. Overview
-The Attendance Tracking feature allows registered community members to mark their attendance habits at a mosque (regular vs occasional), providing crowd-sourced vitality indicators without compromising individual user privacy.
+The Attendance Tracking feature allows community members to declare their enduring attendance affiliation with a mosque (regular worshippers vs occasional attendees). This is a **one-time declaration** rather than a daily recurring action, providing crowd-sourced vitality indicators without compromising individual user privacy.
 
 ## 2. Business Invariants
 1. **Unique User-Mosque Pair**: A single user can have at most one attendance status per mosque (`@@unique([userId, mosqueId])`).
-2. **Idempotent Mutations**: Multiple identical attendance requests must yield the same result without inflating counters.
-3. **Privacy Exposure Guard**: Public endpoints must expose only aggregated counts (`regularCount`, `occasionalCount`), never listing individual user identities.
-4. **Server-Derived User**: The `userId` is obtained strictly from the authenticated JWT session.
+2. **One-Time Affiliation Selection**: A person selects one option (`REGULAR` or `OCCASIONAL`). Re-selecting the active status toggles off (`NONE`), or clicking the alternate option switches the affiliation directly.
+3. **Dual Count Transparency**: Every mosque surface (`MosqueCard`, `MosqueDetailModal`, `/mosques/[id]`) MUST display both `regularCount` and `occasionalCount` metrics simultaneously (e.g. `X regular • Y occasional`).
+4. **Idempotent Mutations**: Multiple identical attendance requests must yield the same result without inflating counters.
+5. **Privacy Exposure Guard**: Public endpoints must expose only aggregated counts (`regularCount`, `occasionalCount`), never listing individual user identities.
+6. **Server-Derived User**: The `userId` is obtained strictly from the authenticated JWT session with local storage fallback for visitors.
 
 ## 3. Data Model Reference (`UserMosqueAttendance`)
 - `id`: CUID
@@ -51,6 +53,10 @@ The Attendance Tracking feature allows registered community members to mark thei
 - [x] Privacy review: individual attendee list not exposed publicly
 - [x] Concurrency and idempotency unit tests (`attendance.service.spec.ts`)
 - [x] Mosque detail view displaying verified attendance counts
+- [ ] Backend: Attach `attendanceSummary` in `findNearby` and `findAll` batch queries
+- [ ] Frontend: Display dual counts (`regularCount` and `occasionalCount`) on `MosqueCard`
+- [ ] Frontend: Display dual counts and one-time declaration guidance in `MosqueDetailModal`
+- [ ] Frontend: Display dual counts on standalone mosque profile `/mosques/[id]`
 
 ---
 
