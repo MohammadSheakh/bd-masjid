@@ -53,10 +53,10 @@ The Attendance Tracking feature allows community members to declare their enduri
 - [x] Privacy review: individual attendee list not exposed publicly
 - [x] Concurrency and idempotency unit tests (`attendance.service.spec.ts`)
 - [x] Mosque detail view displaying verified attendance counts
-- [ ] Backend: Attach `attendanceSummary` in `findNearby` and `findAll` batch queries
-- [ ] Frontend: Display dual counts (`regularCount` and `occasionalCount`) on `MosqueCard`
-- [ ] Frontend: Display dual counts and one-time declaration guidance in `MosqueDetailModal`
-- [ ] Frontend: Display dual counts on standalone mosque profile `/mosques/[id]`
+- [x] Backend: Attach `attendanceSummary` in `findNearby` and `findAll` batch queries
+- [x] Frontend: Display dual counts (`regularCount` and `occasionalCount`) on `MosqueCard`
+- [x] Frontend: Display dual counts and one-time declaration guidance in `MosqueDetailModal`
+- [x] Frontend: Display dual counts on standalone mosque profile `/mosques/[id]`
 
 ---
 

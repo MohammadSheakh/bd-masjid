@@ -257,8 +257,10 @@ export default async function MosquePage({ params }: MosquePageProps) {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73]">
                   Community Attendance
                 </h3>
-                <p className="text-sm font-semibold text-[#111114] mt-0.5">
-                  {mosque.attendanceSummary.regularCount} Regular Attendees
+                <p className="text-sm font-semibold text-[#111114] mt-0.5 flex items-center gap-2">
+                  <span>{mosque.attendanceSummary.regularCount} Regular</span>
+                  <span className="text-zinc-300">•</span>
+                  <span>{mosque.attendanceSummary.occasionalCount} Occasional Attendees</span>
                 </p>
               </div>
               <Users className="w-6 h-6 text-zinc-400" />

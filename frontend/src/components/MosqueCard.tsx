@@ -129,6 +129,8 @@ export function MosqueCard({
           <span className="text-[#6e6e73] text-[11px] flex items-center gap-1 shrink-0">
             <Users className="w-3 h-3 text-zinc-400" />
             <span>{mosque.attendanceSummary.regularCount} regular</span>
+            <span className="text-zinc-300">•</span>
+            <span>{mosque.attendanceSummary.occasionalCount} occasional</span>
           </span>
         )}
       </div>

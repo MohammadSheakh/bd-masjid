@@ -62,9 +62,16 @@ export function MosqueDetailModal({
   });
   const [isTogglingBookmark, setIsTogglingBookmark] = useState(false);
 
-  const [currentAttendance, setCurrentAttendance] = useState<AttendanceStatus>(
-    mosque.attendanceSummary?.userStatus || 'NONE',
-  );
+  const [currentAttendance, setCurrentAttendance] = useState<AttendanceStatus>(() => {
+    if (mosque.attendanceSummary?.userStatus && mosque.attendanceSummary.userStatus !== 'NONE') {
+      return mosque.attendanceSummary.userStatus;
+    }
+    if (typeof window !== 'undefined') {
+      const local = localStorage.getItem(`bd_masjid_attendance_${mosque.id}`);
+      if (local === 'REGULAR' || local === 'OCCASIONAL') return local;
+    }
+    return 'NONE';
+  });
   const [regularCount, setRegularCount] = useState<number>(
     mosque.attendanceSummary?.regularCount || 0,
   );
@@ -152,17 +159,22 @@ export function MosqueDetailModal({
 
   const handleAttendance = async (newStatus: AttendanceStatus) => {
     setIsUpdatingAttendance(true);
+    const prevStatus = currentAttendance;
     try {
+      // Optimistic update
+      setCurrentAttendance(newStatus);
+      if (prevStatus === 'REGULAR') setRegularCount((c) => Math.max(0, c - 1));
+      if (prevStatus === 'OCCASIONAL') setOccasionalCount((c) => Math.max(0, c - 1));
+      if (newStatus === 'REGULAR') setRegularCount((c) => c + 1);
+      if (newStatus === 'OCCASIONAL') setOccasionalCount((c) => c + 1);
+
       const summary = await toggleAttendance(mosque.id, newStatus);
       if (summary) {
-        setCurrentAttendance(newStatus);
         setRegularCount(summary.regularCount);
         setOccasionalCount(summary.occasionalCount);
-      } else {
-        // Fallback optimistic update
-        setCurrentAttendance(newStatus);
-        if (newStatus === 'REGULAR') setRegularCount((c) => c + 1);
-        if (newStatus === 'OCCASIONAL') setOccasionalCount((c) => c + 1);
+        if (summary.userStatus) {
+          setCurrentAttendance(summary.userStatus);
+        }
       }
       if (onAttendanceChanged) {
         onAttendanceChanged(mosque.id, newStatus);
@@ -518,17 +530,23 @@ export function MosqueDetailModal({
 
           {/* Community Attendance Tracking */}
           <div className="p-4 rounded-2xl bg-[#fafafa] border border-[#e8e8ea]">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73]">
                 Community Attendance
               </h3>
-              <span className="text-xs font-medium text-zinc-600 flex items-center gap-1">
-                <Users className="w-3.5 h-3.5" />
-                {regularCount} regular attendees
-              </span>
+              <div className="text-xs font-medium text-zinc-600 flex items-center gap-2">
+                <span className="flex items-center gap-1" title="Regular worshippers">
+                  <Users className="w-3.5 h-3.5 text-emerald-600" />
+                  <strong className="text-zinc-900 font-semibold">{regularCount}</strong> regular
+                </span>
+                <span className="text-zinc-300">•</span>
+                <span title="Occasional attendees">
+                  <strong className="text-zinc-900 font-semibold">{occasionalCount}</strong> occasional
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 mt-2">
               <button
                 disabled={isUpdatingAttendance}
                 onClick={() =>
@@ -559,6 +577,9 @@ export function MosqueDetailModal({
                 <span>Occasional attendee</span>
               </button>
             </div>
+            <p className="text-[11px] text-[#8e8e93] mt-2 text-center">
+              One-time selection • Declare your attendance affiliation with this mosque
+            </p>
           </div>
 
           {/* Quick Actions (Directions, Donate, Suggestion, Report) */}

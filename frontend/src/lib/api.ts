@@ -460,16 +460,29 @@ export async function toggleAttendance(
   status: 'REGULAR' | 'OCCASIONAL' | 'NONE',
 ): Promise<AttendanceSummary | null> {
   try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    if (typeof window !== 'undefined') {
+      if (status === 'NONE') {
+        localStorage.removeItem(`bd_masjid_attendance_${mosqueId}`);
+      } else {
+        localStorage.setItem(`bd_masjid_attendance_${mosqueId}`, status);
+      }
+    }
+
     if (status === 'NONE') {
       const res = await fetch(`${API_BASE}/mosques/${mosqueId}/attendance`, {
         method: 'DELETE',
+        headers,
       });
       const json = await res.json();
       return json.data?.summary || json.summary || null;
     } else {
       const res = await fetch(`${API_BASE}/mosques/${mosqueId}/attendance`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ status }),
       });
       const json = await res.json();
