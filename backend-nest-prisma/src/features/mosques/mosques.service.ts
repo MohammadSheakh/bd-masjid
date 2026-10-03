@@ -348,26 +348,45 @@ export class MosquesService {
       return [];
     }
 
-    // Attach current prayer schedules and facilities
+    // Attach current prayer schedules, facilities, and community attendance aggregates
     const mosqueIds = rawMosques.map((m) => m.id);
-    const [schedules, facilities] = await Promise.all([
+    const [schedules, facilities, attendances] = await Promise.all([
       this.prisma.prayerSchedule.findMany({
         where: { mosqueId: { in: mosqueIds } },
       }),
       this.prisma.mosqueFacility.findMany({
         where: { mosqueId: { in: mosqueIds } },
       }),
+      this.prisma.userMosqueAttendance.groupBy({
+        by: ['mosqueId', 'status'],
+        where: { mosqueId: { in: mosqueIds } },
+        _count: { _all: true },
+      }),
     ]);
     const scheduleMap = new Map(schedules.map((s) => [s.mosqueId, s]));
     const facilityMap = new Map(facilities.map((f) => [f.mosqueId, f]));
+    const attendanceMap = new Map<string, { REGULAR: number; OCCASIONAL: number }>();
+    attendances.forEach((a) => {
+      const entry = attendanceMap.get(a.mosqueId) || { REGULAR: 0, OCCASIONAL: 0 };
+      if (a.status === 'REGULAR') entry.REGULAR = a._count._all;
+      if (a.status === 'OCCASIONAL') entry.OCCASIONAL = a._count._all;
+      attendanceMap.set(a.mosqueId, entry);
+    });
 
     return rawMosques.map((mosque) => {
       const schedule = scheduleMap.get(mosque.id) || null;
       const facility = facilityMap.get(mosque.id) || null;
+      const counts = attendanceMap.get(mosque.id) || { REGULAR: 0, OCCASIONAL: 0 };
       return {
         ...mosque,
         facility,
         prayerSchedule: schedule,
+        attendanceSummary: {
+          regularCount: counts.REGULAR,
+          occasionalCount: counts.OCCASIONAL,
+          totalCount: counts.REGULAR + counts.OCCASIONAL,
+          userStatus: 'NONE',
+        },
         freshness: this.deriveFreshness(
           schedule?.updatedAt || mosque.updatedAt,
         ),
@@ -543,13 +562,39 @@ export class MosquesService {
       this.prisma.mosque.count({ where }),
     ]);
 
+    const itemIds = items.map((m) => m.id);
+    const attendances =
+      itemIds.length > 0
+        ? await this.prisma.userMosqueAttendance.groupBy({
+            by: ['mosqueId', 'status'],
+            where: { mosqueId: { in: itemIds } },
+            _count: { _all: true },
+          })
+        : [];
+    const attendanceMap = new Map<string, { REGULAR: number; OCCASIONAL: number }>();
+    attendances.forEach((a) => {
+      const entry = attendanceMap.get(a.mosqueId) || { REGULAR: 0, OCCASIONAL: 0 };
+      if (a.status === 'REGULAR') entry.REGULAR = a._count._all;
+      if (a.status === 'OCCASIONAL') entry.OCCASIONAL = a._count._all;
+      attendanceMap.set(a.mosqueId, entry);
+    });
+
     return {
-      items: items.map((m) => ({
-        ...m,
-        freshness: this.deriveFreshness(
-          m.prayerSchedule?.updatedAt || m.updatedAt,
-        ),
-      })),
+      items: items.map((m) => {
+        const counts = attendanceMap.get(m.id) || { REGULAR: 0, OCCASIONAL: 0 };
+        return {
+          ...m,
+          attendanceSummary: {
+            regularCount: counts.REGULAR,
+            occasionalCount: counts.OCCASIONAL,
+            totalCount: counts.REGULAR + counts.OCCASIONAL,
+            userStatus: 'NONE',
+          },
+          freshness: this.deriveFreshness(
+            m.prayerSchedule?.updatedAt || m.updatedAt,
+          ),
+        };
+      }),
       meta: {
         page,
         limit,
