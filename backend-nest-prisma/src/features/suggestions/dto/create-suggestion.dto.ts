@@ -12,6 +12,19 @@ export class CreateSuggestionDto {
   suggestedTimes?: Record<string, any>;
 
   @ApiPropertyOptional({
+    description:
+      'Suggested facility details map including capacities and custom amenities',
+    example: {
+      hasFemalePrayerSpace: true,
+      hasWheelchairAccess: true,
+      customAmenities: ['Elevator / Lift'],
+    },
+  })
+  @IsOptional()
+  @IsObject()
+  suggestedFacilities?: Record<string, any>;
+
+  @ApiPropertyOptional({
     description: 'Detailed description or context for the suggestion',
     example: 'Jamaat time changed for summer season as announced by committee.',
   })

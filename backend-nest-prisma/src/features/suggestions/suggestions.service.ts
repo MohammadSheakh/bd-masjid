@@ -69,6 +69,9 @@ export class SuggestionsService {
         suggestedTimes: dto.suggestedTimes
           ? (dto.suggestedTimes as Prisma.InputJsonValue)
           : Prisma.JsonNull,
+        suggestedFacilities: dto.suggestedFacilities
+          ? (dto.suggestedFacilities as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
         description: dto.description?.trim() || null,
         status: hasSuggestedTimes
           ? SuggestionStatus.RESOLVED

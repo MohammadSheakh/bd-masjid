@@ -198,5 +198,31 @@ describe('FacilitiesService', () => {
         service.upsertFacilities('nonexistent', dto, adminActor),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('should sanitize and persist customAmenities correctly', async () => {
+      prisma.mosque.findUnique.mockResolvedValue(mockMosque);
+      prisma.mosqueFacility.findUnique.mockResolvedValue(null);
+      prisma.mosqueFacility.upsert.mockResolvedValue({
+        ...mockFacility,
+        customAmenities: ['Elevator / Lift', 'Solar Power'],
+      });
+      prisma.auditLog.create.mockResolvedValue({ id: 'audit-3' });
+      prisma.mosque.update.mockResolvedValue(mockMosque);
+
+      const customDto: UpsertFacilityDto = {
+        totalCapacity: 500,
+        customAmenities: ['Elevator / Lift', 'Solar Power', '  Elevator / Lift  '],
+      };
+
+      const result = await service.upsertFacilities('mosque-1', customDto, adminActor);
+      expect(result.customAmenities).toEqual(['Elevator / Lift', 'Solar Power']);
+      expect(prisma.mosqueFacility.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({
+            customAmenities: ['Elevator / Lift', 'Solar Power'],
+          }),
+        }),
+      );
+    });
   });
 });

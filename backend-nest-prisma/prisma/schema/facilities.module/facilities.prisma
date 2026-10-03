@@ -29,6 +29,9 @@ model MosqueFacility {
   hasParkingBike        Boolean?  @default(false)
   hasLibraryMaktab      Boolean?  @default(false)
 
+  // Extensible Custom Amenities
+  customAmenities       String[]  @default([])
+
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 

@@ -1,6 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, Min } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ArrayMaxSize,
+  Min,
+} from 'class-validator';
 
 export class UpsertFacilityDto {
   @ApiPropertyOptional({
@@ -122,4 +131,15 @@ export class UpsertFacilityDto {
   @IsOptional()
   @IsBoolean()
   hasLibraryMaktab?: boolean;
+
+  @ApiPropertyOptional({
+    example: ['Elevator / Lift', 'Solar Power / IPS', 'CCTV Surveillance'],
+    description: 'Extensible list of custom or additional facility amenities',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(20)
+  @MaxLength(50, { each: true })
+  customAmenities?: string[];
 }

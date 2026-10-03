@@ -104,6 +104,9 @@ export class FacilitiesService {
           hasParkingCar: dto.hasParkingCar,
           hasParkingBike: dto.hasParkingBike,
           hasLibraryMaktab: dto.hasLibraryMaktab,
+          customAmenities: dto.customAmenities
+            ? Array.from(new Set(dto.customAmenities.map((s) => s.trim()).filter(Boolean)))
+            : [],
         },
         update: {
           ...(dto.totalCapacity !== undefined && {
@@ -147,6 +150,11 @@ export class FacilitiesService {
           }),
           ...(dto.hasLibraryMaktab !== undefined && {
             hasLibraryMaktab: dto.hasLibraryMaktab,
+          }),
+          ...(dto.customAmenities !== undefined && {
+            customAmenities: Array.from(
+              new Set(dto.customAmenities.map((s) => s.trim()).filter(Boolean)),
+            ),
           }),
         },
       });

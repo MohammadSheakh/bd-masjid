@@ -142,6 +142,43 @@ describe('SuggestionsService', () => {
         }),
       });
     });
+
+    it('creates OPEN suggestion with suggestedFacilities payload', async () => {
+      mockPrisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        name: 'Test Mosque',
+      });
+      mockPrisma.mosqueSuggestion.create.mockResolvedValue({
+        id: 'sugg-3',
+        mosqueId: 'mosque-1',
+        status: SuggestionStatus.OPEN,
+      });
+
+      const res = await service.createSuggestion(
+        'mosque-1',
+        {
+          description: 'Suggesting new facilities',
+          suggestedFacilities: {
+            hasFemalePrayerSpace: true,
+            customAmenities: ['Elevator / Lift', 'Solar Power'],
+          },
+        },
+        'user-1',
+      );
+
+      expect(res.id).toBe('sugg-3');
+      expect(mockPrisma.mosqueSuggestion.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          mosqueId: 'mosque-1',
+          userId: 'user-1',
+          suggestedFacilities: {
+            hasFemalePrayerSpace: true,
+            customAmenities: ['Elevator / Lift', 'Solar Power'],
+          },
+          status: SuggestionStatus.OPEN,
+        }),
+      });
+    });
   });
 
   describe('createReport', () => {

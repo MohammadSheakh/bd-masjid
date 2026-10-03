@@ -487,6 +487,9 @@ model MosqueFacility {
   hasParkingBike        Boolean?  @default(false)
   hasLibraryMaktab      Boolean?  @default(false)
 
+  // Extensible Custom Amenities
+  customAmenities       String[]  @default([])
+
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
@@ -723,8 +726,9 @@ model MosqueSuggestion {
   userId          String?
   user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  suggestedTimes  Json?
-  description     String?
+  suggestedTimes      Json?
+  suggestedFacilities Json?
+  description         String?
 
   status          SuggestionStatus @default(OPEN)
   reviewedById    String?
