@@ -989,6 +989,50 @@ export async function fetchUserBookmarks(): Promise<string[]> {
   return getLocalBookmarks();
 }
 
+export async function fetchFollowedMosques(): Promise<Mosque[]> {
+  const followedMap = new Map<string, Mosque>();
+
+  // 1. If authenticated, fetch from server /users/me/bookmarks
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (token) {
+      const res = await fetch(`${API_BASE}/users/me/bookmarks`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const mosques = json.data || json || [];
+        if (Array.isArray(mosques)) {
+          for (const m of mosques) {
+            if (m && m.id) followedMap.set(m.id, m);
+          }
+        }
+      }
+    }
+  } catch {
+    // Continue to local hydration
+  }
+
+  // 2. Hydrate any local bookmarks from localStorage
+  const localIds = getLocalBookmarks();
+  const missingIds = localIds.filter((id) => !followedMap.has(id));
+
+  if (missingIds.length > 0) {
+    const results = await Promise.allSettled(
+      missingIds.map((id) => fetchMosqueById(id)),
+    );
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value) {
+        followedMap.set(r.value.id, r.value);
+      }
+    }
+  }
+
+  return Array.from(followedMap.values());
+}
+
 export async function fetchMosqueFacilities(
   mosqueId: string,
 ): Promise<MosqueFacility | null> {
