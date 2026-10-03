@@ -2,7 +2,7 @@
 id: F-036
 name: Extensible Mosque Facility Amenities & Dedicated Community Suggestion Workflow
 phase: 2
-status: in-progress
+status: completed
 depends_on:
   - F-004
   - F-006
@@ -79,18 +79,21 @@ model MosqueSuggestion {
 ## 4. Implementation Slices & Proof of Completion
 
 ### TK-FAC-01: Backend Schema & DTO Extension
-- **Status**: `[ ] Pending`
+- **Status**: `[x] Completed`
 - **Description**: Add `customAmenities` to `MosqueFacility` and `suggestedFacilities` to `MosqueSuggestion`. Update DTOs, service logic, and unit tests.
 - **Implementation Files**:
   - Schema: `backend-nest-prisma/prisma/schema/facilities.module/facilities.prisma`
   - DTOs: `backend-nest-prisma/src/features/facilities/dto/upsert-facility.dto.ts`
   - Service: `backend-nest-prisma/src/features/facilities/facilities.service.ts`
+  - Tests: `backend-nest-prisma/src/features/facilities/test/facilities.service.spec.ts`
 
 ### TK-FAC-02: Frontend Facility Suggestion & Custom Amenity Selector
-- **Status**: `[ ] Pending`
+- **Status**: `[x] Completed`
 - **Description**: Build `SuggestFacilitiesModal` matching admin structure with existing checklist and "create new option" support. Update `EditFacilitiesModal` and `MosqueFacilitiesCard`.
 - **Implementation Files**:
   - Modal: `frontend/src/components/SuggestFacilitiesModal.tsx`
+  - Selector: `frontend/src/components/CustomAmenitiesSelector.tsx`
   - Modal: `frontend/src/components/EditFacilitiesModal.tsx`
   - Card: `frontend/src/components/MosqueFacilitiesCard.tsx`
+  - Section: `frontend/src/components/MosqueFacilitiesSection.tsx`
   - Section: `frontend/src/components/MosqueFacilitiesSection.tsx`
