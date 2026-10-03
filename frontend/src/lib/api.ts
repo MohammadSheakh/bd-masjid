@@ -553,6 +553,31 @@ export async function submitScheduleSuggestion(
   return res.json();
 }
 
+export async function submitFacilitySuggestion(
+  mosqueId: string,
+  data: { suggestedFacilities: Partial<MosqueFacility>; description?: string },
+  token?: string,
+) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  const activeToken =
+    token ||
+    (typeof window !== 'undefined'
+      ? localStorage.getItem('access_token') || localStorage.getItem('token')
+      : null);
+  if (activeToken) {
+    headers['Authorization'] = `Bearer ${activeToken}`;
+  }
+
+  const res = await fetch(`${API_BASE}/mosques/${mosqueId}/suggestions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
 export async function submitMosqueReport(
   mosqueId: string,
   data: { type: string; description: string; contactEmail?: string },

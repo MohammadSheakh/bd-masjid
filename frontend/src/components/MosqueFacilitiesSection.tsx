@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Mosque, MosqueFacility } from '@/types/mosque';
 import { MosqueFacilitiesCard } from './MosqueFacilitiesCard';
 import { EditFacilitiesModal } from './EditFacilitiesModal';
+import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
 
 interface MosqueFacilitiesSectionProps {
   mosque: Mosque;
@@ -20,6 +21,7 @@ export const MosqueFacilitiesSection: React.FC<MosqueFacilitiesSectionProps> = (
     initialFacility || mosque.facility || null,
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
@@ -67,7 +69,7 @@ export const MosqueFacilitiesSection: React.FC<MosqueFacilitiesSectionProps> = (
         facility={facility}
         canEdit={canEdit}
         onEdit={() => setIsModalOpen(true)}
-        onOpenSuggestion={onOpenSuggestion}
+        onOpenSuggestion={() => setIsSuggestModalOpen(true)}
       />
 
       {isModalOpen && (
@@ -78,6 +80,21 @@ export const MosqueFacilitiesSection: React.FC<MosqueFacilitiesSectionProps> = (
           initialData={facility}
           onSaved={(updated) => {
             setFacility(updated);
+          }}
+        />
+      )}
+
+      {isSuggestModalOpen && (
+        <SuggestFacilitiesModal
+          isOpen={isSuggestModalOpen}
+          onClose={() => setIsSuggestModalOpen(false)}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          initialData={facility}
+          onSuccess={(updated) => {
+            if (updated) {
+              setFacility((prev: MosqueFacility | null) => ({ ...(prev || {}), ...updated }));
+            }
           }}
         />
       )}

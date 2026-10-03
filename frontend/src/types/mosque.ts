@@ -160,6 +160,7 @@ export interface MosqueFacility {
   hasParkingCar?: boolean | null;
   hasParkingBike?: boolean | null;
   hasLibraryMaktab?: boolean | null;
+  customAmenities?: string[] | null;
   createdAt?: string;
   updatedAt?: string;
 }

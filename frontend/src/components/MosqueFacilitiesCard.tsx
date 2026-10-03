@@ -136,6 +136,18 @@ export const MosqueFacilitiesCard: React.FC<MosqueFacilitiesCardProps> = ({
     });
   }
 
+  if (Array.isArray(facility?.customAmenities)) {
+    facility.customAmenities.forEach((customItem, idx) => {
+      const trimmed = customItem?.trim();
+      if (trimmed) {
+        availableAmenities.push({
+          id: `custom-amenity-${idx}`,
+          label: trimmed,
+        });
+      }
+    });
+  }
+
   const hasAnyInformation =
     capacityItems.length > 0 || availableAmenities.length > 0;
 

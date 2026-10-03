@@ -421,7 +421,6 @@ export function MosqueDetailModal({
           <MosqueFacilitiesSection
             mosque={mosque}
             initialFacility={mosque.facility}
-            onOpenSuggestion={() => onOpenSuggestion(mosque)}
           />
 
           {/* Staff & Committee */}

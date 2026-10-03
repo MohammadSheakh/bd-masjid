@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { MosqueFacility } from '@/types/mosque';
 import { upsertMosqueFacilities } from '@/lib/api';
+import { CustomAmenitiesSelector } from './CustomAmenitiesSelector';
 
 interface EditFacilitiesModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
   const [hasParkingCar, setHasParkingCar] = useState<boolean>(false);
   const [hasParkingBike, setHasParkingBike] = useState<boolean>(false);
   const [hasLibraryMaktab, setHasLibraryMaktab] = useState<boolean>(false);
+  const [customAmenities, setCustomAmenities] = useState<string[]>([]);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +77,9 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
       setHasParkingCar(Boolean(initialData.hasParkingCar));
       setHasParkingBike(Boolean(initialData.hasParkingBike));
       setHasLibraryMaktab(Boolean(initialData.hasLibraryMaktab));
+      setCustomAmenities(
+        Array.isArray(initialData.customAmenities) ? initialData.customAmenities : [],
+      );
     }
   }, [initialData, isOpen]);
 
@@ -111,6 +116,7 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
       hasParkingCar,
       hasParkingBike,
       hasLibraryMaktab,
+      customAmenities,
     };
 
     const res = await upsertMosqueFacilities(mosqueId, payload);
@@ -399,6 +405,18 @@ export const EditFacilitiesModal: React.FC<EditFacilitiesModalProps> = ({
                 </span>
               </label>
             </div>
+          </div>
+
+          {/* Additional Amenities & Custom Options */}
+          <div className="mb-6 pt-4 border-t border-[#e8e8ea]">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73] mb-3">
+              Additional Amenities & Custom Options
+            </h3>
+            <CustomAmenitiesSelector
+              selectedAmenities={customAmenities}
+              onChange={setCustomAmenities}
+              disabled={loading}
+            />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e8e8ea]">
