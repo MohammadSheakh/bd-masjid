@@ -128,13 +128,18 @@ export class PrayerSchedulesService {
           action: 'PRAYER_SCHEDULE_UPDATED',
           entityType: 'PrayerSchedule',
           entityId: updatedSchedule.id,
-          actor: actor || {
-            userId: 'anonymous-community',
-            email: 'community@bd-masjid.internal',
-            role: 'user' as any,
-          },
+          actor: actor
+            ? { userId: actor.userId, role: actor.role }
+            : {
+                userId: 'anonymous-community',
+                role: 'user' as any,
+              },
           newValue: updatedSchedule,
-          metadata: { mosqueId, reason },
+          metadata: {
+            mosqueId,
+            reason,
+            email: actor?.email || 'community@bd-masjid.internal',
+          },
         },
         tx,
       );
