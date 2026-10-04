@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AuditSource, Prisma } from '@prisma/client';
 import type { UserPayload } from '@app/common';
 import { PrismaService } from '@app/database';
@@ -19,10 +19,34 @@ export type RecordAuditInput = {
 };
 
 @Injectable()
-export class AuditService {
+export class AuditService implements OnModuleInit {
+  private isAuditEnabled = true;
+
   constructor(private readonly prisma: PrismaService) {}
 
+  async onModuleInit() {
+    try {
+      const config = await this.prisma.auditConfig.findUnique({
+        where: { id: 'default' },
+      });
+      if (config) {
+        this.isAuditEnabled = config.enabled;
+      }
+    } catch {
+      // Graceful fallback to enabled if DB is initializing
+      this.isAuditEnabled = true;
+    }
+  }
+
+  isTrackingEnabled(): boolean {
+    return this.isAuditEnabled;
+  }
+
   record(input: RecordAuditInput, client: AuditClient = this.prisma) {
+    if (!this.isAuditEnabled) {
+      return Promise.resolve(null);
+    }
+
     return client.auditLog.create({
       data: {
         action: input.action,
@@ -36,6 +60,38 @@ export class AuditService {
         metadata: safeAuditJson(input.metadata),
       },
     });
+  }
+
+  async getConfig() {
+    const config = await this.prisma.auditConfig.findUnique({
+      where: { id: 'default' },
+    });
+    return {
+      enabled: config ? config.enabled : this.isAuditEnabled,
+      updatedAt: config?.updatedAt ?? new Date(),
+      updatedBy: config?.updatedBy ?? null,
+    };
+  }
+
+  async updateConfig(enabled: boolean, updatedBy?: string) {
+    const config = await this.prisma.auditConfig.upsert({
+      where: { id: 'default' },
+      create: {
+        id: 'default',
+        enabled,
+        updatedBy,
+      },
+      update: {
+        enabled,
+        updatedBy,
+      },
+    });
+    this.isAuditEnabled = config.enabled;
+    return {
+      enabled: config.enabled,
+      updatedAt: config.updatedAt,
+      updatedBy: config.updatedBy,
+    };
   }
 
   async getAuditLogs(query: AuditLogQueryDto) {

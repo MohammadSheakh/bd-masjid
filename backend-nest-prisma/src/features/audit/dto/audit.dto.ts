@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsIn,
   IsInt,
   IsOptional,
@@ -8,6 +9,11 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+
+export class UpdateAuditConfigDto {
+  @IsBoolean()
+  enabled!: boolean;
+}
 
 const auditSources = ['ADMIN_API', 'SYSTEM', 'JOB', 'PROVIDER'] as const;
 
