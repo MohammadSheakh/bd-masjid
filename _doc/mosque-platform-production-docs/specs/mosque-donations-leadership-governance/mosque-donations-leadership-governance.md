@@ -2,7 +2,7 @@
 id: F-039
 name: Mosque Donation Channel Leadership Verification & Creator Provenance Governance
 phase: 3
-status: in-progress
+status: completed
 
 depends_on:
   - F-001
@@ -19,12 +19,12 @@ parallel_with:
 source:
   - 01-PRD-PRODUCTION.md#verified-mosque-donations
   - 02-SYSTEM-ARCHITECTURE.md#authorization-model
-  - 03-DATA-API-CONTRACTS.md#donations-endpoints
+  - 03-DATA-API-CONTRACTS.md#donations-subdomain
   - 06-IMPLEMENTATION-CHECKLIST.md#f-verified-donations
   - ADRs/ADR-028-mosque-donation-channel-leadership-verification-and-creator-provenance.md
 ---
 
-# Feature Specification: Mosque Donation Channel Leadership Verification & Creator Provenance Governance
+# Feature Specification: F-039 Mosque Donation Channel Leadership Verification & Creator Provenance Governance
 
 ## 1. Overview
 Revises the donation channel lifecycle to eliminate the central platform admin verification bottleneck. Empowers verified mosque leadership officers (Mutawalli, President, Vice President, General Secretary) to immediately deploy active, verified donation channels. Enforces public creator transparency (displaying the creator's name, mosque position, and photo) and a multi-signatory leadership verification status showing distinct green checkmarks for attested roles (President, General Secretary, Vice President, Mutawalli) while displaying non-attested positions in a muted/dull state.
@@ -47,12 +47,36 @@ Revises the donation channel lifecycle to eliminate the central platform admin v
 ## 3. Data Model Reference
 Prisma additions to `MosqueDonationChannel` in `prisma/schema/donations.module/donations.prisma`:
 ```prisma
-// Extended fields on MosqueDonationChannel:
-// creatorName          String?                     @db.VarChar(100)
-// creatorRole          String?                     @db.VarChar(50)
-// creatorImageUrl      String?                     @db.VarChar(255)
-// verifiedRoles        String[]                    @default([])
-// roleAttestations     Json?                       @default("[]")
+model MosqueDonationChannel {
+  id                   String                      @id @default(cuid())
+  mosqueId             String
+  channelType          DonationChannelType
+  accountType          DonationChannelAccountType  @default(PERSONAL)
+  purpose              DonationPurpose             @default(GENERAL_FUND)
+  accountNumber        String                      @db.VarChar(50)
+  accountTitle         String                      @db.VarChar(100)
+  bankName             String?                     @db.VarChar(100)
+  branchName           String?                     @db.VarChar(100)
+  routingNumber        String?                     @db.VarChar(50)
+  paymentInstructions  String?                     @db.VarChar(500)
+  qrCodeImageUrl       String?                     @db.VarChar(255)
+  status               DonationChannelStatus       @default(VERIFIED)
+  disputeCount         Int                         @default(0)
+
+  // Governance Provenance
+  createdById          String
+  creatorName          String?                     @db.VarChar(100)
+  creatorRole          String?                     @db.VarChar(50)
+  creatorImageUrl      String?                     @db.VarChar(255)
+  verifiedRoles        String[]                    @default([])
+  roleAttestations     Json?                       @default("[]")
+  verifiedById         String?
+  verifiedAt           DateTime?
+  rejectionReason      String?                     @db.VarChar(255)
+
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
+}
 ```
 
 ---
@@ -63,56 +87,35 @@ Prisma additions to `MosqueDonationChannel` in `prisma/schema/donations.module/d
   - Automatically captures creator profile and initial role attestation.
 - `GET /api/v1/mosques/:id/donations`
   - Returns donation channels with creator provenance and `verifiedRoles`.
-- `PATCH /api/v1/donations/:id/verify` (or `POST /api/v1/donations/:id/attest`)
+- `POST /api/v1/donations/:id/attest`
   - Allows an officer from another eligible leadership role to add their role to `verifiedRoles`.
 
 ---
 
-## 5. Extracted Implementation Checklist
-- [ ] Prisma schema migration with provenance and verification fields
-- [ ] Backend DonationsService permission checks, provenance capture, and role attestation logic
-- [ ] Backend controller unit tests and verification
-- [ ] Frontend TypeScript types update (`types/donation.ts` and `types/mosque.ts`)
-- [ ] Frontend `DonationChannelCard` with creator portrait, position badge, and multi-role green/dull tick marks
-- [ ] Frontend `AddDonationModal` & `DonationModal` leadership guidance and committee member taxonomy
-
----
-
-## 6. Implementation Slices & Proof of Completion
+## 5. Implementation Slices & Proof of Completion
 
 ### TK-DON-03: Relational Schema & Migration for Provenance and Role Verification
-- **Status**: `[ ] Pending` | **Priority**: Critical
+- **Status**: `[x] Completed` | **Priority**: Critical
 - **Description**: Add `creatorName`, `creatorRole`, `creatorImageUrl`, `verifiedRoles`, and `roleAttestations` to `MosqueDonationChannel` model in Prisma.
 - **Acceptance Criteria**:
-  - [ ] Schema syncs and migration applies cleanly to PostgreSQL.
-  - [ ] Default values ensure backward compatibility with existing channels.
-- **Implementation Files**:
-  - `backend-nest-prisma/prisma/schema/donations.module/donations.prisma`
-  - `backend-nest-prisma/prisma/migrations/`
+  - [x] Schema syncs and migration applies cleanly to PostgreSQL.
+  - [x] Default values ensure backward compatibility with existing channels.
+- **Proof**: Commit `2e5b6db` with applied migration `20261004163000_donation_channel_creator_provenance_and_role_attestations`.
 
 ### TK-DON-04: Backend Donations Service & Multi-Role Attestation Logic
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Guard channel creation to Mutawalli, President, Vice President, and Secretary; auto-verify upon creation with creator provenance and support subsequent role attestations.
 - **Acceptance Criteria**:
-  - [ ] Service enforces role checks and rejects unauthorized roles (e.g. Khadem or regular user).
-  - [ ] Service attaches creator name, role, photo, and initial role verification.
-  - [ ] Unit tests pass with 100% coverage.
-- **Implementation Files**:
-  - `backend-nest-prisma/src/features/donations/donations.service.ts`
-  - `backend-nest-prisma/src/features/donations/donations.controller.ts`
-  - `backend-nest-prisma/src/features/donations/test/donations.service.spec.ts`
-  - `backend-nest-prisma/src/features/donations/test/donations.controller.spec.ts`
+  - [x] Service enforces role checks and rejects unauthorized roles (e.g. Khadem or regular user).
+  - [x] Service attaches creator name, role, photo, and initial role verification.
+  - [x] Unit tests pass with 100% coverage.
+- **Proof**: Commit `5fd936a`. All 21 Jest unit tests passed in `src/features/donations/`.
 
 ### TK-DON-05: Ferio Frontend Creator Provenance & Leadership Multi-Signatory Badges
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Update `DonationChannelCard` to display creator identity, mosque position, and multi-role verification checkmarks (green vs dull).
 - **Acceptance Criteria**:
-  - [ ] Creator name, position, and avatar image render clearly on each donation card.
-  - [ ] President, General Secretary, Vice President, and Mutawalli show green tick if verified, dull if not.
-  - [ ] Frontend builds with 0 errors.
-- **Implementation Files**:
-  - `frontend/src/types/donation.ts`
-  - `frontend/src/types/mosque.ts`
-  - `frontend/src/components/donations/DonationChannelCard.tsx`
-  - `frontend/src/components/donations/AddDonationModal.tsx`
-  - `frontend/src/components/DonationModal.tsx`
+  - [x] Creator name, position, and avatar image render clearly on each donation card.
+  - [x] President, General Secretary, Vice President, and Mutawalli show green tick if verified, dull if not.
+  - [x] Frontend builds with 0 errors.
+- **Proof**: Commit `ec4f5cd`. Next.js build compiled with 0 errors.
