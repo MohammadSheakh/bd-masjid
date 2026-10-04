@@ -38,8 +38,28 @@ option A .. implement and dont generate huge 1000 line code then commit .. lets 
 
 ======================>
 
-we dont need volunteer roster coordiation , multi-jamat, jumua'h and ramadan schedule now .. so .. add this point to those document .. so that ai agent will not talking these point again to develop
+we dont need --- now .. so .. add this point to those document .. so that ai agent will not talking these point again to develop
 
 =========================>
 
 
+check your last work was production grade enterprize level or not brutal honestly .. fix those ..
+
+08-PRODUCTION-ENGINEERING-STANDARD.md
+  and other relavent document 
+
+nestjs-best-practices/SKILL.md
+ 
+
+ ===============================>
+
+ only for if electricity goes out 
+
+ for a mosque, if there Mutawalli, President, Vice President, General Secretary .. only these people can create donation verified channel .. 
+no need to verify this platform admin .. there should be mention to general public that .. this donation channel is created by which person and his position for that mosque ... with that persons image .. 
+
+and when they create a donation channel .. that should show verified by president, general secretary, vice president .. if president verify .. then that should green tick mark .. other position will be dull ... 
+
+in a commitee there can be multiple vice president and member .. member should be commitee member .. 
+
+now create spec, adr, implement and dont generate huge 1000 line code then commit .. lets say 100 line code then commit [SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/git-commit-push/SKILL.md)  . make sure about production grade work . [02-SYSTEM-ARCHITECTURE.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/_doc/mosque-platform-production-docs/02-SYSTEM-ARCHITECTURE.md)  to [08-PRODUCTION-ENGINEERING-STANDARD.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/_doc/mosque-platform-production-docs/08-PRODUCTION-ENGINEERING-STANDARD.md)  . keep in mind these docs 
