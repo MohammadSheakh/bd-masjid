@@ -7,6 +7,8 @@ import {
   AttendanceSummary,
   MosqueRoleClaim,
   MosqueStaffMember,
+  MosqueSuggestionItem,
+  CreateCommunitySuggestionPayload,
 } from '@/types/mosque';
 
 export function getApiBase(): string {
@@ -576,6 +578,54 @@ export async function submitFacilitySuggestion(
     body: JSON.stringify(data),
   });
   return res.json();
+}
+
+export async function submitCommunitySuggestion(
+  mosqueId: string,
+  data: CreateCommunitySuggestionPayload,
+  token?: string,
+) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  const activeToken =
+    token ||
+    (typeof window !== 'undefined'
+      ? localStorage.getItem('access_token') || localStorage.getItem('token')
+      : null);
+  if (activeToken) {
+    headers['Authorization'] = `Bearer ${activeToken}`;
+  }
+
+  const res = await fetch(`${API_BASE}/mosques/${mosqueId}/suggestions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  });
+
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(body.message || body.error || 'Failed to submit suggestion');
+  }
+  return body.data || body;
+}
+
+export async function fetchPublicMosqueSuggestions(
+  mosqueId: string,
+  page = 1,
+  limit = 20,
+): Promise<{ items: MosqueSuggestionItem[]; meta: any }> {
+  const res = await fetch(
+    `${API_BASE}/mosques/${mosqueId}/suggestions/public?page=${page}&limit=${limit}`,
+    {
+      cache: 'no-store',
+    },
+  );
+  const body = await res.json().catch(() => ({ items: [], meta: { total: 0 } }));
+  if (!res.ok) {
+    return { items: [], meta: { total: 0 } };
+  }
+  return body.data || body;
 }
 
 export async function submitMosqueReport(
