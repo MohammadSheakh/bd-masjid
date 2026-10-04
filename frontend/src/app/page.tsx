@@ -262,7 +262,7 @@ export default function HomePage() {
   }, [mosques, followedMosques]);
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#fafafa]">
+    <div className="flex flex-col h-screen h-[100dvh] w-screen overflow-hidden bg-[#fafafa]">
       {/* Top Navigation */}
       <Navbar
         onAddMosqueClick={() => setIsAddModalOpen(true)}
@@ -271,7 +271,7 @@ export default function HomePage() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-61px)] overflow-hidden relative">
+      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-61px)] h-[calc(100dvh-61px)] overflow-hidden relative min-h-0">
         {/* Left Panel: Search, Filter, and Mosque List */}
         <div
           className={`flex-1 md:w-[420px] md:max-w-[420px] md:flex-none flex flex-col h-full bg-white border-r border-[#e8e8ea] z-10 ${
@@ -440,7 +440,7 @@ export default function HomePage() {
 
         {/* Right Panel: Interactive Map */}
         <div
-          className={`flex-1 h-full relative z-0 isolate ${
+          className={`flex-1 h-full min-h-0 relative z-0 isolate ${
             mobileTab === 'map' ? 'flex' : 'hidden md:flex'
           }`}
         >
@@ -453,6 +453,7 @@ export default function HomePage() {
             pinLocation={droppedPin}
             onPinDrop={handleMapPinDrop}
             bookmarkedIds={bookmarkedIds}
+            isVisible={mobileTab === 'map'}
           />
         </div>
 
