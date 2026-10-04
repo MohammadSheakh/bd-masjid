@@ -31,6 +31,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-023](ADR-023-map-all-listed-mosques-with-differentiated-marker-hierarchy.md) | Map Viewport All Listed Mosques with Differentiated Followed Marker Hierarchy | Accepted | 2026-10-03 | Interactive Map, Geospatial Discovery & Pin Hierarchy |
 | [ADR-024](ADR-024-one-time-community-attendance-affiliation-and-dual-count-transparency.md) | One-Time Community Attendance Affiliation and Dual Count Transparency | Accepted | 2026-10-03 | Community Affiliation, Attendance Tracking & Metrics |
 | [ADR-025](ADR-025-extensible-facility-amenities-taxonomy-and-dedicated-community-suggestion-modal.md) | Extensible Facility Amenities Taxonomy and Dedicated Community Suggestion Workflow | Accepted | 2026-10-03 | Facilities, Extensibility & Community Suggestions |
+| [ADR-026](ADR-026-dynamic-system-audit-trail-toggle-and-storage-governance.md) | Dynamic System Audit Trail Toggle and Storage Capacity Governance | Accepted | 2026-10-04 | Audit Trail, Storage Governance & Admin Controls |
 
 
 ---
