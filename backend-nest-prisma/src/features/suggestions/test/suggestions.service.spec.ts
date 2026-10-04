@@ -179,6 +179,99 @@ describe('SuggestionsService', () => {
         }),
       });
     });
+
+    it('creates categorized suggestion with urgency, roles, visibility and submitter info', async () => {
+      mockPrisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+        name: 'Test Mosque',
+      });
+      mockPrisma.mosqueSuggestion.create.mockResolvedValue({
+        id: 'sugg-4',
+        mosqueId: 'mosque-1',
+        type: 'COMPLAINT',
+        urgency: 'HIGH',
+        visibility: 'COMMITTEE_ONLY',
+        targetRoles: ['IMAM', 'KHADEM'],
+        submitterName: 'Karim',
+        submitterPhone: '+8801711111111',
+        description: 'Microphone volume too loud during Fajr',
+        status: SuggestionStatus.OPEN,
+      });
+
+      const res = await service.createSuggestion(
+        'mosque-1',
+        {
+          type: 'COMPLAINT' as any,
+          urgency: 'HIGH' as any,
+          visibility: 'COMMITTEE_ONLY' as any,
+          targetRoles: ['imam', 'khadem'],
+          submitterName: ' Karim ',
+          submitterPhone: ' +8801711111111 ',
+          description: 'Microphone volume too loud during Fajr',
+        },
+        'user-1',
+      );
+
+      expect(res.id).toBe('sugg-4');
+      expect(mockPrisma.mosqueSuggestion.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          mosqueId: 'mosque-1',
+          userId: 'user-1',
+          type: 'COMPLAINT',
+          urgency: 'HIGH',
+          visibility: 'COMMITTEE_ONLY',
+          targetRoles: ['IMAM', 'KHADEM'],
+          submitterName: 'Karim',
+          submitterPhone: '+8801711111111',
+          description: 'Microphone volume too loud during Fajr',
+          status: SuggestionStatus.OPEN,
+        }),
+      });
+    });
+  });
+
+  describe('getPublicSuggestions', () => {
+    it('throws NotFoundException if mosque does not exist', async () => {
+      mockPrisma.mosque.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getPublicSuggestions('nonexistent', 1, 20),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('retrieves only public suggestions with phone excluded', async () => {
+      mockPrisma.mosque.findUnique.mockResolvedValue({
+        id: 'mosque-1',
+      });
+      const publicItems = [
+        {
+          id: 'pub-sugg-1',
+          mosqueId: 'mosque-1',
+          type: 'SUGGESTION',
+          urgency: 'MEDIUM',
+          visibility: 'PUBLIC',
+          targetRoles: ['GENERAL'],
+          submitterName: 'Abdullah',
+          description: 'Suggesting tree planting in courtyard',
+          status: SuggestionStatus.OPEN,
+        },
+      ];
+      mockPrisma.mosqueSuggestion.findMany.mockResolvedValue(publicItems);
+      mockPrisma.mosqueSuggestion.count.mockResolvedValue(1);
+
+      const result = await service.getPublicSuggestions('mosque-1', 1, 20);
+
+      expect(result.items).toEqual(publicItems);
+      expect(result.meta.total).toBe(1);
+      expect(mockPrisma.mosqueSuggestion.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            mosqueId: 'mosque-1',
+            visibility: 'PUBLIC',
+          }),
+        }),
+      );
+    });
   });
 
   describe('createReport', () => {

@@ -34,6 +34,7 @@ describe('SuggestionsController', () => {
   beforeEach(() => {
     service = {
       createSuggestion: jest.fn(),
+      getPublicSuggestions: jest.fn(),
       createReport: jest.fn(),
       getSuggestions: jest.fn(),
       updateSuggestionStatus: jest.fn(),
@@ -69,6 +70,18 @@ describe('SuggestionsController', () => {
         mockUser,
       );
       expect(result).toEqual(response);
+    });
+  });
+
+  describe('getPublicSuggestions', () => {
+    it('should delegate public suggestions query to service', async () => {
+      const publicList = { items: [{ id: 'pub-1' }], meta: { total: 1 } };
+      service.getPublicSuggestions.mockResolvedValue(publicList as any);
+
+      const result = await controller.getPublicSuggestions('mosque-1', 1, 20);
+
+      expect(service.getPublicSuggestions).toHaveBeenCalledWith('mosque-1', 1, 20);
+      expect(result).toEqual(publicList);
     });
   });
 
@@ -109,6 +122,36 @@ describe('SuggestionsController', () => {
         'mosque-1',
         1,
         10,
+      );
+      expect(result).toEqual(list);
+    });
+
+    it('should delegate to service with extended filters (type, urgency, visibility, targetRole)', async () => {
+      const list = { items: [{ id: 'sugg-1' }], meta: { total: 1 } };
+      service.getSuggestions.mockResolvedValue(list as any);
+
+      const result = await controller.getSuggestions(
+        SuggestionStatus.PENDING,
+        'mosque-1',
+        1,
+        10,
+        'COMPLAINT' as any,
+        'HIGH' as any,
+        'COMMITTEE_ONLY' as any,
+        'IMAM',
+      );
+
+      expect(service.getSuggestions).toHaveBeenCalledWith(
+        SuggestionStatus.PENDING,
+        'mosque-1',
+        1,
+        10,
+        {
+          type: 'COMPLAINT',
+          urgency: 'HIGH',
+          visibility: 'COMMITTEE_ONLY',
+          targetRole: 'IMAM',
+        },
       );
       expect(result).toEqual(list);
     });
