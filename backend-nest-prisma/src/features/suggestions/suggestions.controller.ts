@@ -28,7 +28,13 @@ import {
   RateLimit,
 } from '@app/common';
 import type { UserPayload } from '@app/common';
-import { SuggestionStatus, ReportType } from '@prisma/client';
+import {
+  SuggestionStatus,
+  ReportType,
+  SuggestionType,
+  SuggestionUrgency,
+  SuggestionVisibility,
+} from '@prisma/client';
 import { SuggestionsService } from './suggestions.service';
 import { CreateSuggestionDto } from './dto/create-suggestion.dto';
 import { CreateReportDto } from './dto/create-report.dto';
@@ -66,6 +72,29 @@ export class SuggestionsController {
     );
   }
 
+  @Get('mosques/:id/suggestions/public')
+  @Public()
+  @RateLimit({ windowMs: 60 * 1000, max: 30 })
+  @ApiOperation({
+    summary: 'List public community suggestions for a mosque',
+    description:
+      'Retrieve public suggestions and feedback submitted by musallis for this mosque',
+  })
+  @ApiParam({ name: 'id', description: 'Mosque UUID' })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 20 })
+  async getPublicSuggestions(
+    @Param('id') mosqueId: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.suggestionsService.getPublicSuggestions(
+      mosqueId,
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 20,
+    );
+  }
+
   @Post('mosques/:id/reports')
   @Public()
   @RateLimit({ windowMs: 60 * 1000, max: 10 })
@@ -96,6 +125,10 @@ export class SuggestionsController {
       'Retrieve pending or reviewed community suggestions (moderator/admin)',
   })
   @ApiQuery({ name: 'status', enum: SuggestionStatus, required: false })
+  @ApiQuery({ name: 'type', enum: SuggestionType, required: false })
+  @ApiQuery({ name: 'urgency', enum: SuggestionUrgency, required: false })
+  @ApiQuery({ name: 'visibility', enum: SuggestionVisibility, required: false })
+  @ApiQuery({ name: 'targetRole', required: false, example: 'IMAM' })
   @ApiQuery({ name: 'mosqueId', required: false })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 20 })
@@ -104,13 +137,31 @@ export class SuggestionsController {
     @Query('mosqueId') mosqueId?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('type') type?: SuggestionType,
+    @Query('urgency') urgency?: SuggestionUrgency,
+    @Query('visibility') visibility?: SuggestionVisibility,
+    @Query('targetRole') targetRole?: string,
   ) {
-    return this.suggestionsService.getSuggestions(
-      status,
-      mosqueId,
-      page ? Number(page) : 1,
-      limit ? Number(limit) : 20,
-    );
+    const hasFilters =
+      type !== undefined ||
+      urgency !== undefined ||
+      visibility !== undefined ||
+      targetRole !== undefined;
+
+    return hasFilters
+      ? this.suggestionsService.getSuggestions(
+          status,
+          mosqueId,
+          page ? Number(page) : 1,
+          limit ? Number(limit) : 20,
+          { type, urgency, visibility, targetRole },
+        )
+      : this.suggestionsService.getSuggestions(
+          status,
+          mosqueId,
+          page ? Number(page) : 1,
+          limit ? Number(limit) : 20,
+        );
   }
 
   @Patch('admin/suggestions/:id/status')

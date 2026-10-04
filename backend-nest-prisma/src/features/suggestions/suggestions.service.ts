@@ -1,5 +1,12 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { Prisma, SuggestionStatus, ReportType } from '@prisma/client';
+import {
+  Prisma,
+  SuggestionStatus,
+  ReportType,
+  SuggestionType,
+  SuggestionUrgency,
+  SuggestionVisibility,
+} from '@prisma/client';
 import { PrismaService } from '@app/database';
 import { AuditService } from '../audit/audit.service';
 import { PrayerSchedulesService } from '../prayer-schedules/prayer-schedules.service';
@@ -62,10 +69,26 @@ export class SuggestionsService {
       );
     }
 
+    const targetRoles = Array.isArray(dto.targetRoles)
+      ? Array.from(
+          new Set(
+            dto.targetRoles
+              .map((r) => String(r).trim().toUpperCase())
+              .filter(Boolean),
+          ),
+        )
+      : [];
+
     const suggestion = await this.prisma.mosqueSuggestion.create({
       data: {
         mosqueId,
         userId: userId || null,
+        type: dto.type || SuggestionType.SUGGESTION,
+        urgency: dto.urgency || SuggestionUrgency.MEDIUM,
+        visibility: dto.visibility || SuggestionVisibility.COMMITTEE_ONLY,
+        targetRoles,
+        submitterName: dto.submitterName?.trim() || null,
+        submitterPhone: dto.submitterPhone?.trim() || null,
         suggestedTimes: dto.suggestedTimes
           ? (dto.suggestedTimes as Prisma.InputJsonValue)
           : Prisma.JsonNull,
@@ -84,9 +107,70 @@ export class SuggestionsService {
     });
 
     this.logger.log(
-      `Suggestion ${suggestion.id} processed for mosque ${mosqueId} (status: ${suggestion.status})`,
+      `Suggestion ${suggestion.id} processed for mosque ${mosqueId} (status: ${suggestion.status}, visibility: ${suggestion.visibility})`,
     );
     return suggestion;
+  }
+
+  /**
+   * Public retrieval of community suggestions
+   * Excludes sensitive contact info (phone) and non-public items
+   */
+  async getPublicSuggestions(mosqueId: string, page = 1, limit = 20) {
+    const safeLimit = Math.min(Math.max(1, limit), 50);
+    const skip = (page - 1) * safeLimit;
+
+    const mosque = await this.prisma.mosque.findUnique({
+      where: { id: mosqueId, isDeleted: false },
+      select: { id: true },
+    });
+
+    if (!mosque) {
+      throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
+    }
+
+    const where: Prisma.MosqueSuggestionWhereInput = {
+      mosqueId,
+      visibility: SuggestionVisibility.PUBLIC,
+      status: {
+        not: SuggestionStatus.REJECTED,
+      },
+    };
+
+    const [items, total] = await Promise.all([
+      this.prisma.mosqueSuggestion.findMany({
+        where,
+        skip,
+        take: safeLimit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          mosqueId: true,
+          type: true,
+          urgency: true,
+          visibility: true,
+          targetRoles: true,
+          submitterName: true,
+          description: true,
+          status: true,
+          resolutionNotes: true,
+          reviewedAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      this.prisma.mosqueSuggestion.count({ where }),
+    ]);
+
+    return {
+      items,
+      meta: {
+        page,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
+    };
   }
 
   /**
@@ -127,6 +211,12 @@ export class SuggestionsService {
     mosqueId?: string,
     page = 1,
     limit = 20,
+    filters?: {
+      type?: SuggestionType;
+      urgency?: SuggestionUrgency;
+      visibility?: SuggestionVisibility;
+      targetRole?: string;
+    },
   ) {
     const safeLimit = Math.min(Math.max(1, limit), 50);
     const skip = (page - 1) * safeLimit;
@@ -134,6 +224,12 @@ export class SuggestionsService {
     const where: Prisma.MosqueSuggestionWhereInput = {};
     if (status) where.status = status;
     if (mosqueId) where.mosqueId = mosqueId;
+    if (filters?.type) where.type = filters.type;
+    if (filters?.urgency) where.urgency = filters.urgency;
+    if (filters?.visibility) where.visibility = filters.visibility;
+    if (filters?.targetRole) {
+      where.targetRoles = { has: filters.targetRole.toUpperCase() };
+    }
 
     const [items, total] = await Promise.all([
       this.prisma.mosqueSuggestion.findMany({
