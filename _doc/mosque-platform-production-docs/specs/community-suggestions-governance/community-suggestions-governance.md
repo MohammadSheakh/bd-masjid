@@ -2,7 +2,7 @@
 id: F-038
 name: Community Mosque Suggestions, Complaints & Targeted Role Feedback Governance
 phase: 2
-status: in-progress
+status: completed
 
 depends_on:
   - F-001
@@ -88,35 +88,36 @@ enum SuggestionVisibility {
 ---
 
 ## 5. Extracted Implementation Checklist
-- [ ] Schema update with enums, fields, and migration
-- [ ] Backend DTOs with class-validator decorators
-- [ ] SuggestionsService and Controller public endpoint and committee visibility logic
-- [ ] Backend unit test coverage for new suggestion categories and privacy rules
-- [ ] Frontend API and TypeScript types
-- [ ] Ferio-compliant `MosqueSuggestionModal` component with accessible form controls
-- [ ] Mosque detail drawer integration and public suggestions section
+- [x] Schema update with enums, fields, and migration
+- [x] Backend DTOs with class-validator decorators
+- [x] SuggestionsService and Controller public endpoint and committee visibility logic
+- [x] Backend unit test coverage for new suggestion categories and privacy rules
+- [x] Frontend API and TypeScript types
+- [x] Ferio-compliant `MosqueSuggestionModal` component with accessible form controls
+- [x] Mosque detail drawer integration and public suggestions section
 
 ---
 
 ## 6. Implementation Slices & Proof of Completion
 
 ### TK-SUGG-03: Relational Schema, Migrations & Extended Suggestion DTOs
-- **Status**: `[ ] Pending` | **Priority**: Critical
+- **Status**: `[x] Completed` | **Priority**: Critical
 - **Description**: Add suggestion category, urgency, visibility, target roles, and submitter contact fields in Prisma schema and generate migrations.
 - **Acceptance Criteria**:
-  - [ ] Schema syncs and migration applies cleanly to PostgreSQL.
-  - [ ] DTO enforces enum validation and character bounds.
+  - [x] Schema syncs and migration applies cleanly to PostgreSQL.
+  - [x] DTO enforces enum validation and character bounds.
 - **Implementation Files**:
   - `backend-nest-prisma/prisma/schema/suggestions.module/suggestions.prisma`
+  - `backend-nest-prisma/prisma/migrations/20261004100911_add_suggestion_type_urgency_roles_visibility/migration.sql`
   - `backend-nest-prisma/src/features/suggestions/dto/create-suggestion.dto.ts`
 
 ### TK-SUGG-04: Suggestions Service, Public Filtering API & Security Bounds
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Implement submission handler for targeted roles and public suggestions read endpoint with phone redaction.
 - **Acceptance Criteria**:
-  - [ ] Service persists role targeting and visibility correctly.
-  - [ ] Public endpoint returns only `PUBLIC` non-rejected items without sensitive phone info.
-  - [ ] Unit tests pass with 100% coverage of new paths.
+  - [x] Service persists role targeting and visibility correctly.
+  - [x] Public endpoint returns only `PUBLIC` non-rejected items without sensitive phone info.
+  - [x] Unit tests pass with 100% coverage of new paths.
 - **Implementation Files**:
   - `backend-nest-prisma/src/features/suggestions/suggestions.service.ts`
   - `backend-nest-prisma/src/features/suggestions/suggestions.controller.ts`
@@ -124,12 +125,12 @@ enum SuggestionVisibility {
   - `backend-nest-prisma/src/features/suggestions/test/suggestions.controller.spec.ts`
 
 ### TK-SUGG-05: Dedicated Ferio Frontend Suggestion Modal & Quick Action Wireup
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Build accessible `MosqueSuggestionModal` matching Ferio design guidelines and wire to quick action `Suggest` button.
 - **Acceptance Criteria**:
-  - [ ] Quick action button opens `MosqueSuggestionModal` instead of timetable updater.
-  - [ ] Allows selecting category, urgency, target roles, visibility, optional name/phone, and details.
-  - [ ] Timetable edit button continues to work for prayer schedules.
+  - [x] Quick action button opens `MosqueSuggestionModal` instead of timetable updater.
+  - [x] Allows selecting category, urgency, target roles, visibility, optional name/phone, and details.
+  - [x] Timetable edit button continues to work for prayer schedules.
 - **Implementation Files**:
   - `frontend/src/types/mosque.ts`
   - `frontend/src/lib/api.ts`
