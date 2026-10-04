@@ -5,6 +5,25 @@ enum SuggestionStatus {
   REJECTED
 }
 
+enum SuggestionType {
+  SUGGESTION
+  COMPLAINT
+  IMPROVEMENT
+  MAINTENANCE
+}
+
+enum SuggestionUrgency {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SuggestionVisibility {
+  COMMITTEE_ONLY
+  PUBLIC
+}
+
 enum ReportType {
   PRAYER_TIME
   LOCATION
@@ -17,26 +36,34 @@ enum ReportType {
 }
 
 model MosqueSuggestion {
-  id              String           @id @default(cuid())
+  id              String               @id @default(cuid())
   mosqueId        String
-  mosque          Mosque           @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
+  mosque          Mosque               @relation(fields: [mosqueId], references: [id], onDelete: Cascade)
 
   userId          String?
-  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user            User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  type            SuggestionType       @default(SUGGESTION)
+  urgency         SuggestionUrgency    @default(MEDIUM)
+  visibility      SuggestionVisibility @default(COMMITTEE_ONLY)
+  targetRoles     String[]             @default([])
+  submitterName   String?
+  submitterPhone  String?
 
   suggestedTimes      Json?
   suggestedFacilities Json?
   description         String?
 
-  status          SuggestionStatus @default(OPEN)
+  status          SuggestionStatus     @default(OPEN)
   reviewedById    String?
   reviewedAt      DateTime?
   resolutionNotes String?
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
   @@index([mosqueId, status])
+  @@index([mosqueId, visibility, createdAt])
   @@index([status, createdAt])
 }
 
