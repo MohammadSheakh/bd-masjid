@@ -174,6 +174,8 @@ export default function AdminPage() {
   const [isApprovingAll, setIsApprovingAll] = useState(false);
   const [donations, setDonations] = useState<DonationChannelItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
+  const [isAuditEnabled, setIsAuditEnabled] = useState<boolean>(true);
+  const [isTogglingAudit, setIsTogglingAudit] = useState<boolean>(false);
   const [healthData, setHealthData] = useState<SystemHealthData | null>(null);
   const [liveProbeStatus, setLiveProbeStatus] = useState<string | null>(null);
   const [readyProbeStatus, setReadyProbeStatus] = useState<string | null>(null);
@@ -302,15 +304,22 @@ export default function AdminPage() {
           setDonations([]);
         }
       } else if (activeTab === 'audit') {
-        const res = await fetch(`${API_BASE}/admin/audit-logs`, { headers });
-        if (res.ok) {
-          const json = await res.json();
+        const [logsRes, settingsRes] = await Promise.all([
+          fetch(`${API_BASE}/admin/audit-logs`, { headers }),
+          fetch(`${API_BASE}/admin/audit-logs/settings`, { headers }).catch(() => null),
+        ]);
+        if (logsRes.ok) {
+          const json = await logsRes.json();
           setAuditLogs(json.data?.items || json.items || []);
-        } else if (res.status === 401 || res.status === 403) {
+        } else if (logsRes.status === 401 || logsRes.status === 403) {
           setAuthError('Authentication required: Admin credentials missing or expired (401/403).');
           setAuditLogs([]);
         } else {
           setAuditLogs([]);
+        }
+        if (settingsRes && settingsRes.ok) {
+          const settingsJson = await settingsRes.json();
+          setIsAuditEnabled(settingsJson.data?.enabled ?? settingsJson.enabled ?? true);
         }
       } else if (activeTab === 'health') {
         const res = await fetch(`${API_BASE}/admin/operations/health`, { headers });
@@ -550,6 +559,34 @@ export default function AdminPage() {
       }
     } catch {
       setStatusMessage('Network error: Failed to connect to server.');
+    }
+  };
+
+  const handleToggleAudit = async () => {
+    try {
+      setIsTogglingAudit(true);
+      const nextState = !isAuditEnabled;
+      const res = await fetch(`${API_BASE}/admin/audit-logs/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ enabled: nextState }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setIsAuditEnabled(json.data?.enabled ?? json.enabled ?? nextState);
+        setStatusMessage(
+          nextState
+            ? 'Audit trail recording enabled. Administrative events will be captured.'
+            : 'Audit trail recording paused. New events will not fill up the database.',
+        );
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error: ${err.message || 'Failed to toggle audit logging.'}`);
+      }
+    } catch {
+      setStatusMessage('Network error: Failed to connect to server.');
+    } finally {
+      setIsTogglingAudit(false);
     }
   };
 
@@ -1453,10 +1490,72 @@ export default function AdminPage() {
         {/* Tab 7: Audit Trail */}
         {activeTab === 'audit' && (
           <div className="bg-white rounded-xl border border-[#e8e8ea] overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-[#e8e8ea]">
-              <h2 className="text-sm font-bold text-[#111114]">Platform Audit Trail</h2>
-              <p className="text-xs text-[#6e6e73]">Immutable records of all administrative updates.</p>
+            <div className="p-4 border-b border-[#e8e8ea] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold text-[#111114]">Platform Audit Trail</h2>
+                  {isAuditEnabled ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Active (Recording)
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Paused (Zero Writes)
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-[#6e6e73] mt-0.5">
+                  {isAuditEnabled
+                    ? 'Capturing administrative mutations and entity updates in append-only storage.'
+                    : 'Audit recording is paused. Mutations will not persist audit records to save database storage.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleAudit}
+                  disabled={isTogglingAudit}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors flex items-center gap-1.5 ${
+                    isAuditEnabled
+                      ? 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100'
+                      : 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                  } disabled:opacity-50`}
+                >
+                  {isTogglingAudit ? (
+                    'Updating...'
+                  ) : isAuditEnabled ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Turn Off Audit Trail
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Turn On Audit Trail
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
+
+            {!isAuditEnabled && (
+              <div className="px-4 py-2.5 bg-amber-50/70 border-b border-amber-200/60 flex items-center gap-2 text-xs text-amber-800">
+                <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>
+                  <strong>Database Storage Protection Active:</strong> System audit logging is currently paused. New actions will not add rows to PostgreSQL, protecting your database from filling up.
+                </span>
+              </div>
+            )}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
