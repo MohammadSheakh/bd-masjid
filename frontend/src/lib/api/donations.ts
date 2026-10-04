@@ -103,6 +103,31 @@ export async function verifyDonationChannel(
 }
 
 /**
+ * Attest / co-verify a donation channel (Leadership Multi-Signatory Governance)
+ */
+export async function attestDonationChannel(
+  channelId: string,
+): Promise<{ success: boolean; data?: MosqueDonationChannel; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/donations/${channelId}/attest`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      return {
+        success: false,
+        error: json.message || 'Failed to attest donation channel',
+      };
+    }
+    return { success: true, data: json.data || json };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error' };
+  }
+}
+
+/**
  * Reject or archive a donation channel
  */
 export async function rejectDonationChannel(

@@ -22,6 +22,14 @@ export type DonationChannelStatus =
   | 'FLAGGED'
   | 'ARCHIVED';
 
+export interface RoleAttestation {
+  role: string;
+  userId: string;
+  name: string;
+  imageUrl?: string | null;
+  attestedAt: string;
+}
+
 export interface MosqueDonationChannel {
   id: string;
   mosqueId: string;
@@ -38,6 +46,11 @@ export interface MosqueDonationChannel {
   status: DonationChannelStatus;
   disputeCount: number;
   createdById: string;
+  creatorName?: string | null;
+  creatorRole?: string | null;
+  creatorImageUrl?: string | null;
+  verifiedRoles?: string[];
+  roleAttestations?: RoleAttestation[];
   verifiedById?: string | null;
   verifiedAt?: string | null;
   rejectionReason?: string | null;

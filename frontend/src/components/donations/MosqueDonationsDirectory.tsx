@@ -16,6 +16,7 @@ import {
   fetchMosqueDonationChannels,
   verifyDonationChannel,
   rejectDonationChannel,
+  attestDonationChannel,
 } from '@/lib/api/donations';
 import { DonationChannelCard } from './DonationChannelCard';
 import { AddDonationModal } from './AddDonationModal';
@@ -63,6 +64,16 @@ export const MosqueDonationsDirectory: React.FC<MosqueDonationsDirectoryProps> =
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleAttest = async (channelId: string) => {
+    const res = await attestDonationChannel(channelId);
+    if (res.success) {
+      showToast('Donation channel attested with your leadership signature!');
+      loadChannels();
+    } else {
+      showToast(res.error || 'Failed to attest channel.');
+    }
   };
 
   const handleVerify = async (channelId: string) => {
@@ -116,7 +127,7 @@ export const MosqueDonationsDirectory: React.FC<MosqueDonationsDirectoryProps> =
             <h2 className="text-xl font-bold text-slate-900">Verified Donation Channels</h2>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Official financial collection accounts for {mosqueName}. All accounts require two-person verification by mosque leadership to prevent fraud.
+            Official financial collection accounts for {mosqueName}. Verified directly by executive mosque leadership (Mutawalli, President, Vice President, General Secretary).
           </p>
         </div>
 
@@ -154,7 +165,7 @@ export const MosqueDonationsDirectory: React.FC<MosqueDonationsDirectoryProps> =
         <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
           <div className="flex items-center gap-2 text-xs font-bold text-amber-900 mb-3">
             <AlertCircle className="h-4 w-4 text-amber-600" />
-            <span>Pending Independent Imam Review ({pendingChannels.length})</span>
+            <span>Pending Review ({pendingChannels.length})</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {pendingChannels.map((channel) => (
@@ -162,6 +173,8 @@ export const MosqueDonationsDirectory: React.FC<MosqueDonationsDirectoryProps> =
                 key={channel.id}
                 channel={channel}
                 isStaff={isStaff}
+                canAttest={isStaff}
+                onAttest={handleAttest}
                 onVerify={handleVerify}
                 onReject={handleReject}
               />
@@ -188,6 +201,8 @@ export const MosqueDonationsDirectory: React.FC<MosqueDonationsDirectoryProps> =
               key={channel.id}
               channel={channel}
               isStaff={isStaff}
+              canAttest={isStaff}
+              onAttest={handleAttest}
               onReport={(id) => setReportingChannelId(id)}
             />
           ))}
@@ -200,7 +215,7 @@ export const MosqueDonationsDirectory: React.FC<MosqueDonationsDirectoryProps> =
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={() => {
-          showToast('Donation draft submitted! Pending Imam verification.');
+          showToast('Donation channel created and verified by leadership!');
           loadChannels();
         }}
       />

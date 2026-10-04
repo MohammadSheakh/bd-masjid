@@ -96,11 +96,11 @@ export const AddDonationModal: React.FC<AddDonationModalProps> = ({
           </button>
         </div>
 
-        {/* Two-Person Governance Notice */}
-        <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-blue-50/80 p-3 text-xs text-blue-900 border border-blue-200">
-          <ShieldAlert className="h-4 w-4 shrink-0 text-blue-700 mt-0.5" />
+        {/* Direct Leadership Governance Notice */}
+        <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-emerald-50/80 p-3 text-xs text-emerald-950 border border-emerald-200">
+          <ShieldAlert className="h-4 w-4 shrink-0 text-emerald-700 mt-0.5" />
           <div>
-            <span className="font-semibold">Two-Person Verification Required:</span> This account will be created as a draft and hidden until an independent Imam or Mosque Admin verifies the account details.
+            <span className="font-semibold">Direct Leadership Verification:</span> Only verified Mutawalli, President, Vice President, or General Secretary can create donation channels. Channels are verified directly without platform admin delays, displaying your photo, name, and mosque position.
           </div>
         </div>
 
@@ -269,7 +269,7 @@ export const AddDonationModal: React.FC<AddDonationModalProps> = ({
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4" />
-                  <span>Submit for Verification</span>
+                  <span>Create Verified Channel</span>
                 </>
               )}
             </button>

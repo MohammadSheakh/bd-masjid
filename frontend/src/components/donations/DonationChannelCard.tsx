@@ -11,6 +11,7 @@ import {
   Flag,
   CheckCircle2,
   XCircle,
+  UserCheck,
 } from 'lucide-react';
 import {
   DonationChannelType,
@@ -21,9 +22,31 @@ import {
 interface DonationChannelCardProps {
   channel: MosqueDonationChannel;
   isStaff?: boolean;
+  canAttest?: boolean;
+  onAttest?: (channelId: string) => void;
   onVerify?: (channelId: string) => void;
   onReject?: (channelId: string) => void;
   onReport?: (channelId: string) => void;
+}
+
+const LEADERSHIP_ROLES = [
+  { key: 'COMMITTEE_PRESIDENT', label: 'President' },
+  { key: 'COMMITTEE_SECRETARY', label: 'General Secretary' },
+  { key: 'COMMITTEE_VICE_PRESIDENT', label: 'Vice President' },
+  { key: 'MUTAWALLI', label: 'Mutawalli' },
+];
+
+function formatRoleTitle(role?: string | null): string {
+  if (!role) return 'Committee Officer';
+  const map: Record<string, string> = {
+    MUTAWALLI: 'Mutawalli',
+    COMMITTEE_PRESIDENT: 'President',
+    COMMITTEE_VICE_PRESIDENT: 'Vice President',
+    COMMITTEE_SECRETARY: 'General Secretary',
+    COMMITTEE_MEMBER: 'Committee Member',
+    MOSQUE_ADMIN: 'Mosque Admin',
+  };
+  return map[role] || role.replace(/_/g, ' ');
 }
 
 const CHANNEL_CONFIG: Record<
@@ -84,6 +107,8 @@ const PURPOSE_LABELS: Record<DonationPurpose, string> = {
 export const DonationChannelCard: React.FC<DonationChannelCardProps> = ({
   channel,
   isStaff,
+  canAttest,
+  onAttest,
   onVerify,
   onReject,
   onReport,
@@ -150,6 +175,75 @@ export const DonationChannelCard: React.FC<DonationChannelCardProps> = ({
         <span className="inline-block text-xs font-medium bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full border border-slate-200">
           {PURPOSE_LABELS[channel.purpose] || channel.purpose}
         </span>
+      </div>
+
+      {/* Officer Provenance: Creator Information with Person's Image */}
+      {(channel.creatorName || channel.createdBy?.name) && (
+        <div className="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50/90 border border-slate-100 mb-3">
+          <div className="relative h-10 w-10 rounded-full overflow-hidden bg-emerald-100 border border-emerald-200 shrink-0 flex items-center justify-center">
+            {channel.creatorImageUrl ? (
+              <img
+                src={channel.creatorImageUrl}
+                alt={channel.creatorName || 'Mosque Official'}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <UserCheck className="h-5 w-5 text-emerald-700" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] text-slate-500 font-medium">Created by Mosque Officer</div>
+            <div className="text-sm font-bold text-slate-800 truncate flex items-center gap-1.5">
+              <span>{channel.creatorName || channel.createdBy?.name}</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-100/70 text-emerald-800 border border-emerald-200">
+                {formatRoleTitle(channel.creatorRole)}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leadership Multi-Signatory Verification Status */}
+      <div className="mb-3 rounded-lg bg-slate-50/50 p-2.5 border border-slate-100">
+        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center justify-between">
+          <span>Leadership Verification</span>
+          {channel.verifiedRoles && channel.verifiedRoles.length > 0 && (
+            <span className="text-[11px] font-medium text-emerald-700">
+              {channel.verifiedRoles.length} Verified
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+          {LEADERSHIP_ROLES.map((roleDef) => {
+            const isRoleVerified =
+              channel.verifiedRoles?.includes(roleDef.key) ||
+              channel.creatorRole === roleDef.key ||
+              channel.roleAttestations?.some((att) => att.role === roleDef.key);
+
+            return (
+              <div
+                key={roleDef.key}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                  isRoleVerified
+                    ? 'bg-emerald-50/90 text-emerald-800 border-emerald-300 shadow-xs'
+                    : 'bg-slate-100/60 text-slate-400 border-slate-200/80 opacity-60'
+                }`}
+                title={
+                  isRoleVerified
+                    ? `Verified by ${roleDef.label}`
+                    : `Pending verification by ${roleDef.label}`
+                }
+              >
+                {isRoleVerified ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[3] shrink-0" />
+                ) : (
+                  <span className="h-2 w-2 rounded-full bg-slate-300 shrink-0" />
+                )}
+                <span className="truncate">{roleDef.label}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Account Info Box */}
@@ -250,6 +344,17 @@ export const DonationChannelCard: React.FC<DonationChannelCardProps> = ({
             >
               <Flag className="h-3.5 w-3.5" />
               <span>Report</span>
+            </button>
+          )}
+
+          {canAttest && onAttest && (
+            <button
+              onClick={() => onAttest(channel.id)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs transition"
+              title="Add your verified officer signature to this donation channel"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>Attest Channel</span>
             </button>
           )}
 
