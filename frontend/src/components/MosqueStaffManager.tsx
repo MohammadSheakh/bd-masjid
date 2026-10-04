@@ -191,7 +191,9 @@ export function MosqueStaffManager({
       case 'KHADEM':
         return 'Khadem';
       case 'COMMITTEE_PRESIDENT':
-        return 'Committee President';
+        return 'Committee President (সভাপতি)';
+      case 'COMMITTEE_VICE_PRESIDENT':
+        return 'Vice President (সহ-সভাপতি)';
       case 'COMMITTEE_SECRETARY':
         return 'General Secretary';
       case 'COMMITTEE_MEMBER':

@@ -610,7 +610,7 @@ export async function submitRoleClaim(
     phoneNumber: string;
     startDate?: string;
     imageUrl?: string;
-    evidence: string;
+    evidence?: string;
     documentUrl?: string;
   },
 ) {
@@ -955,9 +955,18 @@ export async function createMosqueDonation(
   },
 ) {
   try {
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_BASE}/mosques/${mosqueId}/donations`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
     });
     const json = await res.json();

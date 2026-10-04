@@ -37,6 +37,8 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Phone,
+  CheckCheck,
 } from 'lucide-react';
 import { formatTo12Hour } from '@/lib/time';
 import { AuthModal } from '@/components/AuthModal';
@@ -62,11 +64,30 @@ interface RoleClaimItem {
   mosque?: { name: string; city: string | null };
   user?: { name: string; email: string; phoneNumber: string | null };
   role: string;
+  customRoleTitle?: string | null;
+  name?: string;
+  phoneNumber?: string;
+  startDate?: string | null;
+  imageUrl?: string | null;
   evidence: string;
   documentUrl?: string | null;
   status: string;
   createdAt: string;
 }
+
+const ROLE_NAMES_BN: Record<string, string> = {
+  IMAM: 'ইমাম (Imam)',
+  KHATIB: 'খতিব (Chief Khatib)',
+  MUAZZIN: 'মুয়াজ্জিন (Muazzin)',
+  KHADEM: 'খাদেম (Khadem)',
+  MUTAWALLI: 'মুতাওয়াল্লি (Mutawalli)',
+  MOSQUE_ADMIN: 'মসজিদ অ্যাডমিন (Moshjid Admin)',
+  COMMITTEE_PRESIDENT: 'কমিটি সভাপতি (President)',
+  COMMITTEE_VICE_PRESIDENT: 'সহ-সভাপতি (Vice President)',
+  COMMITTEE_SECRETARY: 'সাধারণ সম্পাদক (Secretary)',
+  COMMITTEE_MEMBER: 'কমিটি সদস্য (Member)',
+  CUSTOM: 'কাস্টম পদবী (Custom)',
+};
 
 interface DonationChannelItem {
   id: string;
@@ -145,6 +166,12 @@ export default function AdminPage() {
 
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [roleClaims, setRoleClaims] = useState<RoleClaimItem[]>([]);
+  const [claimsPage, setClaimsPage] = useState<number>(1);
+  const [claimsLimit, setClaimsLimit] = useState<number>(10);
+  const [claimsTotal, setClaimsTotal] = useState<number>(0);
+  const [claimsTotalPages, setClaimsTotalPages] = useState<number>(1);
+  const [claimsJumpPageInput, setClaimsJumpPageInput] = useState('');
+  const [isApprovingAll, setIsApprovingAll] = useState(false);
   const [donations, setDonations] = useState<DonationChannelItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
   const [healthData, setHealthData] = useState<SystemHealthData | null>(null);
@@ -209,7 +236,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadData();
-  }, [activeTab, page, limit, debouncedSearch, listingFilter, operationalFilter, cityFilter]);
+  }, [activeTab, page, limit, debouncedSearch, listingFilter, operationalFilter, cityFilter, claimsPage, claimsLimit]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -242,15 +269,26 @@ export default function AdminPage() {
           setReports([]);
         }
       } else if (activeTab === 'claims') {
-        const res = await fetch(`${API_BASE}/admin/role-claims?status=OPEN`, { headers });
+        const res = await fetch(
+          `${API_BASE}/admin/role-claims?status=OPEN&page=${claimsPage}&limit=${claimsLimit}`,
+          { headers },
+        );
         if (res.ok) {
           const json = await res.json();
-          setRoleClaims(json.data?.items || json.items || []);
+          const items = json.data?.items || json.items || [];
+          const meta = json.data?.meta || json.meta || {};
+          setRoleClaims(items);
+          setClaimsTotal(meta.total ?? items.length);
+          setClaimsTotalPages(meta.totalPages ?? 1);
         } else if (res.status === 401 || res.status === 403) {
           setAuthError('Authentication required: Admin credentials missing or expired (401/403).');
           setRoleClaims([]);
+          setClaimsTotal(0);
+          setClaimsTotalPages(1);
         } else {
           setRoleClaims([]);
+          setClaimsTotal(0);
+          setClaimsTotalPages(1);
         }
       } else if (activeTab === 'donations') {
         const res = await fetch(`${API_BASE}/admin/donations`, { headers });
@@ -392,13 +430,47 @@ export default function AdminPage() {
       });
       if (res.ok) {
         setRoleClaims((prev) => prev.filter((c) => c.id !== id));
+        setClaimsTotal((prev) => Math.max(0, prev - 1));
         setStatusMessage('Role claim approved and verified staff provisioned.');
+        loadData();
       } else {
         const err = await res.json().catch(() => ({}));
         setStatusMessage(`Error: ${err.message || 'Failed to approve claim.'}`);
       }
     } catch {
       setStatusMessage('Network error: Failed to connect to server.');
+    }
+  };
+
+  const handleApproveAllClaims = async () => {
+    if (roleClaims.length === 0) return;
+    const countToApprove = claimsTotal || roleClaims.length;
+    const confirmed = window.confirm(
+      `Are you sure you want to approve all ${countToApprove} open role claim(s) and appoint them as verified staff?`
+    );
+    if (!confirmed) return;
+
+    setIsApprovingAll(true);
+    setStatusMessage(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/role-claims/approve-all`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ resolutionNotes: 'Bulk approved by platform administrator' }),
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setStatusMessage(data.message || `Successfully approved ${countToApprove} role claim(s).`);
+        await loadData();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage(`Error: ${err.message || 'Failed to bulk approve claims.'}`);
+      }
+    } catch {
+      setStatusMessage('Network error: Failed to connect to server.');
+    } finally {
+      setIsApprovingAll(false);
     }
   };
 
@@ -411,7 +483,9 @@ export default function AdminPage() {
       });
       if (res.ok) {
         setRoleClaims((prev) => prev.filter((c) => c.id !== id));
+        setClaimsTotal((prev) => Math.max(0, prev - 1));
         setStatusMessage('Role claim rejected.');
+        loadData();
       } else {
         const err = await res.json().catch(() => ({}));
         setStatusMessage(`Error: ${err.message || 'Failed to reject claim.'}`);
@@ -575,7 +649,7 @@ export default function AdminPage() {
                 : 'bg-white text-[#6e6e73] hover:text-black border border-[#e8e8ea]'
             }`}
           >
-            Role Claims ({roleClaims.length})
+            Role Claims ({claimsTotal || roleClaims.length})
           </button>
 
 
@@ -1099,6 +1173,44 @@ export default function AdminPage() {
         {/* Tab 4: Role Claims */}
         {activeTab === 'claims' && (
           <div className="space-y-4">
+            {/* Header with Total Count, Bulk Approve, and Page Limit */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-xl border border-[#e8e8ea] shadow-sm">
+              <div>
+                <h3 className="text-sm font-bold text-[#111114]">Pending Role Claims</h3>
+                <p className="text-xs text-[#6e6e73]">
+                  Total {claimsTotal} claim{claimsTotal === 1 ? '' : 's'} awaiting administrative appointment review.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {roleClaims.length > 0 && (
+                  <button
+                    onClick={handleApproveAllClaims}
+                    disabled={isApprovingAll}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
+                  >
+                    {isApprovingAll ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <CheckCheck className="w-3.5 h-3.5" />
+                    )}
+                    <span>{isApprovingAll ? 'Approving All...' : `Approve All (${claimsTotal || roleClaims.length})`}</span>
+                  </button>
+                )}
+                <select
+                  value={claimsLimit}
+                  onChange={(e) => {
+                    setClaimsLimit(Number(e.target.value));
+                    setClaimsPage(1);
+                  }}
+                  className="text-xs border border-[#e8e8ea] rounded-lg px-2.5 py-1.5 bg-white text-[#111114] outline-none"
+                >
+                  <option value={10}>10 / page</option>
+                  <option value={20}>20 / page</option>
+                  <option value={50}>50 / page</option>
+                </select>
+              </div>
+            </div>
+
             {roleClaims.length === 0 ? (
               <div className="p-12 text-center rounded-xl bg-white border border-[#e8e8ea] text-xs text-[#6e6e73]">
                 No pending role claims.
@@ -1112,20 +1224,50 @@ export default function AdminPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                        {c.role} Claim
+                        {ROLE_NAMES_BN[c.role] || `${c.role} Claim`} {c.customRoleTitle ? `(${c.customRoleTitle})` : ''}
                       </span>
                       <h3 className="text-sm font-bold text-[#111114] mt-1.5">
                         {c.mosque?.name || 'Mosque'}
                       </h3>
-                      <p className="text-xs text-[#6e6e73]">
-                        Applicant: {c.user?.name} ({c.user?.email}) • Phone: {c.user?.phoneNumber || 'N/A'}
+                      <p className="text-xs text-[#6e6e73] mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span>
+                          Applicant: <strong className="text-[#111114]">{c.name || c.user?.name || 'Applicant'}</strong> ({c.user?.email || 'No email'})
+                        </span>
+                        <span className="text-[#e8e8ea]">•</span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          <Phone className="w-3 h-3 text-emerald-600" />
+                          <span>Phone: {c.phoneNumber || c.user?.phoneNumber || 'N/A'}</span>
+                        </span>
+                        {c.startDate && (
+                          <>
+                            <span className="text-[#e8e8ea]">•</span>
+                            <span className="text-[11px] text-zinc-600">Serving since: {new Date(c.startDate).toLocaleDateString()}</span>
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-xs text-[#111114] bg-[#fafafa] p-3 rounded-lg border border-[#e8e8ea]">
-                    <span className="font-semibold text-[#6e6e73] block mb-0.5">Appointment Evidence:</span>
-                    "{c.evidence}"
+                  <div className="text-xs text-[#111114] bg-[#fafafa] p-3 rounded-lg border border-[#e8e8ea] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-[#6e6e73]">Appointment Evidence / Verification Details:</span>
+                      {c.documentUrl && (
+                        <a
+                          href={c.documentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>View Supporting Document</span>
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-zinc-700 italic">
+                      {c.evidence && c.evidence !== 'No written evidence provided'
+                        ? `"${c.evidence}"`
+                        : 'No written evidence provided (None)'}
+                    </p>
                   </div>
 
                   <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#f0f0f2]">
@@ -1144,6 +1286,106 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))
+            )}
+
+            {/* Role Claims Pagination */}
+            {claimsTotalPages > 1 && (
+              <div className="p-4 rounded-xl border border-[#e8e8ea] bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+                <div className="flex items-center gap-1">
+                  {/* First page */}
+                  <button
+                    onClick={() => setClaimsPage(1)}
+                    disabled={claimsPage <= 1}
+                    className="p-1.5 rounded-lg border border-[#e8e8ea] bg-white text-[#6e6e73] hover:text-[#111114] disabled:opacity-30 transition-colors"
+                    title="First page"
+                  >
+                    <ChevronsLeft className="w-4 h-4" />
+                  </button>
+                  {/* Prev page */}
+                  <button
+                    onClick={() => setClaimsPage((p) => Math.max(1, p - 1))}
+                    disabled={claimsPage <= 1}
+                    className="p-1.5 rounded-lg border border-[#e8e8ea] bg-white text-[#6e6e73] hover:text-[#111114] disabled:opacity-30 transition-colors"
+                    title="Previous page"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  {/* Page Numbers */}
+                  {Array.from({ length: claimsTotalPages }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === claimsTotalPages || (p >= claimsPage - 2 && p <= claimsPage + 2))
+                    .map((p, idx, arr) => {
+                      const prevPage = arr[idx - 1];
+                      const showEllipsis = prevPage && p - prevPage > 1;
+                      return (
+                        <React.Fragment key={p}>
+                          {showEllipsis && <span className="px-1 text-zinc-400 text-xs">...</span>}
+                          <button
+                            onClick={() => setClaimsPage(p)}
+                            className={`w-7 h-7 text-xs font-semibold rounded-lg transition-colors ${
+                              claimsPage === p
+                                ? 'bg-[#111114] text-white shadow-sm'
+                                : 'bg-white text-[#6e6e73] hover:text-[#111114] border border-[#e8e8ea]'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        </React.Fragment>
+                      );
+                    })}
+
+                  {/* Next page */}
+                  <button
+                    onClick={() => setClaimsPage((p) => Math.min(claimsTotalPages, p + 1))}
+                    disabled={claimsPage >= claimsTotalPages}
+                    className="p-1.5 rounded-lg border border-[#e8e8ea] bg-white text-[#6e6e73] hover:text-[#111114] disabled:opacity-30 transition-colors"
+                    title="Next page"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  {/* Last page */}
+                  <button
+                    onClick={() => setClaimsPage(claimsTotalPages)}
+                    disabled={claimsPage >= claimsTotalPages}
+                    className="p-1.5 rounded-lg border border-[#e8e8ea] bg-white text-[#6e6e73] hover:text-[#111114] disabled:opacity-30 transition-colors"
+                    title="Last page"
+                  >
+                    <ChevronsRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Jump To Page Form */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const p = parseInt(claimsJumpPageInput, 10);
+                    if (!isNaN(p) && p >= 1 && p <= claimsTotalPages) {
+                      setClaimsPage(p);
+                      setClaimsJumpPageInput('');
+                    }
+                  }}
+                  className="flex items-center gap-1.5 text-xs"
+                >
+                  <span className="text-[#6e6e73]">
+                    Page {claimsPage} of {claimsTotalPages} (Total {claimsTotal}) • Go to:
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={claimsTotalPages}
+                    value={claimsJumpPageInput}
+                    onChange={(e) => setClaimsJumpPageInput(e.target.value)}
+                    placeholder={String(claimsPage)}
+                    className="w-14 px-2 py-1 text-xs rounded-lg border border-[#e8e8ea] bg-white text-center focus:outline-none focus:ring-1 focus:ring-[#111114]"
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-1 text-xs font-semibold rounded-lg border border-[#e8e8ea] bg-white hover:bg-zinc-100 transition-colors"
+                  >
+                    Go
+                  </button>
+                </form>
+              </div>
             )}
           </div>
         )}

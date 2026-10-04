@@ -533,11 +533,11 @@ export class AuthService {
 
     const accessExpiry = this.configService.get<string>(
       'JWT_ACCESS_EXPIRY',
-      '15m',
+      '30d',
     );
     const refreshExpiry = this.configService.get<string>(
       'JWT_REFRESH_EXPIRY',
-      '7d',
+      '90d',
     );
 
     const [accessToken, refreshToken] = await Promise.all([

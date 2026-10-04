@@ -39,6 +39,7 @@ import { AddStaffDto } from './dto/add-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { CreateRoleClaimDto } from './dto/create-claim.dto';
 import { ReviewRoleClaimDto } from './dto/review-claim.dto';
+import { BulkApproveClaimsDto } from './dto/bulk-approve-claims.dto';
 import { CreateDonationMethodDto } from './dto/create-donation.dto';
 import { ReviewDonationMethodDto } from './dto/review-donation.dto';
 
@@ -242,6 +243,22 @@ export class CommunityController {
     @CurrentUser() actor: UserPayload,
   ) {
     return this.communityService.reviewRoleClaim(claimId, dto, actor);
+  }
+
+  @Patch('admin/role-claims/approve-all')
+  @Roles('admin', 'moderator')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 10 })
+  @ApiOperation({
+    summary: 'Approve all open role claims in batch',
+    description:
+      'Approves all pending claims and provisions verified staff. Restricted to platform admin.',
+  })
+  async bulkApproveRoleClaims(
+    @Body() dto: BulkApproveClaimsDto,
+    @CurrentUser() actor: UserPayload,
+  ) {
+    return this.communityService.bulkApproveRoleClaims(dto, actor);
   }
 
   // ──────────────────────────────────────────────────────────────────────────

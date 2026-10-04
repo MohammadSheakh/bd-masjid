@@ -61,7 +61,7 @@ describe('AuthService token lifecycle', () => {
     return { service, prisma, logger };
   }
 
-  it('uses short access tokens and seven-day refresh tokens by default', async () => {
+  it('uses 30-day access tokens and 90-day refresh tokens by default', async () => {
     const configService = {
       get: jest.fn((_key: string, fallback: string) => fallback),
       getOrThrow: jest.fn((key: string) => key),
@@ -94,12 +94,12 @@ describe('AuthService token lifecycle', () => {
     expect(signAsync).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({ sub: 'user-1' }),
-      expect.objectContaining({ expiresIn: '15m' }),
+      expect.objectContaining({ expiresIn: '30d' }),
     );
     expect(signAsync).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({ sub: 'user-1' }),
-      expect.objectContaining({ expiresIn: '7d' }),
+      expect.objectContaining({ expiresIn: '90d' }),
     );
   });
 

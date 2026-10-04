@@ -55,14 +55,14 @@ export class ConfigService {
    * Get JWT Access Expiry
    */
   getJwtAccessExpiry(): string {
-    return this.configService.get<string>('JWT_ACCESS_EXPIRY', '15m');
+    return this.configService.get<string>('JWT_ACCESS_EXPIRY', '30d');
   }
 
   /**
    * Get JWT Refresh Expiry
    */
   getJwtRefreshExpiry(): string {
-    return this.configService.get<string>('JWT_REFRESH_EXPIRY', '7d');
+    return this.configService.get<string>('JWT_REFRESH_EXPIRY', '90d');
   }
 
   /**

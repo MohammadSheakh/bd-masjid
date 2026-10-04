@@ -14,6 +14,7 @@ import { AddStaffDto } from './dto/add-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { CreateRoleClaimDto } from './dto/create-claim.dto';
 import { ReviewRoleClaimDto } from './dto/review-claim.dto';
+import { BulkApproveClaimsDto } from './dto/bulk-approve-claims.dto';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { CreateDonationMethodDto } from './dto/create-donation.dto';
 import { ReviewDonationMethodDto } from './dto/review-donation.dto';
@@ -75,6 +76,7 @@ export class CommunityService {
               MosqueStaffRole.MOSQUE_ADMIN,
               MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
+              MosqueStaffRole.COMMITTEE_VICE_PRESIDENT,
             ],
           },
         },
@@ -161,6 +163,7 @@ export class CommunityService {
               MosqueStaffRole.MOSQUE_ADMIN,
               MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
+              MosqueStaffRole.COMMITTEE_VICE_PRESIDENT,
             ],
           },
         },
@@ -237,6 +240,7 @@ export class CommunityService {
               MosqueStaffRole.MOSQUE_ADMIN,
               MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
+              MosqueStaffRole.COMMITTEE_VICE_PRESIDENT,
             ],
           },
         },
@@ -371,7 +375,7 @@ export class CommunityService {
         phoneNumber: (dto.phoneNumber || '').trim(),
         startDate: dto.startDate ? new Date(dto.startDate) : null,
         imageUrl: dto.imageUrl?.trim() || null,
-        evidence: dto.evidence.trim(),
+        evidence: dto.evidence?.trim() || 'No written evidence provided',
         documentUrl: dto.documentUrl?.trim() || null,
         status: RoleClaimStatus.OPEN,
       },
@@ -455,6 +459,7 @@ export class CommunityService {
               MosqueStaffRole.MOSQUE_ADMIN,
               MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
+              MosqueStaffRole.COMMITTEE_VICE_PRESIDENT,
             ],
           },
         },
@@ -520,6 +525,7 @@ export class CommunityService {
               MosqueStaffRole.MOSQUE_ADMIN,
               MosqueStaffRole.MUTAWALLI,
               MosqueStaffRole.COMMITTEE_PRESIDENT,
+              MosqueStaffRole.COMMITTEE_VICE_PRESIDENT,
             ],
           },
         },
@@ -581,6 +587,107 @@ export class CommunityService {
     });
 
     return result;
+  }
+
+  async bulkApproveRoleClaims(
+    dto: BulkApproveClaimsDto,
+    actor: UserPayload,
+  ) {
+    const isPlatformAdmin =
+      actor.role === 'admin' || actor.role === 'moderator';
+
+    if (!isPlatformAdmin) {
+      throw new ForbiddenException(
+        'Only platform administrators can perform bulk approval of role claims',
+      );
+    }
+
+    const where: Prisma.MosqueRoleClaimWhereInput = {
+      status: RoleClaimStatus.OPEN,
+      ...(dto.claimIds && dto.claimIds.length > 0 ? { id: { in: dto.claimIds } } : {}),
+    };
+
+    const pendingClaims = await this.prisma.mosqueRoleClaim.findMany({
+      where,
+      include: { user: true },
+    });
+
+    if (pendingClaims.length === 0) {
+      return {
+        message: 'No open role claims found to approve',
+        approvedCount: 0,
+        ids: [],
+      };
+    }
+
+    const approvedIds: string[] = [];
+
+    await this.prisma.$transaction(async (tx) => {
+      const now = new Date();
+      for (const claim of pendingClaims) {
+        // 1. Update claim status to APPROVED
+        await tx.mosqueRoleClaim.update({
+          where: { id: claim.id },
+          data: {
+            status: RoleClaimStatus.APPROVED,
+            resolutionNotes:
+              dto.resolutionNotes?.trim() || 'Batch approved by platform administrator',
+            reviewedById: actor.userId,
+            reviewedAt: now,
+          },
+        });
+
+        // 2. Create MosqueStaff entry with transferred identity
+        await tx.mosqueStaff.create({
+          data: {
+            mosqueId: claim.mosqueId,
+            userId: claim.userId,
+            role: claim.role,
+            customRoleTitle: claim.customRoleTitle,
+            name: claim.name || claim.user.name,
+            contactNumber: claim.phoneNumber || claim.user.phoneNumber,
+            startDate: claim.startDate,
+            imageUrl: claim.imageUrl || claim.user.profileImageUrl,
+            isVerified: true,
+            verifiedAt: now,
+            verifiedById: actor.userId,
+          },
+        });
+
+        // 3. Audit trail
+        await this.audit.record(
+          {
+            action: 'ROLE_CLAIM_BULK_APPROVED',
+            entityType: 'MosqueRoleClaim',
+            entityId: claim.id,
+            actor,
+            newValue: {
+              status: RoleClaimStatus.APPROVED,
+              role: claim.role,
+              mosqueId: claim.mosqueId,
+            },
+            metadata: {
+              mosqueId: claim.mosqueId,
+              role: claim.role,
+              batch: true,
+            },
+          },
+          tx,
+        );
+
+        approvedIds.push(claim.id);
+      }
+    });
+
+    this.logger.log(
+      `Batch approved ${approvedIds.length} role claims by user ${actor.userId}`,
+    );
+
+    return {
+      message: `Successfully approved ${approvedIds.length} role claims and provisioned verified staff.`,
+      approvedCount: approvedIds.length,
+      ids: approvedIds,
+    };
   }
 
   // ──────────────────────────────────────────────────────────────────────────

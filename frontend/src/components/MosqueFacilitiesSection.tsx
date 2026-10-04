@@ -49,6 +49,7 @@ export const MosqueFacilitiesSection: React.FC<MosqueFacilitiesSectionProps> = (
                 [
                   'MOSQUE_ADMIN',
                   'COMMITTEE_PRESIDENT',
+                  'COMMITTEE_VICE_PRESIDENT',
                   'COMMITTEE_MEMBER',
                   'MUTAWALLI',
                 ].includes(s.role),

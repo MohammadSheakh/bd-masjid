@@ -35,7 +35,7 @@ import { TwoFactorService } from './two-factor/two-factor.service';
         signOptions: {
           expiresIn: configService.get<string>(
             'JWT_ACCESS_EXPIRY',
-            '15m',
+            '30d',
           ) as never,
         },
       }),

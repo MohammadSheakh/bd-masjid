@@ -37,6 +37,7 @@ describe('MosquesService', () => {
       userMosqueAttendance: {
         count: jest.fn().mockResolvedValue(0),
         findUnique: jest.fn().mockResolvedValue(null),
+        groupBy: jest.fn().mockResolvedValue([]),
       },
     };
 

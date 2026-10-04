@@ -144,7 +144,8 @@ export class AnnouncementsService {
         if (
           staff.role !== MosqueStaffRole.MOSQUE_ADMIN &&
           staff.role !== MosqueStaffRole.MUTAWALLI &&
-          staff.role !== MosqueStaffRole.COMMITTEE_PRESIDENT
+          staff.role !== MosqueStaffRole.COMMITTEE_PRESIDENT &&
+          staff.role !== MosqueStaffRole.COMMITTEE_VICE_PRESIDENT
         ) {
           throw new ForbiddenException(
             'EMERGENCY_ALERT announcements require Mosque Admin, Mutawalli, or Committee President authorization',
@@ -525,7 +526,8 @@ export class AnnouncementsService {
       staff &&
       (staff.role === MosqueStaffRole.MOSQUE_ADMIN ||
         staff.role === MosqueStaffRole.MUTAWALLI ||
-        staff.role === MosqueStaffRole.COMMITTEE_PRESIDENT)
+        staff.role === MosqueStaffRole.COMMITTEE_PRESIDENT ||
+        staff.role === MosqueStaffRole.COMMITTEE_VICE_PRESIDENT)
     ) {
       isAuthorized = true;
       isExecutive = true;

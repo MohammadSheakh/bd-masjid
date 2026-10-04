@@ -167,7 +167,9 @@ export function MosqueDetailModal({
       case 'KHADEM':
         return { title: 'Khadem', subtitle: 'Mosque Caretaker' };
       case 'COMMITTEE_PRESIDENT':
-        return { title: 'Committee President', subtitle: 'Executive Leadership' };
+        return { title: 'Committee President (সভাপতি)', subtitle: 'Executive Leadership' };
+      case 'COMMITTEE_VICE_PRESIDENT':
+        return { title: 'Vice President (সহ-সভাপতি)', subtitle: 'Executive Leadership' };
       case 'COMMITTEE_SECRETARY':
         return { title: 'General Secretary', subtitle: 'Administrative Leadership' };
       case 'COMMITTEE_MEMBER':

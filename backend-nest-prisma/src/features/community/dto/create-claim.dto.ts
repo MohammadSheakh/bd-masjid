@@ -68,16 +68,16 @@ export class CreateRoleClaimDto {
   imageUrl?: string;
 
   @ApiProperty({
+    required: false,
     description:
-      'Evidence supporting the claim (e.g. appointment letter, committee confirmation, witness contact)',
+      'Optional evidence supporting the claim (e.g. appointment letter, committee confirmation, witness contact)',
     example:
       'Appointed by managing committee resolution on 12 January 2024. Contact president Haji Rafiq: 01711223344.',
   })
   @IsString()
-  @IsNotEmpty()
-  @MinLength(15)
+  @IsOptional()
   @MaxLength(1000)
-  evidence: string;
+  evidence?: string;
 
   @ApiProperty({
     required: false,

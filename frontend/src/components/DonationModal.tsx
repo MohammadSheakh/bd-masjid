@@ -79,6 +79,19 @@ export function DonationModal({
     e.preventDefault();
     if (!accountNumber.trim()) return;
 
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null;
+
+    if (!token) {
+      setStatusMessage({
+        type: 'error',
+        text: 'Login required: Only verified Mosque Committee members, Mutawalli, or Admins can register donation channels.',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     setStatusMessage(null);
 

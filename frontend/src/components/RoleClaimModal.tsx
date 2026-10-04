@@ -145,11 +145,6 @@ export function RoleClaimModal({ mosque, onClose }: RoleClaimModalProps) {
       return;
     }
 
-    if (!evidence.trim() || evidence.trim().length < 15) {
-      setErrorMessage('Please provide at least 15 characters of evidence or appointment details.');
-      return;
-    }
-
     setIsSubmitting(true);
     setErrorMessage(null);
 
@@ -161,7 +156,7 @@ export function RoleClaimModal({ mosque, onClose }: RoleClaimModalProps) {
         phoneNumber: phoneNumber.trim(),
         startDate: startDate ? new Date(startDate).toISOString() : undefined,
         imageUrl: imageUrl.trim() || undefined,
-        evidence: evidence.trim(),
+        evidence: evidence.trim() || undefined,
         documentUrl: documentUrl.trim() || undefined,
       });
 
@@ -336,16 +331,17 @@ export function RoleClaimModal({ mosque, onClose }: RoleClaimModalProps) {
                   onChange={(e) => setRole(e.target.value)}
                   className="w-full text-xs bg-[#fafafa] border border-[#e8e8ea] rounded-[10px] px-3 py-2 text-[#111114] outline-none focus:bg-white focus:border-[#111114] focus-visible:ring-1 focus-visible:ring-[#111114] transition-colors"
                 >
-                  <option value="MOSQUE_ADMIN">Mosque Administrator (Super Admin)</option>
-                  <option value="MUTAWALLI">Mutawalli (Trustee & Super Admin)</option>
-                  <option value="IMAM">Imam (Pesh Imam / Senior Imam)</option>
-                  <option value="MUAZZIN">Muazzin</option>
-                  <option value="KHATIB">Chief Khatib</option>
-                  <option value="KHADEM">Khadem / Caretaker</option>
-                  <option value="COMMITTEE_PRESIDENT">Managing Committee President</option>
-                  <option value="COMMITTEE_SECRETARY">General Secretary</option>
-                  <option value="COMMITTEE_MEMBER">Committee Executive Member</option>
-                  <option value="CUSTOM">Custom Official Role...</option>
+                  <option value="IMAM">ইমাম (পেশ ইমাম / সিনিয়র ইমাম) — Imam</option>
+                  <option value="KHATIB">খতিব (প্রধান খতিব) — Chief Khatib</option>
+                  <option value="MUAZZIN">মুয়াজ্জিন — Muazzin</option>
+                  <option value="KHADEM">খাদেম / কেয়ারটেকার — Khadem</option>
+                  <option value="MUTAWALLI">মুতাওয়াল্লি (ট্রাস্টি ও মসজিদ প্রধান) — Mutawalli</option>
+                  <option value="MOSQUE_ADMIN">মসজিদ অ্যাডমিন — Moshjid Admin</option>
+                  <option value="COMMITTEE_PRESIDENT">পরিচালনা কমিটির সভাপতি — President</option>
+                  <option value="COMMITTEE_VICE_PRESIDENT">সহ-সভাপতি — Vice President</option>
+                  <option value="COMMITTEE_SECRETARY">সাধারণ সম্পাদক — General Secretary</option>
+                  <option value="COMMITTEE_MEMBER">কমিটি কার্যনির্বাহী সদস্য — Member</option>
+                  <option value="CUSTOM">অন্যান্য কাস্টম পদবী... — Custom Official Role</option>
                 </select>
               </div>
 
@@ -478,19 +474,18 @@ export function RoleClaimModal({ mosque, onClose }: RoleClaimModalProps) {
                 className="block text-xs font-semibold text-[#111114] mb-1.5 flex items-center gap-1"
               >
                 <FileText className="w-3.5 h-3.5 text-zinc-500" aria-hidden="true" />
-                <span>Appointment Evidence / Verification Details *</span>
+                <span>Appointment Evidence / Verification Details (Optional)</span>
               </label>
               <textarea
                 id="claim-evidence"
                 rows={3}
-                required
                 value={evidence}
                 onChange={(e) => setEvidence(e.target.value)}
-                placeholder="Mention appointment resolution year, committee members who can verify, or local references..."
+                placeholder="Optional: Mention appointment resolution year, committee members who can verify, or local references..."
                 className="w-full text-xs bg-[#fafafa] border border-[#e8e8ea] rounded-[10px] p-3 text-[#111114] placeholder:text-[#6e6e73]/60 outline-none focus:bg-white focus:border-[#111114] focus-visible:ring-1 focus-visible:ring-[#111114] transition-colors resize-none"
               />
               <div className="flex items-center justify-between text-[10px] text-[#6e6e73] mt-1">
-                <span>Minimum 15 characters required.</span>
+                <span>Optional background verification information</span>
                 <span>{evidence.length} / 1000</span>
               </div>
             </div>

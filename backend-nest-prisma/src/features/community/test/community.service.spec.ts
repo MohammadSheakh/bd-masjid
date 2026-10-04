@@ -625,6 +625,59 @@ describe('CommunityService', () => {
     });
   });
 
+  describe('bulkApproveRoleClaims', () => {
+    it('approves all open claims in batch and provisions verified staff', async () => {
+      const pendingClaims = [
+        {
+          id: 'claim-1',
+          mosqueId: 'mosque-1',
+          userId: 'user-1',
+          role: MosqueStaffRole.IMAM,
+          customRoleTitle: null,
+          name: 'Imam Hafiz',
+          phoneNumber: '01711223344',
+          startDate: null,
+          imageUrl: null,
+          user: { name: 'User 1', email: 'u1@test.com', phoneNumber: '01711223344', profileImageUrl: null },
+        },
+      ];
+      mockPrisma.mosqueRoleClaim.findMany.mockResolvedValue(pendingClaims);
+
+      const res = await service.bulkApproveRoleClaims({}, adminActor);
+
+      expect(res.approvedCount).toBe(1);
+      expect(res.ids).toEqual(['claim-1']);
+      expect(mockPrisma.mosqueRoleClaim.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'claim-1' },
+          data: expect.objectContaining({ status: RoleClaimStatus.APPROVED }),
+        }),
+      );
+      expect(mockPrisma.mosqueStaff.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            mosqueId: 'mosque-1',
+            role: MosqueStaffRole.IMAM,
+            isVerified: true,
+          }),
+        }),
+      );
+    });
+
+    it('rejects bulk approve if actor is not an admin', async () => {
+      const nonAdminActor: UserPayload = {
+        userId: 'user-regular',
+        email: 'user@test.com',
+        role: 'user',
+        permissions: [],
+      };
+
+      await expect(
+        service.bulkApproveRoleClaims({}, nonAdminActor),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
   describe('getUserBookmarks', () => {
     it('returns array of bookmarked mosques', async () => {
       mockPrisma.mosqueBookmark.findMany.mockResolvedValue([
