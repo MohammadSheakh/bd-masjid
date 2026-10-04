@@ -2,7 +2,7 @@
 id: F-037
 name: Dynamic System Audit Trail Toggle & Storage Governance
 phase: 3
-status: planned
+status: completed
 depends_on:
   - F-001
   - F-003
@@ -62,46 +62,46 @@ model AuditConfig {
     ```
 
 ## 5. Extracted Implementation Checklist
-- [ ] Create `AuditConfig` model in Prisma and generate database migration.
-- [ ] Implement in-memory cached state and module lifecycle loader in `AuditService`.
-- [ ] Add bypass logic in `AuditService.record()` when disabled.
-- [ ] Add `GET` and `PATCH` configuration endpoints in `AuditController`.
-- [ ] Build Admin Dashboard UI toggle controls and status banner in Tab 7 (Audit Trail).
-- [ ] Add unit tests for `AuditService` and `AuditController` verifying enable/disable behavior.
+- [x] Create `AuditConfig` model in Prisma and generate database migration.
+- [x] Implement in-memory cached state and module lifecycle loader in `AuditService`.
+- [x] Add bypass logic in `AuditService.record()` when disabled.
+- [x] Add `GET` and `PATCH` configuration endpoints in `AuditController`.
+- [x] Build Admin Dashboard UI toggle controls and status banner in Tab 7 (Audit Trail).
+- [x] Add unit tests for `AuditService` and `AuditController` verifying enable/disable behavior.
 
 ---
 
 ## 6. Implementation Slices & Proof of Completion
 
 ### TK-AUD-01: Audit Configuration Prisma Model & Migration
-- **Status**: `[ ] Pending` | **Priority**: Critical
+- **Status**: `[x] Completed` | **Priority**: Critical
 - **Description**: Add `AuditConfig` singleton model in `audit.prisma`, build schema, and create migration.
 - **Acceptance Criteria**:
-  - [ ] `AuditConfig` table created with `id`, `enabled`, `updatedAt`, `updatedBy`.
-  - [ ] Prisma client generated with types for `AuditConfig`.
+  - [x] `AuditConfig` table created with `id`, `enabled`, `updatedAt`, `updatedBy`.
+  - [x] Prisma client generated with types for `AuditConfig`.
 - **Implementation Files**:
-  - Schema: `backend-nest-prisma/prisma/schema/audit.module/audit.prisma`
-  - Migration: `backend-nest-prisma/prisma/migrations/20261004150000_add_audit_config_table/migration.sql`
+  - Schema: [audit.prisma](file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/backend-nest-prisma/prisma/schema/audit.module/audit.prisma)
+  - Migration: [migration.sql](file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/backend-nest-prisma/prisma/migrations/20261004153000_add_audit_config_table/migration.sql)
 
 ### TK-AUD-02: Backend Audit Service Toggle, Endpoints & Unit Tests
-- **Status**: `[ ] Pending` | **Priority**: Critical
+- **Status**: `[x] Completed` | **Priority**: Critical
 - **Description**: In-memory caching, bypass logic in `record()`, `GET`/`PATCH` endpoints in `AuditController`, and comprehensive unit tests.
 - **Acceptance Criteria**:
-  - [ ] `AuditService.record()` executes `AuditLog.create` when enabled and skips when disabled.
-  - [ ] `PATCH /api/v1/admin/audit-logs/settings` updates both database and in-memory cache.
-  - [ ] Unit tests pass for all branches.
+  - [x] `AuditService.record()` executes `AuditLog.create` when enabled and skips when disabled.
+  - [x] `PATCH /api/v1/admin/audit-logs/settings` updates both database and in-memory cache.
+  - [x] Unit tests pass for all branches (39 test suites, 299 tests passing).
 - **Implementation Files**:
-  - Service: `backend-nest-prisma/src/features/audit/audit.service.ts`
-  - Controller: `backend-nest-prisma/src/features/audit/audit.controller.ts`
-  - Tests: `backend-nest-prisma/src/features/audit/test/audit.service.spec.ts`
+  - Service: [audit.service.ts](file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/backend-nest-prisma/src/features/audit/audit.service.ts)
+  - Controller: [audit.controller.ts](file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/backend-nest-prisma/src/features/audit/audit.controller.ts)
+  - DTO: [audit.dto.ts](file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/backend-nest-prisma/src/features/audit/dto/audit.dto.ts)
+  - Tests: [audit.service.spec.ts](file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/backend-nest-prisma/src/features/audit/test/audit.service.spec.ts), [audit.controller.spec.ts](file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/backend-nest-prisma/src/features/audit/test/audit.controller.spec.ts)
 
 ### TK-AUD-03: Admin Dashboard Audit Trail Toggle UI
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Add real-time audit toggle card, status badges, and pause notification banner in Admin Dashboard.
 - **Acceptance Criteria**:
-  - [ ] Admin can see current status (Active vs Paused).
-  - [ ] Admin can click toggle button to switch state with instant visual feedback.
-  - [ ] API integration handles loading states and errors cleanly.
+  - [x] Admin can see current status (Active Recording vs Paused Zero Writes).
+  - [x] Admin can click toggle button to switch state with instant visual feedback.
+  - [x] API integration handles loading states and errors cleanly.
 - **Implementation Files**:
-  - Page: `frontend/src/app/admin/page.tsx`
-  - API Client: `frontend/src/lib/api.ts`
+  - Page: [page.tsx](file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/frontend/src/app/admin/page.tsx)
