@@ -9,6 +9,7 @@ import { MosqueCard } from '@/components/MosqueCard';
 import { MosqueDetailModal } from '@/components/MosqueDetailModal';
 import { AddMosqueModal } from '@/components/AddMosqueModal';
 import { SuggestionModal } from '@/components/SuggestionModal';
+import { MosqueSuggestionModal } from '@/components/MosqueSuggestionModal';
 import { ReportModal } from '@/components/ReportModal';
 import { RoleClaimModal } from '@/components/RoleClaimModal';
 import { AnnouncementModal } from '@/components/AnnouncementModal';
@@ -56,6 +57,7 @@ export default function HomePage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isPinDropMode, setIsPinDropMode] = useState(false);
   const [droppedPin, setDroppedPin] = useState<{ lat: number; lng: number } | null>(null);
+  const [communitySuggestionMosque, setCommunitySuggestionMosque] = useState<Mosque | null>(null);
   const [suggestionMosque, setSuggestionMosque] = useState<Mosque | null>(null);
   const [reportMosque, setReportMosque] = useState<Mosque | null>(null);
   const [roleClaimMosque, setRoleClaimMosque] = useState<Mosque | null>(null);
@@ -486,7 +488,8 @@ export default function HomePage() {
         <MosqueDetailModal
           mosque={selectedMosque}
           onClose={() => setSelectedMosque(null)}
-          onOpenSuggestion={(m) => setSuggestionMosque(m)}
+          onOpenSuggestion={(m) => setCommunitySuggestionMosque(m)}
+          onOpenTimetable={(m) => setSuggestionMosque(m)}
           onOpenReport={(m) => setReportMosque(m)}
           onOpenRoleClaim={(m) => setRoleClaimMosque(m)}
           onOpenAnnouncements={(m) => setAnnouncementMosque(m)}
@@ -508,7 +511,31 @@ export default function HomePage() {
         }}
       />
 
-      {/* Suggestion Modal */}
+      {/* Community Suggestion & Grievance Modal */}
+      {communitySuggestionMosque && (
+        <MosqueSuggestionModal
+          mosque={communitySuggestionMosque}
+          isOpen={!!communitySuggestionMosque}
+          onClose={() => setCommunitySuggestionMosque(null)}
+          onSuccess={async () => {
+            if (
+              selectedMosque &&
+              selectedMosque.id === communitySuggestionMosque.id
+            ) {
+              try {
+                const refreshed = await fetchMosqueById(
+                  communitySuggestionMosque.id,
+                );
+                if (refreshed) setSelectedMosque(refreshed);
+              } catch {
+                // Ignore refresh fallback error
+              }
+            }
+          }}
+        />
+      )}
+
+      {/* Suggestion Modal (Prayer Timetable) */}
       {suggestionMosque && (
         <SuggestionModal
           mosque={suggestionMosque}

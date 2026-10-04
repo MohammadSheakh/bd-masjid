@@ -1,7 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Mosque, AttendanceStatus, MosqueStaffMember } from '@/types/mosque';
+import {
+  Mosque,
+  AttendanceStatus,
+  MosqueStaffMember,
+  MosqueSuggestionItem,
+} from '@/types/mosque';
 import {
   X,
   MapPin,
@@ -21,6 +26,7 @@ import {
   Moon,
   Loader2,
   User,
+  MessageSquare,
 } from 'lucide-react';
 import {
   toggleAttendance,
@@ -28,6 +34,7 @@ import {
   toggleMosqueBookmark,
   getLocalBookmarks,
   fetchMosqueStaff,
+  fetchPublicMosqueSuggestions,
 } from '@/lib/api';
 import { formatTo12Hour } from '@/lib/time';
 import { MosqueFacilitiesSection } from './MosqueFacilitiesSection';
@@ -36,6 +43,7 @@ interface MosqueDetailModalProps {
   mosque: Mosque | null;
   onClose: () => void;
   onOpenSuggestion: (mosque: Mosque) => void;
+  onOpenTimetable?: (mosque: Mosque) => void;
   onOpenReport: (mosque: Mosque) => void;
   onOpenRoleClaim?: (mosque: Mosque) => void;
   onOpenAnnouncements?: (mosque: Mosque) => void;
@@ -53,6 +61,7 @@ export function MosqueDetailModal({
   mosque,
   onClose,
   onOpenSuggestion,
+  onOpenTimetable,
   onOpenReport,
   onOpenRoleClaim,
   onOpenAnnouncements,
@@ -107,6 +116,32 @@ export function MosqueDetailModal({
         setCurrentAttendance(summary.userStatus);
       }
     });
+    return () => {
+      isMounted = false;
+    };
+  }, [mosque.id]);
+
+  // Public suggestions and community feedback
+  const [publicSuggestions, setPublicSuggestions] = useState<MosqueSuggestionItem[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (mosque.id) {
+      setIsLoadingSuggestions(true);
+      fetchPublicMosqueSuggestions(mosque.id, 1, 5)
+        .then((res) => {
+          if (isMounted && res?.items) {
+            setPublicSuggestions(res.items);
+          }
+        })
+        .catch(() => {
+          if (isMounted) setPublicSuggestions([]);
+        })
+        .finally(() => {
+          if (isMounted) setIsLoadingSuggestions(false);
+        });
+    }
     return () => {
       isMounted = false;
     };
@@ -348,7 +383,9 @@ export function MosqueDetailModal({
               {freshnessLabel}
             </span>
             <button
-              onClick={() => onOpenSuggestion(mosque)}
+              onClick={() =>
+                onOpenTimetable ? onOpenTimetable(mosque) : onOpenSuggestion(mosque)
+              }
               className="text-xs font-semibold text-emerald-700 hover:underline"
             >
               Update Times
@@ -607,6 +644,76 @@ export function MosqueDetailModal({
             <p className="text-[11px] text-[#8e8e93] mt-2 text-center">
               One-time selection • Declare your attendance affiliation with this mosque
             </p>
+          </div>
+
+          {/* Community Suggestions & Feedback */}
+          <div className="p-3.5 bg-[#fafafa] border border-[#e8e8ea] rounded-2xl">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e6e73]">
+                  Community Feedback
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => onOpenSuggestion(mosque)}
+                className="text-[11px] font-semibold text-blue-700 hover:underline"
+              >
+                + Suggest / Complain
+              </button>
+            </div>
+
+            {publicSuggestions.length > 0 ? (
+              <div className="space-y-2">
+                {publicSuggestions.slice(0, 3).map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-2.5 bg-white border border-[#e8e8ea] rounded-xl text-xs space-y-1"
+                  >
+                    <div className="flex items-center justify-between gap-1 flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-zinc-100 text-[#111114]">
+                          {item.type}
+                        </span>
+                        {item.urgency === 'HIGH' && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700">
+                            Urgent
+                          </span>
+                        )}
+                        {item.targetRoles && item.targetRoles.length > 0 && (
+                          <span className="text-[10px] text-[#6e6e73]">
+                            To: {item.targetRoles.join(', ')}
+                          </span>
+                        )}
+                      </div>
+                      <span
+                        className={`text-[10px] font-medium ${
+                          item.status === 'RESOLVED'
+                            ? 'text-emerald-600'
+                            : 'text-[#6e6e73]'
+                        }`}
+                      >
+                        {item.status}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#111114] leading-relaxed">
+                      {item.description}
+                    </p>
+                    {item.resolutionNotes && (
+                      <div className="text-[10px] text-emerald-800 bg-emerald-50 rounded p-1.5 mt-1 border border-emerald-100">
+                        <span className="font-semibold">Committee response: </span>
+                        {item.resolutionNotes}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[#6e6e73]">
+                No public suggestions posted yet. Click Suggest below to submit feedback for the Imam or Committee.
+              </p>
+            )}
           </div>
 
           {/* Quick Actions (Directions, Donate, Suggestion, Report) */}
