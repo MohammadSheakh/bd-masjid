@@ -122,6 +122,25 @@ export class DonationsController {
     return this.donationsService.verifyDonationChannel(id, dto, user);
   }
 
+  @Post('donations/:id/attest')
+  @ApiBearerAuth()
+  @RateLimit({ windowMs: 60 * 1000, max: 20 })
+  @ApiOperation({
+    summary: 'Attest and co-verify donation channel (Leadership Governance)',
+    description:
+      'Allows President, Vice President, General Secretary, Mutawalli, or Admin to add their verified officer signature.',
+  })
+  @ApiParam({ name: 'id', description: 'Donation Channel ID' })
+  @ApiResponse({ status: 200, description: 'Donation channel attested by leadership' })
+  @ApiResponse({ status: 400, description: 'Already attested or bad request' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not authorized leadership' })
+  async attestDonation(
+    @Param('id') id: string,
+    @CurrentUser() user: UserPayload,
+  ) {
+    return this.donationsService.attestDonationChannel(id, user);
+  }
+
   @Patch('donations/:id/reject')
   @ApiBearerAuth()
   @RateLimit({ windowMs: 60 * 1000, max: 20 })

@@ -81,13 +81,15 @@ describe('DonationsService', () => {
   });
 
   describe('submitDonationChannel', () => {
-    it('should submit a donation channel in PENDING_VERIFICATION status for verified Mutawalli', async () => {
+    it('should submit a donation channel in VERIFIED status with creator provenance for verified President', async () => {
       prisma.mosque.findUnique.mockResolvedValue({
         id: 'mosque-1',
         name: 'Baitul Mukarram',
       });
       prisma.mosqueStaff.findFirst.mockResolvedValue({
         id: 'staff-1',
+        name: 'Mohammad Sheakh',
+        imageUrl: '/uploads/staff/sheakh.jpg',
         mosqueId: 'mosque-1',
         userId: mockMutawalliUser.userId,
         role: MosqueStaffRole.COMMITTEE_PRESIDENT,
@@ -100,8 +102,12 @@ describe('DonationsService', () => {
         channelType: DonationChannelType.BKASH,
         accountNumber: '01711000000',
         accountTitle: 'Baitul Mukarram General Fund',
-        status: DonationChannelStatus.PENDING_VERIFICATION,
+        status: DonationChannelStatus.VERIFIED,
         createdById: mockMutawalliUser.userId,
+        creatorName: 'Mohammad Sheakh',
+        creatorRole: MosqueStaffRole.COMMITTEE_PRESIDENT,
+        creatorImageUrl: '/uploads/staff/sheakh.jpg',
+        verifiedRoles: [MosqueStaffRole.COMMITTEE_PRESIDENT],
       };
       prisma.mosqueDonationChannel.create.mockResolvedValue(mockCreated);
 
@@ -117,7 +123,8 @@ describe('DonationsService', () => {
         mockMutawalliUser,
       );
 
-      expect(result.status).toBe(DonationChannelStatus.PENDING_VERIFICATION);
+      expect(result.status).toBe(DonationChannelStatus.VERIFIED);
+      expect(result.creatorName).toBe('Mohammad Sheakh');
       expect(prisma.mosqueDonationChannel.create).toHaveBeenCalled();
       expect(audit.record).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -225,6 +232,95 @@ describe('DonationsService', () => {
 
       await expect(
         service.verifyDonationChannel('channel-1', {}, mockMusalliUser),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('attestDonationChannel (Multi-Signatory Governance)', () => {
+    const verifiedChannel = {
+      id: 'channel-1',
+      mosqueId: 'mosque-1',
+      createdById: mockMutawalliUser.userId,
+      creatorName: 'Mohammad Sheakh',
+      creatorRole: MosqueStaffRole.COMMITTEE_PRESIDENT,
+      status: DonationChannelStatus.VERIFIED,
+      verifiedRoles: [MosqueStaffRole.COMMITTEE_PRESIDENT],
+      roleAttestations: [
+        {
+          role: MosqueStaffRole.COMMITTEE_PRESIDENT,
+          userId: mockMutawalliUser.userId,
+          name: 'Mohammad Sheakh',
+        },
+      ],
+    };
+
+    const mockSecretaryUser: UserPayload = {
+      userId: 'secretary-1',
+      role: 'user',
+      email: 'sec@mosque.com',
+    };
+
+    it('should successfully co-verify channel when General Secretary attests', async () => {
+      prisma.mosqueDonationChannel.findUnique.mockResolvedValue(verifiedChannel);
+      prisma.mosqueStaff.findFirst.mockResolvedValue({
+        id: 'staff-sec',
+        mosqueId: 'mosque-1',
+        userId: mockSecretaryUser.userId,
+        role: MosqueStaffRole.COMMITTEE_SECRETARY,
+        name: 'Secretary Rahman',
+        imageUrl: null,
+        isVerified: true,
+      });
+
+      const updated = {
+        ...verifiedChannel,
+        verifiedRoles: [
+          MosqueStaffRole.COMMITTEE_PRESIDENT,
+          MosqueStaffRole.COMMITTEE_SECRETARY,
+        ],
+      };
+      prisma.mosqueDonationChannel.update.mockResolvedValue(updated);
+
+      const result = await service.attestDonationChannel(
+        'channel-1',
+        mockSecretaryUser,
+      );
+
+      expect(result.verifiedRoles).toContain(
+        MosqueStaffRole.COMMITTEE_SECRETARY,
+      );
+      expect(prisma.mosqueDonationChannel.update).toHaveBeenCalled();
+      expect(audit.record).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'MOSQUE_DONATION_CHANNEL_ATTESTED',
+          entityType: 'MosqueDonationChannel',
+        }),
+        prisma,
+      );
+    });
+
+    it('should throw BadRequestException if same user tries to attest twice', async () => {
+      prisma.mosqueDonationChannel.findUnique.mockResolvedValue(verifiedChannel);
+      prisma.mosqueStaff.findFirst.mockResolvedValue({
+        id: 'staff-pres',
+        mosqueId: 'mosque-1',
+        userId: mockMutawalliUser.userId,
+        role: MosqueStaffRole.COMMITTEE_PRESIDENT,
+        name: 'Mohammad Sheakh',
+        isVerified: true,
+      });
+
+      await expect(
+        service.attestDonationChannel('channel-1', mockMutawalliUser),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw ForbiddenException if ordinary user tries to attest', async () => {
+      prisma.mosqueDonationChannel.findUnique.mockResolvedValue(verifiedChannel);
+      prisma.mosqueStaff.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.attestDonationChannel('channel-1', mockMusalliUser),
       ).rejects.toThrow(ForbiddenException);
     });
   });

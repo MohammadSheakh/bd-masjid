@@ -32,7 +32,9 @@ export class DonationsService {
   ) {}
 
   /**
-   * Submit a new donation channel for a mosque (Created in PENDING_VERIFICATION status)
+   * Submit a new verified donation channel for a mosque
+   * Created directly in VERIFIED status by verified mosque leadership:
+   * Mutawalli, President, Vice President, General Secretary (or Mosque Admin).
    */
   async submitDonationChannel(
     mosqueId: string,
@@ -48,7 +50,7 @@ export class DonationsService {
       throw new NotFoundException(`Mosque with ID ${mosqueId} not found`);
     }
 
-    await this.assertCanSubmit(mosqueId, actor);
+    const leadership = await this.getCreatorLeadershipStaff(mosqueId, actor);
 
     if (
       dto.channelType === DonationChannelType.BANK_TRANSFER &&
@@ -58,6 +60,15 @@ export class DonationsService {
         'bankName is required when channelType is BANK_TRANSFER',
       );
     }
+
+    const now = new Date();
+    const initialAttestation = {
+      role: leadership.role,
+      userId: actor.userId,
+      name: leadership.name,
+      imageUrl: leadership.imageUrl,
+      attestedAt: now.toISOString(),
+    };
 
     return this.prisma.$transaction(async (tx) => {
       const channel = await tx.mosqueDonationChannel.create({
@@ -73,8 +84,15 @@ export class DonationsService {
           routingNumber: dto.routingNumber?.trim() ?? null,
           paymentInstructions: dto.paymentInstructions?.trim() ?? null,
           qrCodeImageUrl: dto.qrCodeImageUrl?.trim() ?? null,
-          status: DonationChannelStatus.PENDING_VERIFICATION,
+          status: DonationChannelStatus.VERIFIED,
           createdById: actor.userId,
+          creatorName: leadership.name,
+          creatorRole: leadership.role,
+          creatorImageUrl: leadership.imageUrl,
+          verifiedRoles: [leadership.role],
+          roleAttestations: [initialAttestation],
+          verifiedById: actor.userId,
+          verifiedAt: now,
         },
         include: {
           createdBy: {
@@ -90,7 +108,12 @@ export class DonationsService {
           entityId: channel.id,
           actor,
           newValue: channel,
-          metadata: { mosqueId, channelType: dto.channelType },
+          metadata: {
+            mosqueId,
+            channelType: dto.channelType,
+            verifiedRoles: channel.verifiedRoles,
+            creatorRole: leadership.role,
+          },
         },
         tx,
       );
@@ -186,7 +209,7 @@ export class DonationsService {
   }
 
   /**
-   * Verify and approve a donation channel
+   * Verify and approve a donation channel (Legacy/Pending channel verification)
    * Enforces two-person verification rule: verifiedById !== createdById
    */
   async verifyDonationChannel(
@@ -210,14 +233,45 @@ export class DonationsService {
 
     await this.assertCanVerify(channel.mosqueId, channel.createdById, actor);
 
+    const staff = await this.prisma.mosqueStaff.findFirst({
+      where: {
+        mosqueId: channel.mosqueId,
+        userId: actor.userId,
+        isVerified: true,
+      },
+    });
+
+    const now = new Date();
+    const verifierRole = staff?.role ?? MosqueStaffRole.MOSQUE_ADMIN;
+    const currentRoles: string[] = Array.isArray(channel.verifiedRoles)
+      ? channel.verifiedRoles
+      : [];
+    const updatedRoles = Array.from(new Set([...currentRoles, verifierRole]));
+
+    const existingAttestations: any[] = Array.isArray(channel.roleAttestations)
+      ? (channel.roleAttestations as any[])
+      : [];
+    const updatedAttestations = [
+      ...existingAttestations,
+      {
+        role: verifierRole,
+        userId: actor.userId,
+        name: staff?.name ?? 'Mosque Verifier',
+        imageUrl: staff?.imageUrl ?? null,
+        attestedAt: now.toISOString(),
+      },
+    ];
+
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.mosqueDonationChannel.update({
         where: { id: channelId },
         data: {
           status: DonationChannelStatus.VERIFIED,
           verifiedById: actor.userId,
-          verifiedAt: new Date(),
+          verifiedAt: now,
           rejectionReason: null,
+          verifiedRoles: updatedRoles,
+          roleAttestations: updatedAttestations,
         },
         include: {
           createdBy: { select: { id: true, name: true } },
@@ -233,7 +287,89 @@ export class DonationsService {
           actor,
           previousValue: channel,
           newValue: updated,
-          metadata: { mosqueId: channel.mosqueId, notes: dto.notes },
+          metadata: {
+            mosqueId: channel.mosqueId,
+            notes: dto.notes,
+            verifierRole,
+          },
+        },
+        tx,
+      );
+
+      return updated;
+    });
+  }
+
+  /**
+   * Multi-signatory leadership attestation
+   * President, Vice President, General Secretary, or Mutawalli adds their verification stamp.
+   */
+  async attestDonationChannel(channelId: string, actor: UserPayload) {
+    const channel = await this.prisma.mosqueDonationChannel.findUnique({
+      where: { id: channelId },
+    });
+
+    if (!channel) {
+      throw new NotFoundException(
+        `Donation channel with ID ${channelId} not found`,
+      );
+    }
+
+    const leadership = await this.getCreatorLeadershipStaff(channel.mosqueId, actor);
+
+    const existingAttestations: any[] = Array.isArray(channel.roleAttestations)
+      ? (channel.roleAttestations as any[])
+      : [];
+
+    if (existingAttestations.some((att) => att.userId === actor.userId)) {
+      throw new BadRequestException(
+        'You have already attested this donation channel',
+      );
+    }
+
+    const now = new Date();
+    const newAttestation = {
+      role: leadership.role,
+      userId: actor.userId,
+      name: leadership.name,
+      imageUrl: leadership.imageUrl,
+      attestedAt: now.toISOString(),
+    };
+
+    const currentRoles: string[] = Array.isArray(channel.verifiedRoles)
+      ? channel.verifiedRoles
+      : [];
+    const updatedRoles = Array.from(new Set([...currentRoles, leadership.role]));
+    const updatedAttestations = [...existingAttestations, newAttestation];
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.mosqueDonationChannel.update({
+        where: { id: channelId },
+        data: {
+          status: DonationChannelStatus.VERIFIED,
+          verifiedRoles: updatedRoles,
+          roleAttestations: updatedAttestations,
+          verifiedById: channel.verifiedById ?? actor.userId,
+          verifiedAt: channel.verifiedAt ?? now,
+        },
+        include: {
+          createdBy: { select: { id: true, name: true } },
+          verifiedBy: { select: { id: true, name: true } },
+        },
+      });
+
+      await this.audit.record(
+        {
+          action: 'MOSQUE_DONATION_CHANNEL_ATTESTED',
+          entityType: 'MosqueDonationChannel',
+          entityId: channelId,
+          actor,
+          newValue: updated,
+          metadata: {
+            attestedRole: leadership.role,
+            totalAttestations: updatedAttestations.length,
+            verifiedRoles: updatedRoles,
+          },
         },
         tx,
       );
@@ -354,11 +490,23 @@ export class DonationsService {
   }
 
   /**
-   * Helper: Check if actor can submit draft donation channel
+   * Helper: Check and retrieve verified mosque leadership staff
+   * Mutawalli, President, Vice President, General Secretary, or Mosque Admin.
    */
-  private async assertCanSubmit(mosqueId: string, actor: UserPayload) {
-    if (actor.role === 'admin' || actor.role === 'moderator') {
-      return;
+  private async getCreatorLeadershipStaff(
+    mosqueId: string,
+    actor: UserPayload,
+  ): Promise<{ role: MosqueStaffRole; name: string; imageUrl: string | null }> {
+    if (actor.role === 'admin') {
+      const user = await this.prisma.user.findUnique({
+        where: { id: actor.userId },
+        select: { id: true, name: true, profileImageUrl: true },
+      });
+      return {
+        role: MosqueStaffRole.MOSQUE_ADMIN,
+        name: user?.name ?? 'Platform Admin',
+        imageUrl: user?.profileImageUrl ?? null,
+      };
     }
 
     const staff = await this.prisma.mosqueStaff.findFirst({
@@ -368,22 +516,32 @@ export class DonationsService {
         isVerified: true,
         role: {
           in: [
-            MosqueStaffRole.MOSQUE_ADMIN,
             MosqueStaffRole.MUTAWALLI,
             MosqueStaffRole.COMMITTEE_PRESIDENT,
             MosqueStaffRole.COMMITTEE_VICE_PRESIDENT,
             MosqueStaffRole.COMMITTEE_SECRETARY,
-            MosqueStaffRole.COMMITTEE_MEMBER,
+            MosqueStaffRole.MOSQUE_ADMIN,
           ],
+        },
+      },
+      include: {
+        user: {
+          select: { profileImageUrl: true },
         },
       },
     });
 
     if (!staff) {
       throw new ForbiddenException(
-        'Only verified Mutawalli, Committee members, or Mosque Admins can submit donation channels',
+        'Only verified Mutawalli, Committee President, Vice President, General Secretary, or Mosque Admin can create or attest verified donation channels',
       );
     }
+
+    return {
+      role: staff.role,
+      name: staff.name,
+      imageUrl: staff.imageUrl || staff.user?.profileImageUrl || null,
+    };
   }
 
   /**
