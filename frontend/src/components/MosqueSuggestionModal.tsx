@@ -232,14 +232,25 @@ export const MosqueSuggestionModal: React.FC<MosqueSuggestionModalProps> = ({
                     <button
                       key={r.value}
                       type="button"
+                      role="checkbox"
+                      aria-checked={selected}
                       onClick={() => toggleRole(r.value)}
-                      className={`py-1 px-3 rounded-full text-xs font-medium border transition-colors ${
+                      className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium border transition-all ${
                         selected
                           ? 'bg-[#111114] text-white border-[#111114]'
-                          : 'bg-[#fafafa] text-[#6e6e73] border-[#e8e8ea] hover:bg-zinc-100'
+                          : 'bg-[#fafafa] text-[#6e6e73] border-[#e8e8ea] hover:bg-zinc-100 hover:text-[#111114]'
                       }`}
                     >
-                      {r.label}
+                      <span
+                        className={`w-3.5 h-3.5 rounded-sm flex items-center justify-center border transition-colors ${
+                          selected
+                            ? 'bg-white border-white text-[#111114]'
+                            : 'bg-white border-[#c7c7cc] text-transparent'
+                        }`}
+                      >
+                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      </span>
+                      <span>{r.label}</span>
                     </button>
                   );
                 })}
