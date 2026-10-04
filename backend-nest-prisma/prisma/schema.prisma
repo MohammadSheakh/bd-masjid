@@ -431,6 +431,11 @@ model MosqueDonationChannel {
 
   // Governance Provenance
   createdById          String
+  creatorName          String?                     @db.VarChar(100)
+  creatorRole          String?                     @db.VarChar(50)
+  creatorImageUrl      String?                     @db.VarChar(255)
+  verifiedRoles        String[]                    @default([])
+  roleAttestations     Json?                       @default("[]")
   verifiedById         String?
   verifiedAt           DateTime?
   rejectionReason      String?                     @db.VarChar(255)
