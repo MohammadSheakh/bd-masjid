@@ -33,6 +33,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-025](ADR-025-extensible-facility-amenities-taxonomy-and-dedicated-community-suggestion-modal.md) | Extensible Facility Amenities Taxonomy and Dedicated Community Suggestion Workflow | Accepted | 2026-10-03 | Facilities, Extensibility & Community Suggestions |
 | [ADR-026](ADR-026-dynamic-system-audit-trail-toggle-and-storage-governance.md) | Dynamic System Audit Trail Toggle and Storage Capacity Governance | Accepted | 2026-10-04 | Audit Trail, Storage Governance & Admin Controls |
 | [ADR-027](ADR-027-community-suggestions-and-role-targeted-feedback-governance.md) | Community Mosque Suggestions, Complaints & Targeted Role Feedback Governance | Accepted | 2026-10-04 | Community Feedback, Role Routing & Privacy |
+| [ADR-028](ADR-028-mosque-donation-channel-leadership-verification-and-creator-provenance.md) | Mosque Donation Channel Leadership Verification and Creator Provenance Governance | Accepted | 2026-10-04 | Mosque Donations, Provenance & Multi-Role Verification |
 
 
 ---
