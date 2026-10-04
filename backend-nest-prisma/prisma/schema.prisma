@@ -238,6 +238,13 @@ model AuditLog {
   @@index([createdAt])
 }
 
+model AuditConfig {
+  id        String   @id @default("default")
+  enabled   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
 
 // Source: community.module/community.prisma
 enum MosqueStaffRole {

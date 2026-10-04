@@ -24,3 +24,10 @@ model AuditLog {
   @@index([source, createdAt])
   @@index([createdAt])
 }
+
+model AuditConfig {
+  id        String   @id @default("default")
+  enabled   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
