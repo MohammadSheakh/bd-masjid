@@ -41,6 +41,7 @@ Each feature has a dedicated, self-contained specification file (`<feature>.md`)
 | **F-037** | Dynamic System Audit Trail Toggle & Storage Governance | [audit-trail-toggle.md](audit-trail-toggle/audit-trail-toggle.md) | [Implementation Slices](audit-trail-toggle/audit-trail-toggle.md#6-implementation-slices--proof-of-completion) | `F-001, F-003, F-011, F-032` | 3 | `[x] Completed` |
 | **F-038** | Community Mosque Suggestions, Complaints & Targeted Role Feedback Governance | [community-suggestions-governance.md](community-suggestions-governance/community-suggestions-governance.md) | [TK-SUGG-03..05](community-suggestions-governance/community-suggestions-governance.md#6-implementation-slices--proof-of-completion) | `F-001, F-004, F-006, F-020` | 2 | `[x] Completed` |
 | **F-039** | Mosque Donation Channel Leadership Verification & Creator Provenance Governance | [mosque-donations-leadership-governance.md](mosque-donations-leadership-governance/mosque-donations-leadership-governance.md) | [TK-DON-03..05](mosque-donations-leadership-governance/mosque-donations-leadership-governance.md#6-implementation-slices--proof-of-completion) | `F-001, F-003, F-004, F-020, F-030` | 3 | `[-] In Progress` |
+| **F-040** | Cross-Platform Mobile Client (React Native & Expo SDK 52+) | [mobile-app-expo.md](mobile-app-expo/mobile-app-expo.md) | [TK-MOB-01..06](mobile-app-expo/mobile-app-expo.md#5-implementation-slices--proof-matrix) | `F-001..F-005, F-007..F-009, F-021, F-022, F-030, F-031` | 4 | `[ ] Planned` |
 
 
 ---
@@ -50,9 +51,8 @@ Each feature has a dedicated, self-contained specification file (`<feature>.md`)
 > [!CAUTION]
 > **DO NOT PLAN, CREATE SPECS FOR, OR IMPLEMENT THE FOLLOWING ITEMS**:
 > By project owner directive, the following features are **explicitly out of scope / deferred indefinitely**. AI agents MUST NOT suggest, propose, or initiate development tasks for:
-> 1. **Mobile Application (Release 4 Android/iOS)**: Explicitly deferred for development in a future phase.
-> 2. **Volunteer Roster Coordination (`F-023`)**: Not needed in current platform.
-> 3. **Multiple Jamaat Shifts / Timetables**: Standard single Jamaat per Waqt (`F-007`) is complete and sufficient.
+> 1. **Volunteer Roster Coordination (`F-023`)**: Not needed in current platform.
+> 2. **Multiple Jamaat Shifts / Timetables**: Standard single Jamaat per Waqt (`F-007`) is complete and sufficient.
 > 4. **Jumu'ah Special Schedule Tables**: Covered by standard prayer times and announcements.
 > 5. **Ramadan Schedules & Timetables**: Not needed; ad-hoc announcements (`F-022`) satisfy community notification needs.
 > 6. **External Push Notification Daemons / Queues (BullMQ / Redis)**: WebSocket and REST in-app notification infrastructure (`F-031`) meets all requirements.

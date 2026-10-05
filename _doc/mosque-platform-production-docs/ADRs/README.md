@@ -34,6 +34,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-026](ADR-026-dynamic-system-audit-trail-toggle-and-storage-governance.md) | Dynamic System Audit Trail Toggle and Storage Capacity Governance | Accepted | 2026-10-04 | Audit Trail, Storage Governance & Admin Controls |
 | [ADR-027](ADR-027-community-suggestions-and-role-targeted-feedback-governance.md) | Community Mosque Suggestions, Complaints & Targeted Role Feedback Governance | Accepted | 2026-10-04 | Community Feedback, Role Routing & Privacy |
 | [ADR-028](ADR-028-mosque-donation-channel-leadership-verification-and-creator-provenance.md) | Mosque Donation Channel Leadership Verification and Creator Provenance Governance | Accepted | 2026-10-04 | Mosque Donations, Provenance & Multi-Role Verification |
+| [ADR-029](ADR-029-cross-platform-mobile-client-react-native-expo.md) | Cross-Platform Mobile Application Architecture with React Native and Expo | Accepted | 2026-10-05 | Mobile Client, React Native, Expo & Ferio Parity |
 
 
 ---
