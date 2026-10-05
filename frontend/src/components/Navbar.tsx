@@ -82,7 +82,7 @@ export function Navbar({ onAddMosqueClick, onLocateMe, isLocating }: NavbarProps
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-white border-b border-[#e8e8ea] px-4 py-3 flex items-center justify-between">
+      <header className="shrink-0 sticky top-0 z-30 bg-white border-b border-[#e8e8ea] px-4 py-3 flex items-center justify-between">
         {/* Brand logo & tagline */}
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-[#111114] text-white flex items-center justify-center font-bold text-xs">

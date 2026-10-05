@@ -300,8 +300,15 @@ export function MosqueMap({
   }, [selectedMosque]);
 
   return (
-    <div className="relative w-full h-full min-h-0 bg-[#f4f4f5] overflow-hidden z-0 isolate">
-      <div ref={mapContainerRef} className="w-full h-full min-h-full" />
+    <div
+      className="relative w-full h-full min-h-0 min-w-0 bg-[#f4f4f5] overflow-hidden z-0 isolate"
+      style={{ height: '100%', minHeight: '100%' }}
+    >
+      <div
+        ref={mapContainerRef}
+        className="w-full h-full min-h-full"
+        style={{ height: '100%', minHeight: '100%' }}
+      />
 
       {/* Pin drop instructional badge */}
       {isPinDropMode && (
