@@ -450,9 +450,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 28: Division-Level Offline Vector Map Tile Pre-Caching Engine (ADR-062)
 
-- [ ] **28.1. Offline Map Region Contracts & Bounding Box Taxonomy**
-  - [ ] Define `OfflineMapRegion`, `RegionBoundingBox`, and `RegionDownloadStatus` in `types/offlineMap.ts`.
-  - [ ] Add canonical 8-division coordinate bounding boxes and tile size metrics in `data/offlineMapFixtures.ts`.
+- [x] **28.1. Offline Map Region Contracts & Bounding Box Taxonomy**
+  - [x] Define `OfflineMapRegion`, `RegionBoundingBox`, and `RegionDownloadStatus` in `types/offlineMap.ts`.
+  - [x] Add canonical 8-division coordinate bounding boxes and tile size metrics in `data/offlineMapFixtures.ts`.
 - [ ] **28.2. Dedicated OfflineMapRegionService with Storage & Chunked Download Simulation**
   - [ ] Implement `offlineMapRegionService.ts` providing synchronous region cache inspection, storage usage budget tracking (150 MB max), and download state management.
 - [ ] **28.3. Ferio OfflineMapRegionsModal Sheet & Storage Gauge**
