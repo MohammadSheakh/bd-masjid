@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
   SafeAreaView,
@@ -9,6 +9,7 @@ import {
   Pressable,
   TextInput,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { Mosque, PrayerAutoSilentSettings } from './src/types/mosque';
 import { BANGLADESH_MOSQUES_FIXTURES } from './src/data/mosqueFixtures';
@@ -42,7 +43,6 @@ import { OfflineOutboxService } from './src/services/offlineOutboxService';
 import { ModeratorReviewModal } from './src/components/ModeratorReviewModal';
 import { ModeratorService } from './src/services/moderatorService';
 import { DiagnosticsTelemetryModal } from './src/components/DiagnosticsTelemetryModal';
-import { OfflineMapRegionsModal } from './src/components/OfflineMapRegionsModal';
 import { LocationRadarService } from './src/services/locationRadarService';
 import { AnnouncementsFeedModal } from './src/components/AnnouncementsFeedModal';
 import { CreateAnnouncementModal } from './src/components/CreateAnnouncementModal';
@@ -52,7 +52,10 @@ import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 const AMENITY_TAGS = ['All', '📍 Nearest', '🕌 My Mosques', '📢 Notices', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
 
 export default function App() {
-  const [mosquesList, setMosquesList] = useState<Mosque[]>(BANGLADESH_MOSQUES_FIXTURES);
+  const [followedMosques, setFollowedMosques] = useState<Mosque[]>([]);
+  const [isFollowedLoading, setIsFollowedLoading] = useState(true);
+  const [discoveredMosques, setDiscoveredMosques] = useState<Mosque[]>([]);
+  const [isSearchingLoading, setIsSearchingLoading] = useState(false);
   const [addMosqueCoords, setAddMosqueCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('All');
@@ -71,7 +74,6 @@ export default function App() {
   const [isOemWizardOpen, setIsOemWizardOpen] = useState(false);
   const [isModModalOpen, setIsModModalOpen] = useState(false);
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
-  const [isOfflineRegionsOpen, setIsOfflineRegionsOpen] = useState(false);
   const [isAnnouncementsModalOpen, setIsAnnouncementsModalOpen] = useState(false);
   const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
   const [isMyAttendedOpen, setIsMyAttendedOpen] = useState(false);
@@ -116,10 +118,39 @@ export default function App() {
     return unsubscribe;
   }, []);
 
+  const loadFollowedMosques = useCallback(async () => {
+    setIsFollowedLoading(true);
+    try {
+      const list = await ApiClient.getFollowedMosques();
+      setFollowedMosques(list);
+      const ids = list.map((m) => m.id);
+      setFollowedIds(ids);
+      PreferencesStorage.setFollowedMosqueIds(ids);
+    } catch {
+      const localIds = PreferencesStorage.getFollowedMosqueIds();
+      const localList = BANGLADESH_MOSQUES_FIXTURES.filter((m) => localIds.includes(m.id));
+      setFollowedMosques(localList);
+      setFollowedIds(localIds);
+    } finally {
+      setIsFollowedLoading(false);
+    }
+  }, []);
+
+  const findMosqueById = useCallback(
+    (id: string): Mosque | undefined => {
+      return (
+        followedMosques.find((m) => m.id === id) ||
+        discoveredMosques.find((m) => m.id === id) ||
+        BANGLADESH_MOSQUES_FIXTURES.find((m) => m.id === id)
+      );
+    },
+    [followedMosques, discoveredMosques]
+  );
+
   const handleRetrySync = async () => {
     setIsRetrying(true);
     try {
-      await ApiClient.getNearbyMosques(23.8103, 90.4125);
+      await loadFollowedMosques();
       await OfflineOutboxService.drainOutbox();
     } finally {
       setIsRetrying(false);
@@ -127,17 +158,66 @@ export default function App() {
   };
 
   const toggleFollow = (id: string) => {
-    setFollowedIds((prev) => {
-      const updated = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
-      PreferencesStorage.setFollowedMosqueIds(updated);
-      ApiClient.toggleFollowMosque(id).catch(() => {});
-      return updated;
-    });
+    const isCurrentlyFollowed = followedIds.includes(id);
+    const nextIds = isCurrentlyFollowed
+      ? followedIds.filter((item) => item !== id)
+      : [...followedIds, id];
+    setFollowedIds(nextIds);
+    PreferencesStorage.setFollowedMosqueIds(nextIds);
+
+    if (isCurrentlyFollowed) {
+      setFollowedMosques((prev) => prev.filter((m) => m.id !== id));
+    } else {
+      const target = findMosqueById(id);
+      if (target) {
+        setFollowedMosques((prev) => (prev.some((m) => m.id === id) ? prev : [target, ...prev]));
+      } else {
+        ApiClient.getMosqueById(id).then((m) => {
+          if (m) setFollowedMosques((prev) => (prev.some((p) => p.id === m.id) ? prev : [m, ...prev]));
+        });
+      }
+    }
+
+    ApiClient.toggleFollowMosque(id).catch(() => {});
     setCollectionsVersion((v) => v + 1);
   };
 
-  const filteredMosques = useMemo(() => {
-    const list = mosquesList.filter((mosque) => {
+  const isSearchingOrFiltering = Boolean(
+    searchQuery.trim() !== '' ||
+    selectedTag !== 'All' ||
+    activeCollectionTag !== 'ALL'
+  );
+
+  useEffect(() => {
+    if (!isSearchingOrFiltering) return;
+    const timer = setTimeout(async () => {
+      setIsSearchingLoading(true);
+      try {
+        let results: Mosque[];
+        if (searchQuery.trim()) {
+          results = await ApiClient.searchMosques(searchQuery.trim());
+        } else if (selectedTag === '📍 Nearest') {
+          results = await ApiClient.getNearbyMosques(23.8103, 90.4125);
+        } else {
+          results = await ApiClient.searchMosques();
+        }
+        setDiscoveredMosques(results);
+      } catch {
+        setDiscoveredMosques(BANGLADESH_MOSQUES_FIXTURES);
+      } finally {
+        setIsSearchingLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedTag, activeCollectionTag, isSearchingOrFiltering]);
+
+  const displayedMosques = useMemo(() => {
+    if (!isSearchingOrFiltering) {
+      return followedMosques;
+    }
+
+    const sourceList = discoveredMosques.length > 0 ? discoveredMosques : BANGLADESH_MOSQUES_FIXTURES;
+    const list = sourceList.filter((mosque) => {
       const matchesSearch =
         searchQuery.trim() === '' ||
         mosque.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -162,24 +242,33 @@ export default function App() {
       return LocationRadarService.sortMosquesByProximity(list);
     }
     return list;
-  }, [mosquesList, searchQuery, selectedTag, followedIds, activeCollectionTag, collectionsVersion]);
+  }, [isSearchingOrFiltering, followedMosques, discoveredMosques, searchQuery, selectedTag, activeCollectionTag, followedIds, collectionsVersion]);
+
+  const mapMosques = useMemo(() => {
+    const mosqueMap = new Map<string, Mosque>();
+    displayedMosques.forEach((m) => mosqueMap.set(m.id, m));
+    followedMosques.forEach((m) => mosqueMap.set(m.id, m));
+    return Array.from(mosqueMap.values());
+  }, [displayedMosques, followedMosques]);
 
   const collectionCounts = useMemo(() => {
     const all = CollectionStorage.getCollections();
+    const sourceList = isSearchingOrFiltering ? displayedMosques : followedMosques;
     return {
-      ALL: mosquesList.length,
+      ALL: sourceList.length,
       HOME: Object.keys(all).filter((id) => all[id]?.includes('HOME')).length,
       WORK: Object.keys(all).filter((id) => all[id]?.includes('WORK')).length,
       JUMUAH: Object.keys(all).filter((id) => all[id]?.includes('JUMUAH')).length,
       FAVORITE: Object.keys(all).filter((id) => all[id]?.includes('FAVORITE')).length,
     };
-  }, [mosquesList, collectionsVersion]);
+  }, [isSearchingOrFiltering, displayedMosques, followedMosques, collectionsVersion]);
 
   const topFollowedMosque = useMemo(() => {
-    return mosquesList.find((m) => followedIds.includes(m.id)) ?? mosquesList[0];
-  }, [mosquesList, followedIds]);
+    return followedMosques[0] ?? null;
+  }, [followedMosques]);
 
   useEffect(() => {
+    loadFollowedMosques();
     TelemetryService.initTelemetry();
     TelemetryService.addBreadcrumb('lifecycle', 'BD Masjid application initialized');
 
@@ -413,15 +502,17 @@ export default function App() {
       {/* Viewport: List or Map */}
       {viewportMode === 'list' ? (
         <FlatList
-          data={filteredMosques}
+          data={displayedMosques}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
             <>
-              <PrayerCountdownBanner
-                schedule={topFollowedMosque.prayerSchedule}
-                autoSilentSettings={autoSilentSettings}
-                onPressAutoSilentSettings={() => setIsModalOpen(true)}
-              />
+              {topFollowedMosque ? (
+                <PrayerCountdownBanner
+                  schedule={topFollowedMosque.prayerSchedule}
+                  autoSilentSettings={autoSilentSettings}
+                  onPressAutoSilentSettings={() => setIsModalOpen(true)}
+                />
+              ) : null}
               <DailyHadithCard language={lang} />
             </>
           }
@@ -436,15 +527,53 @@ export default function App() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>No mosques match your criteria</Text>
-              <Text style={styles.emptySubtitle}>Try adjusting your search query or filter tags.</Text>
-            </View>
+            (isSearchingOrFiltering ? isSearchingLoading : isFollowedLoading) ? (
+              <View style={styles.emptyContainer}>
+                <ActivityIndicator size="small" color={ferioColors.primary} />
+                <Text style={styles.emptySubtitle}>
+                  {!isSearchingOrFiltering
+                    ? (lang === 'bn' ? 'অনুসৃত মসজিদ লোড হচ্ছে...' : 'Loading followed mosques...')
+                    : (lang === 'bn' ? 'মসজিদ খোঁজা হচ্ছে...' : 'Searching mosques...')}
+                </Text>
+              </View>
+            ) : !isSearchingOrFiltering ? (
+              <View style={styles.emptyContainer}>
+                <View style={styles.emptyIconCircle}>
+                  <Text style={styles.emptyIcon}>🕌</Text>
+                </View>
+                <Text style={styles.emptyTitle}>
+                  {lang === 'bn' ? 'কোনো অনুসৃত মসজিদ নেই' : 'No followed mosques yet'}
+                </Text>
+                <Text style={styles.emptySubtitle}>
+                  {lang === 'bn'
+                    ? 'আপনার এলাকার মসজিদ খুঁজে পেতে বা ফিল্টার করে মসজিদ ফলো করুন।'
+                    : 'Search above for your neighborhood mosque or explore nearby mosques to follow their daily prayer schedule.'}
+                </Text>
+                <Pressable
+                  onPress={() => setSelectedTag('📍 Nearest')}
+                  style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.emptyActionBtnText}>
+                    {lang === 'bn' ? '📍 নিকটস্থ মসজিদ খুঁজুন' : '📍 Explore Nearest Mosques'}
+                  </Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyTitle}>
+                  {lang === 'bn' ? 'কোনো মসজিদ পাওয়া যায়নি' : 'No mosques match your criteria'}
+                </Text>
+                <Text style={styles.emptySubtitle}>
+                  {lang === 'bn' ? 'অনুসন্ধান বা ফিল্টার পরিবর্তন করুন।' : 'Try adjusting your search query or filter tags.'}
+                </Text>
+              </View>
+            )
           }
         />
       ) : (
         <MosqueMapView
-          mosques={filteredMosques}
+          mosques={mapMosques}
           followedIds={followedIds}
           selectedMosqueId={selectedMosque?.id}
           onSelectMosque={(m) => setSelectedMosque(m)}
@@ -453,14 +582,13 @@ export default function App() {
             setSelectedTag('All');
             setSearchQuery('');
           }}
-          onOpenOfflineRegions={() => setIsOfflineRegionsOpen(true)}
         />
       )}
 
       {/* Floating Centered Viewport Toggle Pill */}
       <ViewTogglePill
         mode={viewportMode}
-        count={filteredMosques.length}
+        count={displayedMosques.length}
         onToggle={setViewportMode}
       />
 
@@ -494,11 +622,11 @@ export default function App() {
         <AddMosqueSheet
           visible={!!addMosqueCoords}
           initialCoords={addMosqueCoords}
-          existingMosques={mosquesList}
+          existingMosques={discoveredMosques.length > 0 ? discoveredMosques : BANGLADESH_MOSQUES_FIXTURES}
           onClose={() => setAddMosqueCoords(null)}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
           onMosqueCreated={(newMosque) => {
-            setMosquesList((prev) => [newMosque, ...prev]);
+            setDiscoveredMosques((prev) => [newMosque, ...prev]);
             setSelectedMosque(newMosque);
           }}
         />
@@ -515,7 +643,7 @@ export default function App() {
         visible={isNotificationInboxOpen}
         onClose={() => setIsNotificationInboxOpen(false)}
         onSelectMosque={(mosqueId) => {
-          const found = mosquesList.find((m) => m.id === mosqueId);
+          const found = findMosqueById(mosqueId);
           if (found) setSelectedMosque(found);
         }}
         isBangla={lang === 'bn'}
@@ -546,19 +674,12 @@ export default function App() {
         onClose={() => setIsDiagnosticsOpen(false)}
       />
 
-      {/* Offline Map Regions Manager Modal (ADR-062) */}
-      <OfflineMapRegionsModal
-        visible={isOfflineRegionsOpen}
-        onClose={() => setIsOfflineRegionsOpen(false)}
-        isBangla={lang === 'bn'}
-      />
-
       {/* Community Notice Board & Announcements Hub (ADR-065) */}
       <AnnouncementsFeedModal
         visible={isAnnouncementsModalOpen}
         onClose={() => setIsAnnouncementsModalOpen(false)}
         onSelectMosque={(id) => {
-          const found = mosquesList.find((m) => m.id === id);
+          const found = findMosqueById(id);
           if (found) setSelectedMosque(found);
         }}
         onOpenCreate={() => {
@@ -569,8 +690,8 @@ export default function App() {
 
       <CreateAnnouncementModal
         visible={isCreateAnnouncementOpen}
-        mosqueId={topFollowedMosque.id}
-        mosqueName={topFollowedMosque.name}
+        mosqueId={topFollowedMosque?.id || BANGLADESH_MOSQUES_FIXTURES[0].id}
+        mosqueName={topFollowedMosque?.name || BANGLADESH_MOSQUES_FIXTURES[0].name}
         onClose={() => setIsCreateAnnouncementOpen(false)}
       />
 
@@ -579,7 +700,7 @@ export default function App() {
         visible={isMyAttendedOpen}
         onClose={() => setIsMyAttendedOpen(false)}
         onSelectMosque={(id) => {
-          const found = mosquesList.find((m) => m.id === id);
+          const found = findMosqueById(id);
           if (found) setSelectedMosque(found);
         }}
         isBangla={lang === 'bn'}
@@ -844,6 +965,18 @@ const styles = StyleSheet.create({
     paddingVertical: ferioSpacing.xxxl,
     paddingHorizontal: ferioSpacing.lg,
   },
+  emptyIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: ferioRadius.full,
+    backgroundColor: '#ecfdf5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: ferioSpacing.sm,
+  },
+  emptyIcon: {
+    fontSize: 22,
+  },
   emptyTitle: {
     fontSize: 15,
     fontWeight: '600',
@@ -854,6 +987,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: ferioColors.muted,
     textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 280,
+  },
+  emptyActionBtn: {
+    marginTop: ferioSpacing.md,
+    backgroundColor: ferioColors.primary,
+    paddingHorizontal: ferioSpacing.lg,
+    paddingVertical: ferioSpacing.sm,
+    borderRadius: ferioRadius.full,
+  },
+  emptyActionBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: ferioColors.primaryForeground,
   },
   pressed: {
     opacity: 0.8,
