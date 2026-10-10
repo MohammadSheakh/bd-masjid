@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
   SafeAreaView,
@@ -7,25 +7,24 @@ import {
   View,
   ScrollView,
   Pressable,
+  TextInput,
+  FlatList,
 } from 'react-native';
-import { PrayerSchedule, PrayerAutoSilentSettings } from './src/types/mosque';
+import { Mosque, PrayerAutoSilentSettings } from './src/types/mosque';
+import { BANGLADESH_MOSQUES_FIXTURES } from './src/data/mosqueFixtures';
 import { PrayerCountdownBanner } from './src/components/PrayerCountdownBanner';
+import { MosqueCard } from './src/components/MosqueCard';
+import { ViewTogglePill, ViewportMode } from './src/components/ViewTogglePill';
 import { AutoSilentModal } from './src/components/AutoSilentModal';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
-const DEMO_SCHEDULE: PrayerSchedule = {
-  fajrJamaat: '05:15',
-  zuhrJamaat: '13:30',
-  asrJamaat: '16:45',
-  maghribJamaat: '18:15',
-  ishaJamaat: '20:00',
-  jumuahJamaat: '13:30',
-};
-
-const FILTER_TAGS = ['All Mosques', 'Women Area', 'Air Conditioned', 'Parking Space', 'Following'];
+const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
 
 export default function App() {
-  const [selectedTag, setSelectedTag] = useState('All Mosques');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState('All');
+  const [viewportMode, setViewportMode] = useState<ViewportMode>('list');
+  const [followedIds, setFollowedIds] = useState<string[]>(['mosque-dhaka-baitul-mukarram']);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [autoSilentSettings, setAutoSilentSettings] = useState<PrayerAutoSilentSettings>({
@@ -44,15 +43,43 @@ export default function App() {
     activeSilenceExpiry: null,
   });
 
+  const toggleFollow = (id: string) => {
+    setFollowedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const filteredMosques = useMemo(() => {
+    return BANGLADESH_MOSQUES_FIXTURES.filter((mosque) => {
+      const matchesSearch =
+        searchQuery.trim() === '' ||
+        mosque.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (mosque.city && mosque.city.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      if (!matchesSearch) return false;
+
+      if (selectedTag === 'Following') return followedIds.includes(mosque.id);
+      if (selectedTag === 'Women Space') return !!mosque.hasSeparateWomenSpace;
+      if (selectedTag === 'Air Conditioned') return !!mosque.hasAirConditioning;
+      if (selectedTag === 'Parking') return !!mosque.hasParking;
+
+      return true;
+    });
+  }, [searchQuery, selectedTag, followedIds]);
+
+  const topFollowedMosque = useMemo(() => {
+    return BANGLADESH_MOSQUES_FIXTURES.find((m) => followedIds.includes(m.id)) ?? BANGLADESH_MOSQUES_FIXTURES[0];
+  }, [followedIds]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
 
-      {/* Ferio Top Navigation Bar */}
+      {/* Top Navbar */}
       <View style={styles.topNavbar}>
         <View>
           <Text style={styles.brandTitle}>BD Masjid</Text>
-          <Text style={styles.brandSubtitle}>National Mosque Platform</Text>
+          <Text style={styles.brandSubtitle}>Mosque & Prayer Platform</Text>
         </View>
 
         <Pressable
@@ -67,21 +94,26 @@ export default function App() {
         </Pressable>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Live Jammat Countdown Banner */}
-        <PrayerCountdownBanner
-          schedule={DEMO_SCHEDULE}
-          autoSilentSettings={autoSilentSettings}
-          onPressAutoSilentSettings={() => setIsModalOpen(true)}
+      {/* Search Input */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by mosque name, area, or city..."
+          placeholderTextColor={ferioColors.muted}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          clearButtonMode="while-editing"
         />
+      </View>
 
-        {/* Filter Chips Horizontal Bar */}
+      {/* Amenity Filter Chips */}
+      <View style={styles.filterChipContainer}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterChipRow}
         >
-          {FILTER_TAGS.map((tag) => {
+          {AMENITY_TAGS.map((tag) => {
             const active = selectedTag === tag;
             return (
               <Pressable
@@ -94,28 +126,51 @@ export default function App() {
             );
           })}
         </ScrollView>
+      </View>
 
-        {/* Status Callout */}
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Baitul Mukarram National Mosque</Text>
-          <Text style={styles.infoSubtitle}>Topkhana Road, Motijheel, Dhaka • 450m</Text>
-
-          <View style={styles.timetableGrid}>
-            {[
-              { name: 'Fajr', time: '05:15 AM' },
-              { name: 'Zuhr', time: '01:30 PM' },
-              { name: 'Asr', time: '04:45 PM' },
-              { name: 'Maghrib', time: '06:15 PM' },
-              { name: 'Isha', time: '08:00 PM' },
-            ].map((p) => (
-              <View key={p.name} style={styles.timetableCell}>
-                <Text style={styles.waqtName}>{p.name}</Text>
-                <Text style={styles.waqtTime}>{p.time}</Text>
-              </View>
-            ))}
-          </View>
+      {/* Viewport: List or Map */}
+      {viewportMode === 'list' ? (
+        <FlatList
+          data={filteredMosques}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={
+            <PrayerCountdownBanner
+              schedule={topFollowedMosque.prayerSchedule}
+              autoSilentSettings={autoSilentSettings}
+              onPressAutoSilentSettings={() => setIsModalOpen(true)}
+            />
+          }
+          renderItem={({ item }) => (
+            <MosqueCard
+              mosque={item}
+              isFollowed={followedIds.includes(item.id)}
+              onToggleFollow={toggleFollow}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyTitle}>No mosques match your criteria</Text>
+              <Text style={styles.emptySubtitle}>Try adjusting your search query or filter tags.</Text>
+            </View>
+          }
+        />
+      ) : (
+        <View style={styles.mapPlaceholder}>
+          <Text style={styles.mapTitle}>OpenStreetMap Viewport</Text>
+          <Text style={styles.mapSubtitle}>
+            Showing {filteredMosques.length} mosques across Bangladesh
+          </Text>
         </View>
-      </ScrollView>
+      )}
+
+      {/* Floating Centered Viewport Toggle Pill */}
+      <ViewTogglePill
+        mode={viewportMode}
+        count={filteredMosques.length}
+        onToggle={setViewportMode}
+      />
 
       {/* Auto-Silent DND Configuration Modal */}
       <AutoSilentModal
@@ -170,12 +225,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: ferioColors.primary,
   },
-  scrollContent: {
-    paddingBottom: ferioSpacing.xxl,
+  searchContainer: {
+    paddingHorizontal: ferioSpacing.lg,
+    paddingTop: ferioSpacing.sm,
+  },
+  searchInput: {
+    height: 42,
+    backgroundColor: ferioColors.surface,
+    borderRadius: ferioRadius.full,
+    paddingHorizontal: ferioSpacing.lg,
+    fontSize: 13,
+    color: ferioColors.primary,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+  },
+  filterChipContainer: {
+    paddingVertical: ferioSpacing.xs,
   },
   filterChipRow: {
     paddingHorizontal: ferioSpacing.lg,
-    paddingVertical: ferioSpacing.md,
+    paddingVertical: ferioSpacing.xs,
     gap: ferioSpacing.sm,
   },
   chip: {
@@ -199,49 +268,44 @@ const styles = StyleSheet.create({
     color: ferioColors.primaryForeground,
     fontWeight: '600',
   },
-  infoCard: {
-    backgroundColor: ferioColors.surface,
+  listContent: {
+    paddingBottom: 80, // Space for floating toggle pill
+  },
+  mapPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f3f4f6',
+    margin: ferioSpacing.lg,
     borderRadius: ferioRadius.xl,
-    padding: ferioSpacing.lg,
-    marginHorizontal: ferioSpacing.lg,
     borderWidth: 1,
     borderColor: ferioColors.border,
   },
-  infoTitle: {
+  mapTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: ferioColors.primary,
   },
-  infoSubtitle: {
+  mapSubtitle: {
     fontSize: 12,
     color: ferioColors.muted,
-    marginTop: 2,
-    marginBottom: ferioSpacing.md,
+    marginTop: 4,
   },
-  timetableGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: ferioColors.canvas,
-    borderRadius: ferioRadius.lg,
-    padding: ferioSpacing.sm,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
-  },
-  timetableCell: {
+  emptyContainer: {
     alignItems: 'center',
-    flex: 1,
+    paddingVertical: ferioSpacing.xxxl,
+    paddingHorizontal: ferioSpacing.lg,
   },
-  waqtName: {
-    fontSize: 11,
+  emptyTitle: {
+    fontSize: 15,
     fontWeight: '600',
-    color: ferioColors.muted,
-    marginBottom: 2,
-  },
-  waqtTime: {
-    fontSize: 11,
-    fontWeight: '700',
     color: ferioColors.primary,
-    fontVariant: ['tabular-nums'],
+    marginBottom: 4,
+  },
+  emptySubtitle: {
+    fontSize: 12,
+    color: ferioColors.muted,
+    textAlign: 'center',
   },
   pressed: {
     opacity: 0.8,
