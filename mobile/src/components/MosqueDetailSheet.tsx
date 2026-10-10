@@ -18,6 +18,9 @@ import { LeadershipRosterCard } from './LeadershipRosterCard';
 import { FacilitiesCard } from './FacilitiesCard';
 import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
 import { DonationChannelsCard } from './DonationChannelsCard';
+import { CollectionTagModal } from './CollectionTagModal';
+import { CollectionStorage } from '../lib/storage';
+import { CollectionService, MosqueCollectionTag } from '../services/collectionService';
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -38,12 +41,17 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [noticeModalVisible, setNoticeModalVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [suggestFacilitiesModalVisible, setSuggestFacilitiesModalVisible] = useState(false);
+  const [tagModalVisible, setTagModalVisible] = useState(false);
+  const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
   const [activeFacility, setActiveFacility] = useState(mosque?.facility);
 
   useEffect(() => {
     setActiveSchedule(mosque?.prayerSchedule);
     setActiveFacility(mosque?.facility);
+    if (mosque?.id) {
+      setActiveTags(CollectionStorage.getMosqueTags(mosque.id));
+    }
   }, [mosque?.id, mosque?.prayerSchedule, mosque?.facility]);
 
   if (!mosque) return null;
@@ -80,6 +88,19 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
             </View>
 
             <View style={styles.headerActions}>
+              <Pressable
+                onPress={() => setTagModalVisible(true)}
+                style={styles.tagBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Categorize Mosque"
+              >
+                <Text style={styles.tagBtnText}>
+                  {activeTags.length > 0
+                    ? activeTags.map((t) => CollectionService.getTagMeta(t).icon).join('')
+                    : '🏷️'}
+                </Text>
+              </Pressable>
+
               <Pressable
                 onPress={() => onToggleFollow?.(mosque.id)}
                 style={[styles.followBtn, isFollowed && styles.followBtnActive]}
@@ -232,6 +253,14 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
             }));
           }}
         />
+
+        <CollectionTagModal
+          visible={tagModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          onClose={() => setTagModalVisible(false)}
+          onTagsUpdated={(updated) => setActiveTags(updated)}
+        />
       </View>
     </Modal>
   );
@@ -285,6 +314,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: ferioSpacing.sm,
+  },
+  tagBtn: {
+    backgroundColor: ferioColors.surface,
+    borderColor: ferioColors.border,
+    borderWidth: 1,
+    borderRadius: ferioRadius.full,
+    paddingHorizontal: 8,
+    paddingVertical: ferioSpacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tagBtnText: {
+    fontSize: 14,
   },
   followBtn: {
     paddingHorizontal: ferioSpacing.md,

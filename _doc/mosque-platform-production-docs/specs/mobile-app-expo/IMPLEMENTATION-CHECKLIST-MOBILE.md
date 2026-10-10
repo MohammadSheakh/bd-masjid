@@ -292,6 +292,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Create `CollectionTagModal.tsx` with multi-select tag chips, instant saving, and haptic feedback.
 - [x] **17.3. Contextual Feed Filter Bar**
   - [x] Create `CollectionFilterBar.tsx` with smooth horizontal tag pills and counter indicators.
-- [ ] **17.4. Integration into App Feed & MosqueDetailSheet**
-  - [ ] Wire `CollectionFilterBar` and `CollectionTagModal` in `App.tsx` and `MosqueDetailSheet.tsx`.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **17.4. Integration into App Feed & MosqueDetailSheet**
+  - [x] Wire `CollectionFilterBar` and `CollectionTagModal` in `App.tsx` and `MosqueDetailSheet.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.

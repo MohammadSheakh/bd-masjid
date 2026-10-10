@@ -22,7 +22,8 @@ import { OfflineBanner } from './src/components/OfflineBanner';
 import { AddMosqueSheet } from './src/components/AddMosqueSheet';
 import { QiblaCompassModal } from './src/components/QiblaCompassModal';
 import { DailyHadithCard } from './src/components/DailyHadithCard';
-import { PreferencesStorage } from './src/lib/storage';
+import { CollectionFilterBar, CollectionFilterSelection } from './src/components/CollectionFilterBar';
+import { PreferencesStorage, CollectionStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
 import { PrayerNotificationService } from './src/services/prayerNotificationService';
@@ -45,6 +46,8 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQiblaOpen, setIsQiblaOpen] = useState(false);
   const [lang, setLang] = useState<Language>(() => LocalizationService.getLanguage());
+  const [activeCollectionTag, setActiveCollectionTag] = useState<CollectionFilterSelection>('ALL');
+  const [collectionsVersion, setCollectionsVersion] = useState(0);
 
   const [autoSilentSettings, setAutoSilentSettings] = useState<PrayerAutoSilentSettings>(() => {
     const saved = PreferencesStorage.getAutoSilentSettings();
@@ -93,6 +96,7 @@ export default function App() {
       ApiClient.toggleFollowMosque(id).catch(() => {});
       return updated;
     });
+    setCollectionsVersion((v) => v + 1);
   };
 
   const filteredMosques = useMemo(() => {
@@ -104,6 +108,11 @@ export default function App() {
 
       if (!matchesSearch) return false;
 
+      if (activeCollectionTag !== 'ALL') {
+        const tags = CollectionStorage.getMosqueTags(mosque.id);
+        if (!tags.includes(activeCollectionTag)) return false;
+      }
+
       if (selectedTag === 'Following') return followedIds.includes(mosque.id);
       if (selectedTag === 'Women Space') return !!mosque.hasSeparateWomenSpace;
       if (selectedTag === 'Air Conditioned') return !!mosque.hasAirConditioning;
@@ -111,7 +120,18 @@ export default function App() {
 
       return true;
     });
-  }, [mosquesList, searchQuery, selectedTag, followedIds]);
+  }, [mosquesList, searchQuery, selectedTag, followedIds, activeCollectionTag, collectionsVersion]);
+
+  const collectionCounts = useMemo(() => {
+    const all = CollectionStorage.getCollections();
+    return {
+      ALL: mosquesList.length,
+      HOME: Object.keys(all).filter((id) => all[id]?.includes('HOME')).length,
+      WORK: Object.keys(all).filter((id) => all[id]?.includes('WORK')).length,
+      JUMUAH: Object.keys(all).filter((id) => all[id]?.includes('JUMUAH')).length,
+      FAVORITE: Object.keys(all).filter((id) => all[id]?.includes('FAVORITE')).length,
+    };
+  }, [mosquesList, collectionsVersion]);
 
   const topFollowedMosque = useMemo(() => {
     return mosquesList.find((m) => followedIds.includes(m.id)) ?? mosquesList[0];
@@ -201,6 +221,14 @@ export default function App() {
           clearButtonMode="while-editing"
         />
       </View>
+
+      {/* Routine Collection Filter Pills (ADR-052) */}
+      <CollectionFilterBar
+        activeTag={activeCollectionTag}
+        tagCounts={collectionCounts}
+        language={lang}
+        onSelectTag={setActiveCollectionTag}
+      />
 
       {/* Amenity Filter Chips */}
       <View style={styles.filterChipContainer}>
