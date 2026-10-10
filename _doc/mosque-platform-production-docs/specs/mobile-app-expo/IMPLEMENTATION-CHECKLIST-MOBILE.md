@@ -427,6 +427,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Implement `contributorService.ts` providing synchronous reputation state and optimistic scout point bonuses.
 - [x] **26.3. Ferio ContributorActivityModal Sheet**
   - [x] Create `ContributorActivityModal.tsx` with gold scout tier badge, stat breakdown cards, activity timeline, and status pills.
-- [ ] **26.4. Profile Integration & Performance Verification**
-  - [ ] Wire trigger in `AuthSessionModal.tsx` to launch `ContributorActivityModal`.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **26.4. Profile Integration & Performance Verification**
+  - [x] Wire trigger in `AuthSessionModal.tsx` to launch `ContributorActivityModal`.
+  - [x] Run benchmark gate and TypeScript compilation.

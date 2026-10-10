@@ -20,6 +20,7 @@ import {
 import { AuthService } from '../services/authService';
 import { UserProfile } from '../types/auth';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
+import { ContributorActivityModal } from './ContributorActivityModal';
 
 interface AuthSessionModalProps {
   visible: boolean;
@@ -34,6 +35,7 @@ export const AuthSessionModal: React.FC<AuthSessionModalProps> = ({
 }) => {
   const [user, setUser] = useState<UserProfile | null>(() => AuthService.getUserSync());
   const [tab, setTab] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  const [showContributorModal, setShowContributorModal] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -175,6 +177,17 @@ export const AuthSessionModal: React.FC<AuthSessionModalProps> = ({
                   </Text>
                 </View>
 
+                {/* View Activity & Scout Points Button */}
+                <Pressable
+                  onPress={() => setShowContributorModal(true)}
+                  style={styles.activityButton}
+                  hitSlop={8}
+                >
+                  <Text style={styles.activityButtonText}>
+                    {isBangla ? '🏅 কন্ট্রিবিউশন ও স্কাউট পয়েন্ট দেখুন →' : '🏅 View Activity & Scout Points →'}
+                  </Text>
+                </Pressable>
+
                 {/* Sign Out Button */}
                 <Pressable
                   onPress={handleLogout}
@@ -307,6 +320,11 @@ export const AuthSessionModal: React.FC<AuthSessionModalProps> = ({
           </ScrollView>
         </View>
       </View>
+
+      <ContributorActivityModal
+        visible={showContributorModal}
+        onClose={() => setShowContributorModal(false)}
+      />
     </Modal>
   );
 };
@@ -435,6 +453,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: ferioColors.danger,
+  },
+  activityButton: {
+    backgroundColor: ferioColors.primary,
+    borderRadius: ferioRadius.lg,
+    paddingVertical: ferioSpacing.md,
+    alignItems: 'center',
+  },
+  activityButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: ferioColors.primaryForeground,
   },
   formContainer: {
     gap: ferioSpacing.md,
