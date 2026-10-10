@@ -435,9 +435,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 27: Ramadan & Iftar / Sehri Fasting Countdown & Division Timetable Hub (ADR-061)
 
-- [ ] **27.1. Ramadan Domain Contracts & Division Offset Taxonomy**
-  - [ ] Define `BangladeshiDivision`, `DivisionOffset`, `FastingTarget`, and `RamadanDaySchedule` in `types/ramadan.ts`.
-  - [ ] Add canonical 8-division offset matrix and Dhaka baseline data in `data/ramadanFixtures.ts`.
+- [x] **27.1. Ramadan Domain Contracts & Division Offset Taxonomy**
+  - [x] Define `BangladeshiDivision`, `DivisionOffset`, `FastingTarget`, and `RamadanDaySchedule` in `types/ramadan.ts`.
+  - [x] Add canonical 8-division offset matrix and Dhaka baseline data in `data/ramadanFixtures.ts`.
 - [ ] **27.2. Dedicated RamadanService with Synchronous Real-time Fasting Engine**
   - [ ] Implement `ramadanService.ts` providing synchronous division offsets, dynamic Sehri/Iftar countdown, and persistence in `PreferencesStorage`.
 - [ ] **27.3. Ferio RamadanFastingModal Sheet & Fasting Duas Carousel**
