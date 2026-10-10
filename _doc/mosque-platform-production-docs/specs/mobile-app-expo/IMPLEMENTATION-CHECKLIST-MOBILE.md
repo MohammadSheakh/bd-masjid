@@ -376,8 +376,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 23: Offline Mutation Outbox & Auto-Sync Engine (ADR-057)
 
-- [ ] **23.1. Outbox Domain Models & Storage Contracts**
-  - [ ] Define `MutationType`, `OutboxItem`, and `OutboxStatus` in `types/outbox.ts`.
+- [x] **23.1. Outbox Domain Models & Storage Contracts**
+  - [x] Define `MutationType`, `OutboxItem`, and `OutboxStatus` in `types/outbox.ts`.
 - [ ] **23.2. Dedicated OfflineOutboxService with FIFO Drain & Exponential Backoff**
   - [ ] Implement `offlineOutboxService.ts` with persistent storage, synchronous count mirroring, and event dispatcher.
 - [ ] **23.3. ApiClient Mutation Fallback Queuing**
