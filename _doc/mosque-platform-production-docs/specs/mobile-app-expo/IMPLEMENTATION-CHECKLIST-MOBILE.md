@@ -275,8 +275,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Enrich Bangladeshi fixtures with multi-signatory roles and verified creator attribution.
 - [x] **16.2. Donation Service & Brand Helpers**
   - [x] Implement `donationService.ts` with brand tokens (bKash, Nagad, Rocket, Bank), USSD codes, and safety labels.
-- [ ] **16.3. Ferio DonationChannelsCard Component**
-  - [ ] Create `DonationChannelsCard.tsx` rendering brand badges, multi-signatory attestation ticks, and 1-tap clipboard copy.
+- [x] **16.3. Ferio DonationChannelsCard Component**
+  - [x] Create `DonationChannelsCard.tsx` rendering brand badges, multi-signatory attestation ticks, and 1-tap clipboard copy.
 - [ ] **16.4. Integration into MosqueDetailSheet & Verification**
   - [ ] Replace basic donation list in `MosqueDetailSheet.tsx` with `DonationChannelsCard`.
   - [ ] Run benchmark gate and TypeScript compilation.
