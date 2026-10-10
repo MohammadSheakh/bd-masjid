@@ -50,6 +50,7 @@ The platform adopts **React Native with Expo (SDK 52+, New Architecture enabled)
 │ Structured DB: expo-sqlite (Indexed offline spatial & schedule cache)  │
 │ Map Engine:    @maplibre/maplibre-react-native (OSM Raster Tiles)      │
 │ Alarms:        @notifee/react-native (Exact alarms + OEM battery flow) │
+│ Auto-Silent:   Android Kotlin TurboModule (DND + State-Preserving Alarm)│
 │ Telemetry:     @sentry/react-native (Crash reporting + Breadcrumbs)    │
 └────────────────────────────────────────────────────────────────────────┘
 ```
@@ -59,7 +60,7 @@ The platform adopts **React Native with Expo (SDK 52+, New Architecture enabled)
 | Architectural Concern | Selected Enterprise Solution | Hardened Rationale |
 | :--- | :--- | :--- |
 | **Framework Runtime** | Expo SDK 52+ / React Native 0.76+ | Bridgeless Mode, TurboModules, Hermes AOT compilation by default. |
-| **Build & Compilation** | Expo Prebuild (`expo-dev-client`) | Replaces Expo Go. Enables native MapLibre and Notifee compilation via Config Plugins. |
+| **Build & Compilation** | Expo Prebuild (`expo-dev-client`) | Replaces Expo Go. Enables native MapLibre, Notifee, and Kotlin modules via Config Plugins. |
 | **Network & Sync Engine** | **TanStack Query v5** (`@tanstack/react-query`) | Handles query deduping, background refetching on AppState resume, exponential backoff retries, and offline mutation queues. |
 | **Secure Token Storage** | **`expo-secure-store`** | Stores JWT Access/Refresh tokens in hardware-backed Android KeyStore / iOS Keychain. |
 | **High-Speed State Cache** | **`react-native-mmkv`** | 30x faster than AsyncStorage. Zero JNI/Bridge latency for user preferences, followed IDs, and sync flags. |
@@ -69,6 +70,7 @@ The platform adopts **React Native with Expo (SDK 52+, New Architecture enabled)
 | **Geospatial Map Driver** | **`@maplibre/maplibre-react-native`** | Hardware-accelerated OpenGL/Metal tile rendering for OpenStreetMap; zero Google Maps billing. |
 | **Sheet Interactions** | **`@gorhom/bottom-sheet`** | Reanimated 3 fluid bottom-sheet modals with native gesture handling. |
 | **Background Alarms** | **`@notifee/react-native`** | Manages Android `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM` with OEM battery optimization bypass guidance. |
+| **Prayer Auto-Silent** | **Custom Kotlin TurboModule** (`AndroidAutoSilentManager`) | Automates Do Not Disturb (`ACCESS_NOTIFICATION_POLICY`) and silent ringer during Jammat, restoring saved prior state after custom duration (e.g. 10m). iOS delivers actionable Focus notifications due to Apple sandbox constraints. |
 | **Observability & Health** | **`@sentry/react-native`** | Full-stack crash reporting, JS/native stack traces, offline state breadcrumbs, and sanitized network logs. |
 
 ### 2. Code Sharing & Architecture Boundaries

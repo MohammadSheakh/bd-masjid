@@ -9,6 +9,7 @@ The mobile client maintains **100% visual parity with the Ferio Visual System** 
 - Resilient network sync via TanStack Query v5 with automatic retries and deduping.
 - Hardware-backed token encryption via Android KeyStore / iOS Keychain (`expo-secure-store`).
 - Battery-safe exact prayer alarms with OEM battery killer mitigation (Xiaomi HyperOS, Realme ColorOS, Samsung OneUI).
+- Intelligent Jammat Auto-Silent & State-Preserving Restore: Automatic DND/Silent switching during 5 daily prayer times with zero-friction restoration to previous ringer state (Android native Kotlin TurboModule, iOS interactive Focus notifications).
 - Comprehensive crash telemetry via `@sentry/react-native`.
 - Rock-solid 60 FPS scrolling on low-end hardware (Walton, Symphony, Redmi 2GB–4GB RAM).
 
@@ -17,13 +18,14 @@ The mobile client maintains **100% visual parity with the Ferio Visual System** 
 ## 2. Core User Personas & Mobile Journeys
 
 ### Persona A: Daily Worshipper / Commuter (Guest & Registered)
-- **Context**: Walking to Jammat in dense urban areas (Dhaka, Chittagong) or rural districts on 2G/3G/4G with frequent network drops.
+- **Context**: Walking to Jammat in dense urban areas (Dhaka, Chittagong) or rural districts on 2G/3G/4G with frequent network drops. Frequently forgets to silence phone during prayer, or forgets to un-silence afterward, missing urgent calls.
 - **Key Journey**:
   1. Open app $\rightarrow$ instant view of followed mosques served directly from local SQLite cache ($< 50$ ms), while TanStack Query validates updates in the background.
   2. Live `PrayerCountdownBanner` renders real-time 1-second interval countdown to the next Jammat.
   3. Toggle floating bottom pill to `Map` $\rightarrow$ inspect OpenStreetMap raster tiles showing nearby mosque pins.
   4. Tap a mosque $\rightarrow$ swipe up native bottom sheet (`@gorhom/bottom-sheet`) displaying verified timetable, facilities (AC, Women's section, Parking), and attendance counts.
   5. Tap "Follow" $\rightarrow$ local notifications automatically registered for daily Azan/Jammat reminders.
+  6. Configures "Prayer Auto-Silent" $\rightarrow$ grants Android Do Not Disturb permission once; phone automatically transitions to Silent mode at Jammat start for 10 minutes, then reliably restores to its prior ringer state.
 
 ### Persona B: Contributor / Community Scout
 - **Context**: Standing outside a newly built or unlisted mosque; captures location coordinates directly via GPS.
@@ -60,7 +62,12 @@ The mobile client maintains **100% visual parity with the Ferio Visual System** 
    - If network drops, the app functions in offline mode with an explicit badge: *"Offline — showing cached schedule"*.
 5. **Exact Battery-Friendly Alarms**:
    Azan and Jammat notifications must rely on Android's native `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM` with OEM battery optimization bypass guidance, avoiding persistent background service loops.
-6. **Observability**:
+6. **Prayer Auto-Silent & Prior-State Invariant**:
+   - **State Preservation Invariant**: The device's ringer state (`NORMAL`, `VIBRATE`, `SILENT`) MUST be recorded immediately before triggering prayer silence. When the prayer window elapses, the device is restored strictly to the recorded initial state. If the device was already on Silent or Vibrate prior to Jammat, it MUST NOT be forced into Ringing/Normal mode.
+   - **Platform-Conscious Architecture (Android vs iOS)**:
+     - *Android*: Fully automated via custom native Kotlin TurboModule using `NotificationManager` (`ACCESS_NOTIFICATION_POLICY`), `AudioManager`, and `AlarmManager.setExactAndAllowWhileIdle()`.
+     - *iOS Sandbox Limit*: Apple iOS strictly prohibits third-party apps from programmatically flipping the hardware silent switch or controlling system Focus/DND modes in the background. The app transparently informs iOS users, providing interactive actionable local notifications ("Prayer time started — Turn on Silent/Focus") with Apple Shortcuts integration guidance.
+7. **Observability**:
    Every production crash, fatal JS error, and critical API failure must report to Sentry with sanitized breadcrumbs (zero PII, scrubbed authorization headers).
 
 ---
@@ -72,6 +79,8 @@ The mobile client maintains **100% visual parity with the Ferio Visual System** 
 |  [Navbar: Logo, Search, City Filter, Locate Me]       |
 +-------------------------------------------------------+
 |  [Live Next Jammat Banner: Countdown to Maghrib]     |
++-------------------------------------------------------+
+|  [Auto-Silent Armed Pill: (•) Auto-Silent: 10m Active]|
 +-------------------------------------------------------+
 |  [Horizontal Scroll: Amenity Chips (Women, AC, Pkg)]  |
 +-------------------------------------------------------+
@@ -96,6 +105,7 @@ The mobile client maintains **100% visual parity with the Ferio Visual System** 
 ### Screen 1: Home Screen (List & Map Dual-Mode)
 - **Top Bar**: Search bar with real-time text debounce, GPS "Locate Me" button, followed filter toggle.
 - **Prayer Countdown Banner**: Dynamically calculates the nearest upcoming Jammat time for the top followed mosque and renders an active 1-second countdown ticker.
+- **Auto-Silent Status Pill**: Subtly indicates automation readiness: *"Auto-Silent: Armed for Asr (16:45)"* or *"Auto-Silent Active: Restoring in 7m"*.
 - **Horizontal Filter Scroll**: Quick-toggle pills for *Women's Area*, *Air Conditioning*, *Wheelchair Access*, *Parking Space*, and *Following Only*.
 - **Feed Virtualization**: Powered by `@shopify/flash-list` with recycled cell views (`estimatedItemSize: 180`) to ensure smooth 60 FPS scrolling even with 500+ mosques in memory.
 - **Floating Bottom Toggle Pill**: Centered floating pill `[List (N) | Map]` switching instantly between the FlashList and the full-screen interactive OpenStreetMap view.
@@ -114,6 +124,15 @@ The mobile client maintains **100% visual parity with the Ferio Visual System** 
 - Extensible facilities list displaying available amenities (ADR-025).
 - Official announcements board with urgent broadcast banners (ADR-011).
 - Multi-signatory donation channel details with 1-tap mobile banking number copy (bKash, Nagad, Bank account) and executive verification green ticks (ADR-028).
+
+### Screen 4: Prayer Auto-Silent & DND Management Modal
+- **Master Toggle**: Enable/Disable automated Jammat silence.
+- **Per-Waqt Automation Toggles**: Independent enable/disable toggles for each prayer (Fajr, Zuhr, Asr, Maghrib, Isha, Jumu'ah).
+- **Custom Duration Selector**: Pill selector for prayer duration: `5 min`, `10 min` (default), `15 min`, `20 min`, or custom input.
+- **Pre-Jammat Buffer**: Option to silence 1–2 minutes before Jammat starts.
+- **Prior-State Safety Notice**: Explicit explanation that pre-existing Silent or Vibrate states are preserved and never overridden to loud ringer.
+- **Android DND Permission Onboarding**: One-tap trigger opening system `ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS` with clear Ferio guidance screen.
+- **iOS Informational Card**: Clear platform note explaining iOS hardware switch restrictions and offering 1-tap Shortcuts setup.
 
 ---
 
@@ -143,3 +162,12 @@ The mobile client maintains **100% visual parity with the Ferio Visual System** 
 ### 5.4. Background Alarm & Battery Killer Mitigation
 - **Alarm Driver**: `@notifee/react-native` configured for `SCHEDULE_EXACT_ALARM` (Android 12–13) and `USE_EXACT_ALARM` (Android 14+).
 - **OEM Whitelist Wizard**: In-app prompt detecting aggressive OEM battery managers (Xiaomi HyperOS/MIUI, Oppo/Realme ColorOS, Samsung OneUI) guiding users to toggle "Allow Background Activity".
+
+### 5.5. Native Auto-Silent Engine & DND Automation
+- **Native Driver (Android)**: Custom Kotlin TurboModule (`AndroidAutoSilentManager`) registered via Expo Config Plugin.
+- **System APIs**:
+  - `NotificationManager.isNotificationPolicyAccessGranted()` for DND authorization.
+  - `AudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT)` and `NotificationManager.setInterruptionFilter(INTERRUPTION_FILTER_NONE | INTERRUPTION_FILTER_PRIORITY)`.
+- **Exact Execution**: Scheduled via `AlarmManager.setExactAndAllowWhileIdle()` to guarantee wakeups during Android Doze mode.
+- **State Resilience**: Stores `previousRingerMode` synchronously in `MMKV` / encrypted `SharedPreferences` so process restarts or low-memory kills never lose the initial state.
+- **Device Reboot Listener**: `BOOT_COMPLETED` BroadcastReceiver automatically reschedules the day's silent and restore alarms after phone restart.

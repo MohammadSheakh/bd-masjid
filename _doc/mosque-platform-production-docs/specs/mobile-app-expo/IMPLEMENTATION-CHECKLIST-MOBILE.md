@@ -149,6 +149,26 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [ ] Configure automatic breadcrumb sanitization (stripping `Authorization` headers, passwords, and phone numbers).
   - [ ] Track slow frame renders and memory pressure events.
 
+- [ ] **6.4. Native Auto-Silent & DND Prayer Automation Engine**
+  - [ ] Implement Expo Config Plugin (`plugins/withAndroidAutoSilent.js`) registering:
+    - `ACCESS_NOTIFICATION_POLICY` (Do Not Disturb permission)
+    - `RECEIVE_BOOT_COMPLETED` (Alarm rescheduling after restart)
+  - [ ] Implement custom Kotlin TurboModule (`AndroidAutoSilentModule.kt`):
+    - [ ] `checkDndPermission()`: Checks `NotificationManager.isNotificationPolicyAccessGranted()`.
+    - [ ] `requestDndPermission()`: Dispatches intent to `Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS`.
+    - [ ] `captureCurrentRingerMode()`: Reads `AudioManager.ringerMode` (`NORMAL`, `VIBRATE`, `SILENT`).
+    - [ ] `activateSilentMode()`: Sets phone to `RINGER_MODE_SILENT` and activates `ZenMode`.
+    - [ ] `restoreRingerMode()`: Restores device back to the captured prior state.
+  - [ ] Implement `PrayerSilentReceiver.kt` and `PrayerRestoreReceiver.kt`:
+    - [ ] Trigger via `AlarmManager.setExactAndAllowWhileIdle()`.
+    - [ ] Enforce **State Preservation Invariant**: If device was already Silent/Vibrate before Jammat, it is NEVER forced to Ringing/Normal on restore.
+    - [ ] Persist pre-prayer state in MMKV / SharedPreferences to survive system app kills.
+    - [ ] Reschedule next 24-hour cycle alarms upon phone reboot via `BootCompletedReceiver.kt`.
+  - [ ] Implement Ferio React Native UI & Controls:
+    - [ ] `AutoSilentModal.tsx`: Master switch, per-waqt toggles (Fajr, Zuhr, Asr, Maghrib, Isha), and duration pills (5m, 10m, 15m, 20m).
+    - [ ] `AutoSilentStatusBadge.tsx`: Displays active silent countdown or next armed Jammat time.
+    - [ ] iOS Educational & Actionable Notification fallback card with Apple Shortcuts integration guide.
+
 ---
 
 ## Phase 7: Verification, Performance Profiling & Release Gates

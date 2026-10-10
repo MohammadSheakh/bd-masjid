@@ -52,6 +52,11 @@ The mobile application replicates 100% of the web frontend's visual language (*F
 5. **Offline-First Resilience**: When network connectivity is lost, the client must seamlessly present cached followed mosques and prayer schedules from local SQLite storage, accompanied by an explicit offline status indicator.
 6. **Battery-Safe Exact Alarms**: Local Jammat and Azan reminders must be scheduled via system AlarmManager (`SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM`) without running persistent background service loops or continuous polling.
 7. **Secure Token Storage**: Authentication tokens must never be written to plaintext storage; hardware-backed `expo-secure-store` is mandatory.
+8. **Prayer Auto-Silent & Prior-State Invariant**:
+   - The device's initial ringer state (`NORMAL`, `VIBRATE`, `SILENT`) MUST be recorded immediately prior to triggering prayer silence.
+   - When the prayer duration window elapses, the device is restored strictly to the recorded initial state. If the device was already on Silent or Vibrate prior to Jammat, it MUST NOT be forced into Ringing/Normal mode.
+   - *Android*: Fully automated via custom native Kotlin TurboModule using `NotificationManager` (`ACCESS_NOTIFICATION_POLICY`), `AudioManager`, and `AlarmManager.setExactAndAllowWhileIdle()`.
+   - *iOS*: Due to Apple sandbox restrictions prohibiting 3rd-party programmatic silent switch toggling, iOS presents actionable local notifications with Apple Shortcuts automation integration.
 
 ---
 
@@ -70,12 +75,13 @@ graph TD
         E --> F3["Structured DB: Mosques & Schedules (expo-sqlite)"]
         
         A --> G["Native Services (Notifee Alarms + OEM Battery Helper)"]
-        A --> H["Telemetry (@sentry/react-native)"]
+        A --> H["Native Auto-Silent (Kotlin TurboModule + DND Manager)"]
+        A --> I["Telemetry (@sentry/react-native)"]
     end
 
     subgraph "Transport & Backend"
-        E -->|HTTP / JSON + Bearer JWT| I["NestJS API (/api/v1)"]
-        I --> J["PostgreSQL + PostGIS"]
+        E -->|HTTP / JSON + Bearer JWT| J["NestJS API (/api/v1)"]
+        J --> K["PostgreSQL + PostGIS"]
     end
 ```
 
@@ -83,7 +89,7 @@ graph TD
 | Enterprise Concern | Technology Choice | Production Rationale |
 | :--- | :--- | :--- |
 | **Framework Runtime** | Expo SDK 52+ / React Native 0.76+ | Bridgeless Mode, TurboModules, Hermes AOT compilation by default. |
-| **Build & Compilation** | Expo Prebuild (`expo-dev-client`) | Enables native MapLibre and Notifee compilation via Config Plugins. |
+| **Build & Compilation** | Expo Prebuild (`expo-dev-client`) | Enables native MapLibre, Notifee, and custom Kotlin modules via Config Plugins. |
 | **Network & Sync Engine** | **TanStack Query v5** | Query deduping, background sync on AppState focus, exponential retries. |
 | **Secure Token Storage** | **`expo-secure-store`** | Hardware-backed KeyStore/Keychain encryption for auth tokens. |
 | **High-Speed Cache** | **`react-native-mmkv`** | 30x faster synchronous key-value store for preferences and sync timestamps. |
@@ -93,6 +99,7 @@ graph TD
 | **Interactive Map** | **`@maplibre/maplibre-react-native`** | Hardware-accelerated OpenGL/Metal rendering of OpenStreetMap tiles. |
 | **Modals / Sheets** | **`@gorhom/bottom-sheet`** | Reanimated 3 fluid bottom-sheet modals with native gesture handling. |
 | **Prayer Alarms** | **`@notifee/react-native`** | Reliable exact alarms for Android 12–15 with OEM battery bypass guidance. |
+| **Prayer Auto-Silent Engine** | **Custom Kotlin TurboModule** (`AndroidAutoSilentManager`) | Native Android DND (`ACCESS_NOTIFICATION_POLICY`), `AudioManager.RINGER_MODE_SILENT`, exact `AlarmManager` restore timer, and prior-state safety. |
 | **Observability** | **`@sentry/react-native`** | Real-time crash telemetry, sanitized breadcrumbs, and performance tracking. |
 
 ---
@@ -191,3 +198,24 @@ The mobile client interacts exclusively with existing production endpoints:
   - `mobile/src/services/alarmService.ts`
   - `mobile/src/services/batteryOptimization.ts`
   - `mobile/src/lib/sentry.ts`
+
+### TK-MOB-07: Android Native Auto-Silent Engine & Prior-State DND Automation
+- **Status**: `[ ] Pending` | **Priority**: High
+- **Description**: Implement a native Kotlin TurboModule (`AndroidAutoSilentManager`) using Android `NotificationManager` DND policy access and `AudioManager` to automatically switch the phone into Silent mode during Jammat and restore it to its prior ringer state (Normal/Vibrate/Silent) after a customizable duration (default 10 minutes), with scheduled exact alarms and reboot persistence.
+- **Acceptance Criteria**:
+  - [ ] Android Config Plugin adds `ACCESS_NOTIFICATION_POLICY` and `RECEIVE_BOOT_COMPLETED` permissions.
+  - [ ] Kotlin TurboModule exposes `checkDndPermission()`, `requestDndPermission()`, `setPrayerSilentMode()`, and `restoreRingerMode()`.
+  - [ ] Enforces **State Preservation Invariant**: Records device ringer mode (`NORMAL`, `VIBRATE`, `SILENT`) before silencing; restores strictly to saved mode. If phone was already in Silent/Vibrate mode prior to prayer, it is NEVER forced to Ringing/Normal on duration expiry.
+  - [ ] Alarms scheduled via `AlarmManager.setExactAndAllowWhileIdle()` to guarantee timely execution during Android Doze mode.
+  - [ ] Boot broadcast receiver reschedules the day's 5 prayer silent/restore windows when device reboots.
+  - [ ] UI features master toggle, per-waqt switches (Fajr, Zuhr, Asr, Maghrib, Isha), duration selector (5m, 10m, 15m, 20m), and live active status countdown badge.
+  - [ ] iOS renders an informative card explaining Apple hardware switch constraints with 1-tap actionable local notifications and Apple Shortcuts setup guide.
+- **Target Files**:
+  - `mobile/plugins/withAndroidAutoSilent.js`
+  - `mobile/android/app/src/main/java/org/bdmasjid/autosilent/AndroidAutoSilentModule.kt`
+  - `mobile/android/app/src/main/java/org/bdmasjid/autosilent/PrayerSilentReceiver.kt`
+  - `mobile/android/app/src/main/java/org/bdmasjid/autosilent/PrayerRestoreReceiver.kt`
+  - `mobile/src/components/AutoSilentModal.tsx`
+  - `mobile/src/components/AutoSilentStatusBadge.tsx`
+  - `mobile/src/hooks/usePrayerAutoSilent.ts`
+
