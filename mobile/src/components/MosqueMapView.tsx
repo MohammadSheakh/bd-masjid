@@ -6,6 +6,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { Mosque } from '../types/mosque';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 
@@ -29,8 +30,9 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
   const [isPinDropMode, setIsPinDropMode] = useState(false);
   const [pinnedCoords, setPinnedCoords] = useState<{ lat: number; lng: number } | null>(null);
   const iframeRef = useRef<any>(null);
+  const webViewRef = useRef<any>(null);
 
-  // Listen for iframe events (marker click, pin drop)
+  // Listen for Web iframe events (marker click, pin drop)
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
 
@@ -51,31 +53,57 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
     return () => window.removeEventListener('message', handleMessage);
   }, [mosques, onSelectMosque, onPinDropped]);
 
-  // Handle GPS Locate Me action
+  // Handle mobile React Native WebView postMessage events
+  const handleNativeMessage = (event: any) => {
+    try {
+      const rawData = event.nativeEvent?.data;
+      if (!rawData) return;
+      const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+      if (data?.type === 'SELECT_MOSQUE') {
+        const found = mosques.find((m) => m.id === data.id);
+        if (found) {
+          onSelectMosque(found);
+        }
+      } else if (data?.type === 'PIN_DROPPED') {
+        const coords = { lat: data.lat, lng: data.lng };
+        setPinnedCoords(coords);
+        onPinDropped?.(coords);
+      }
+    } catch (e) {
+      console.warn('Native message parsing error:', e);
+    }
+  };
+
+  // Handle GPS Locate Me action across Web and Native WebView
   const handleLocateMe = () => {
+    const notifyLocate = (lat: number, lng: number) => {
+      if (Platform.OS === 'web') {
+        iframeRef.current?.contentWindow?.postMessage(
+          { type: 'LOCATE_USER', lat, lng },
+          '*'
+        );
+      } else {
+        webViewRef.current?.injectJavaScript(`
+          if (typeof map !== 'undefined') {
+            map.setView([${lat}, ${lng}], 15, { animate: true });
+            if (typeof userMarker !== 'undefined' && userMarker) {
+              userMarker.setLatLng([${lat}, ${lng}]);
+            }
+          }
+          true;
+        `);
+      }
+      onLocateMe?.();
+    };
+
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          iframeRef.current?.contentWindow?.postMessage(
-            { type: 'LOCATE_USER', lat, lng },
-            '*'
-          );
-          onLocateMe?.();
-        },
-        () => {
-          // Fallback to central Dhaka
-          iframeRef.current?.contentWindow?.postMessage(
-            { type: 'LOCATE_USER', lat: 23.75, lng: 90.39 },
-            '*'
-          );
-          onLocateMe?.();
-        },
+        (pos) => notifyLocate(pos.coords.latitude, pos.coords.longitude),
+        () => notifyLocate(23.75, 90.39),
         { timeout: 8000 }
       );
     } else {
-      onLocateMe?.();
+      notifyLocate(23.75, 90.39);
     }
   };
 
@@ -109,6 +137,9 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
       background-color: #f4f4f5;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       touch-action: pan-x pan-y;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
     .custom-mosque-pin {
       display: flex;
@@ -160,6 +191,15 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
 <body>
   <div id="map"></div>
   <script>
+    function sendToHost(data) {
+      if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(data));
+      }
+      if (window.parent && window.parent.postMessage) {
+        window.parent.postMessage(data, '*');
+      }
+    }
+
     var mosques = ${serializedMosques};
     var isPinDropMode = ${isPinDropMode ? 'true' : 'false'};
     var defaultCenter = [23.75, 90.39];
@@ -203,7 +243,7 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
       );
 
       marker.on('click', function() {
-        window.parent.postMessage({ type: 'SELECT_MOSQUE', id: m.id }, '*');
+        sendToHost({ type: 'SELECT_MOSQUE', id: m.id });
       });
 
       markersLayer.addLayer(marker);
@@ -222,10 +262,10 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
           dropMarker = L.marker(e.latlng, { icon: pinIcon, draggable: true }).addTo(map);
           dropMarker.on('dragend', function(ev) {
             var pos = ev.target.getLatLng();
-            window.parent.postMessage({ type: 'PIN_DROPPED', lat: pos.lat, lng: pos.lng }, '*');
+            sendToHost({ type: 'PIN_DROPPED', lat: pos.lat, lng: pos.lng });
           });
         }
-        window.parent.postMessage({ type: 'PIN_DROPPED', lat: e.latlng.lat, lng: e.latlng.lng }, '*');
+        sendToHost({ type: 'PIN_DROPPED', lat: e.latlng.lat, lng: e.latlng.lng });
       }
     });
 
@@ -253,7 +293,7 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Full-Page Interactive Leaflet Map */}
+      {/* Full-Page Interactive Leaflet Map for Both Web & Native Mobile App */}
       {Platform.OS === 'web' ? (
         <iframe
           ref={iframeRef}
@@ -262,9 +302,16 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
           title="BD Mosque Interactive OpenStreetMap"
         />
       ) : (
-        <View style={styles.fallbackCanvas}>
-          <Text style={styles.fallbackText}>Interactive Map Active</Text>
-        </View>
+        <WebView
+          ref={webViewRef}
+          source={{ html: leafletHtml }}
+          originWhitelist={['*']}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          onMessage={handleNativeMessage}
+          style={styles.webViewMap}
+          scalesPageToFit={true}
+        />
       )}
 
       {/* Pin Drop Active Instruction Badge */}
@@ -316,14 +363,11 @@ const styles = StyleSheet.create({
     padding: 0,
     flex: 1,
   },
-  fallbackCanvas: {
+  webViewMap: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fallbackText: {
-    fontSize: 14,
-    color: ferioColors.muted,
+    width: '100%',
+    height: '100%',
+    backgroundColor: ferioColors.surface,
   },
   pinDropNotice: {
     position: 'absolute',

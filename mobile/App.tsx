@@ -452,50 +452,50 @@ export default function App() {
         </View>
       </View>
 
-      {/* Search Input with Search & Clear Buttons */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder={LocalizationService.t('searchPlaceholder')}
-            placeholderTextColor={ferioColors.muted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={() => executeSearch()}
-            returnKeyType="search"
-          />
-          {searchQuery.length > 0 && (
-            <Pressable
-              onPress={() => {
-                setSearchQuery('');
-                if (selectedTag === 'All' && activeCollectionTag === 'ALL') {
-                  setDiscoveredMosques([]);
-                }
-              }}
-              style={({ pressed }) => [styles.clearSearchBtn, pressed && styles.pressed]}
-              accessibilityLabel="Clear search text"
-            >
-              <Text style={styles.clearSearchText}>✕</Text>
-            </Pressable>
-          )}
-        </View>
-
-        <Pressable
-          onPress={() => executeSearch()}
-          style={({ pressed }) => [styles.searchActionBtn, pressed && styles.pressed]}
-          accessibilityRole="button"
-          accessibilityLabel="Execute search"
-        >
-          <Text style={styles.searchActionBtnText}>
-            {lang === 'bn' ? 'খুঁজুন' : 'Search'}
-          </Text>
-        </Pressable>
-      </View>
-
       {/* Viewport: List or Full-Page Map */}
       {viewportMode === 'list' ? (
         <>
+          {/* Search Input with Search & Clear Buttons */}
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInputWrapper}>
+              <Text style={styles.searchIcon}>🔍</Text>
+              <TextInput
+                style={styles.searchInput}
+                placeholder={LocalizationService.t('searchPlaceholder')}
+                placeholderTextColor={ferioColors.muted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={() => executeSearch()}
+                returnKeyType="search"
+              />
+              {searchQuery.length > 0 && (
+                <Pressable
+                  onPress={() => {
+                    setSearchQuery('');
+                    if (selectedTag === 'All' && activeCollectionTag === 'ALL') {
+                      setDiscoveredMosques([]);
+                    }
+                  }}
+                  style={({ pressed }) => [styles.clearSearchBtn, pressed && styles.pressed]}
+                  accessibilityLabel="Clear search text"
+                >
+                  <Text style={styles.clearSearchText}>✕</Text>
+                </Pressable>
+              )}
+            </View>
+
+            <Pressable
+              onPress={() => executeSearch()}
+              style={({ pressed }) => [styles.searchActionBtn, pressed && styles.pressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Execute search"
+            >
+              <Text style={styles.searchActionBtnText}>
+                {lang === 'bn' ? 'খুঁজুন' : 'Search'}
+              </Text>
+            </Pressable>
+          </View>
+
           {/* Routine Collection Filter Pills (ADR-052) */}
           <CollectionFilterBar
             activeTag={activeCollectionTag}
