@@ -315,9 +315,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 19: User Authentication, Contributor Identity & Secure Session Management (ADR-054)
 
-- [ ] **19.1. Auth Domain Models & ApiClient Transport**
-  - [ ] Add `UserProfile`, `AuthSession`, `LoginPayload`, and `RegisterPayload` to `types/auth.ts`.
-  - [ ] Add `loginUser`, `registerUser`, `fetchCurrentUserSession`, and `logoutUser` in `ApiClient` with fallback mock identities.
+- [x] **19.1. Auth Domain Models & ApiClient Transport**
+  - [x] Add `UserProfile`, `AuthSession`, `LoginPayload`, and `RegisterPayload` to `types/auth.ts`.
+  - [x] Add `loginUser`, `registerUser`, `fetchCurrentUserSession`, and `logoutUser` in `ApiClient` with fallback mock identities.
 - [ ] **19.2. Fast Synchronous AuthService with Token Encryption**
   - [ ] Implement `authService.ts` with synchronous profile cache, session hydration on boot, and pub/sub listener dispatch.
   - [ ] Wire hardware token encryption via `SecureTokenStorage`.

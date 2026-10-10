@@ -6,6 +6,7 @@
  */
 import { Platform } from 'react-native';
 import { AttendanceStatus, AttendanceSummary, Mosque, MosqueAnnouncement, MosqueReportPayload, MosqueStaffMember, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
+import { AuthResponse, LoginPayload, RegisterPayload, UserProfile } from '../types/auth';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
 import { BANGLADESH_NOTIFICATION_FIXTURES } from '../data/notificationFixtures';
 import { PreferencesStorage, SecureTokenStorage } from './storage';
@@ -338,5 +339,100 @@ export const ApiClient = {
       { method: 'PATCH' },
       { success: true, count: BANGLADESH_NOTIFICATION_FIXTURES.length }
     );
+  },
+
+  async loginUser(payload: LoginPayload): Promise<AuthResponse> {
+    const fallbackUser: UserProfile = {
+      id: 'user-bangladesh-demo',
+      name: payload.email.split('@')[0],
+      email: payload.email,
+      role: 'CONTRIBUTOR',
+      phoneNumber: '01711223344',
+      isEmailVerified: true,
+      createdAt: new Date().toISOString(),
+    };
+    const fallbackResponse: AuthResponse = {
+      user: fallbackUser,
+      accessToken: 'demo_access_token_jwt_preview',
+      refreshToken: 'demo_refresh_token_jwt_preview',
+    };
+
+    const res = await fetchWithFallback<AuthResponse>(
+      '/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      fallbackResponse
+    );
+
+    if (res.accessToken) {
+      await SecureTokenStorage.setTokens(res.accessToken, res.refreshToken);
+    }
+    return res;
+  },
+
+  async registerUser(payload: RegisterPayload): Promise<AuthResponse> {
+    const fallbackUser: UserProfile = {
+      id: 'user-bangladesh-demo',
+      name: payload.name,
+      email: payload.email,
+      role: 'CONTRIBUTOR',
+      phoneNumber: payload.phoneNumber || null,
+      isEmailVerified: false,
+      createdAt: new Date().toISOString(),
+    };
+    const fallbackResponse: AuthResponse = {
+      user: fallbackUser,
+      accessToken: 'demo_access_token_jwt_preview',
+      refreshToken: 'demo_refresh_token_jwt_preview',
+    };
+
+    const res = await fetchWithFallback<AuthResponse>(
+      '/auth/register',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      fallbackResponse
+    );
+
+    if (res.accessToken) {
+      await SecureTokenStorage.setTokens(res.accessToken, res.refreshToken);
+    }
+    return res;
+  },
+
+  async fetchCurrentUserSession(): Promise<UserProfile | null> {
+    const token = await SecureTokenStorage.getAccessToken();
+    if (!token) return null;
+
+    const fallbackUser: UserProfile = {
+      id: 'user-bangladesh-demo',
+      name: 'Mohammad Musalli',
+      email: 'musalli@bdmasjid.org',
+      role: 'CONTRIBUTOR',
+      phoneNumber: '01711223344',
+      isEmailVerified: true,
+      createdAt: new Date().toISOString(),
+    };
+
+    return fetchWithFallback<UserProfile | null>(
+      '/auth/session',
+      { method: 'GET' },
+      fallbackUser
+    );
+  },
+
+  async logoutUser(): Promise<void> {
+    try {
+      await fetchWithFallback(
+        '/auth/logout',
+        { method: 'POST' },
+        { success: true }
+      );
+    } finally {
+      await SecureTokenStorage.clearTokens();
+    }
   },
 };
