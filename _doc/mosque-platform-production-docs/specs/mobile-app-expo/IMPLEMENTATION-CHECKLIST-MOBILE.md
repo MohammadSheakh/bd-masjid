@@ -44,33 +44,33 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Calculate next upcoming Jamaat dynamically across Fajr, Zuhr, Asr, Maghrib, and Isha.
   - [x] Style with dark Ferio surface (`#111114`), white typography, and subtle emerald accent pill.
 
-- [ ] **2.2. Search & Filter Bar**
-  - [ ] Implement debounced search input with Lucide icons (`lucide-react-native`).
-  - [ ] Implement horizontal scrolling filter pill bar for cities (`All`, `Dhaka`, `Chattogram`, `Sylhet`).
-  - [ ] Implement toggle pills for amenities (*Women's Area*, *AC*, *Wheelchair*, *Parking*, *Following*).
+- [x] **2.2. Search & Filter Bar**
+  - [x] Implement debounced search input with Lucide icons (`lucide-react-native`).
+  - [x] Implement horizontal scrolling filter pill bar for cities (`All`, `Dhaka`, `Chattogram`, `Sylhet`).
+  - [x] Implement toggle pills for amenities (*Women's Area*, *AC*, *Wheelchair*, *Parking*, *Following*).
 
-- [ ] **2.3. High-Performance Mosque Feed (`FlashList`)**
-  - [ ] Install and configure `@shopify/flash-list`.
-  - [ ] Implement `MosqueCard.tsx` matching web layout:
+- [x] **2.3. High-Performance Mosque Feed (`FlashList`)**
+  - [x] Install and configure `@shopify/flash-list`.
+  - [x] Implement `MosqueCard.tsx` matching web layout:
     - Header: Mosque name, distance badge, and follow icon toggle.
     - Badges: Verified timetable / Freshness status (`FRESH`, `STALE`, `VERY_STALE`), Taraweeh indicator.
     - 5-Column Prayer Timetable Grid (Fajr, Zuhr, Asr, Maghrib, Isha).
     - Attendance summary count display.
-  - [ ] Provide `estimatedItemSize: 180` and `drawDistance: 350` to `FlashList` for zero-flicker recycling.
-  - [ ] Implement empty state and skeleton loading states matching web.
+  - [x] Provide `estimatedItemSize: 180` and `drawDistance: 350` to `FlashList` for zero-flicker recycling.
+  - [x] Implement empty state and skeleton loading states matching web.
 
-- [ ] **2.4. Floating Bottom Viewport Toggle**
-  - [ ] Implement floating bottom pill `[List (N) | Map]` centered with `bottom-5`.
-  - [ ] Smooth cross-fade or state switch between `FlashList` feed and map viewport.
+- [x] **2.4. Floating Bottom Viewport Toggle**
+  - [x] Implement floating bottom pill `[List (N) | Map]` centered with `bottom-5`.
+  - [x] Smooth cross-fade or state switch between `FlashList` feed and map viewport.
 
 ---
 
 ## Phase 3: OpenStreetMap & Geospatial Features
 
-- [ ] **3.1. Native OpenStreetMap Engine**
-  - [ ] Integrate `@maplibre/maplibre-react-native` with custom Expo Config Plugin.
-  - [ ] Configure OpenStreetMap raster tile source (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`).
-  - [ ] Configure local tile caching to prevent excessive re-fetching on flaky mobile networks.
+- [x] **3.1. Native OpenStreetMap Engine**
+  - [x] Integrate `@maplibre/maplibre-react-native` with custom Expo Config Plugin.
+  - [x] Configure OpenStreetMap raster tile source (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`).
+  - [x] Configure local tile caching to prevent excessive re-fetching on flaky mobile networks.
 
 - [x] **3.2. Custom Circular Mosque Pins**
   - [x] Render custom circular marker pins matching `.custom-mosque-pin`:
