@@ -188,66 +188,70 @@ export default function App() {
     activeCollectionTag !== 'ALL'
   );
 
+  const executeSearch = useCallback(async (queryText?: string) => {
+    const q = (queryText !== undefined ? queryText : searchQuery).trim();
+    if (!q && selectedTag === 'All' && activeCollectionTag === 'ALL') {
+      return;
+    }
+    setIsSearchingLoading(true);
+    try {
+      let results: Mosque[];
+      const filters = {
+        hasSeparateWomenSpace: selectedTag === 'Women Space' ? true : undefined,
+        hasAirConditioning: selectedTag === 'Air Conditioned' ? true : undefined,
+        hasParking: selectedTag === 'Parking' ? true : undefined,
+      };
+      if (q) {
+        results = await ApiClient.searchMosques(q, undefined, filters);
+      } else if (selectedTag === '📍 Nearest') {
+        results = await ApiClient.getNearbyMosques(23.8103, 90.4125);
+      } else {
+        results = await ApiClient.searchMosques('', undefined, filters);
+      }
+      setDiscoveredMosques(results);
+    } catch {
+      setDiscoveredMosques(BANGLADESH_MOSQUES_FIXTURES);
+    } finally {
+      setIsSearchingLoading(false);
+    }
+  }, [searchQuery, selectedTag, activeCollectionTag]);
+
   useEffect(() => {
     if (!isSearchingOrFiltering) return;
-    const timer = setTimeout(async () => {
-      setIsSearchingLoading(true);
-      try {
-        let results: Mosque[];
-        const filters = {
-          hasSeparateWomenSpace: selectedTag === 'Women Space' ? true : undefined,
-          hasAirConditioning: selectedTag === 'Air Conditioned' ? true : undefined,
-          hasParking: selectedTag === 'Parking' ? true : undefined,
-        };
-        if (searchQuery.trim()) {
-          results = await ApiClient.searchMosques(searchQuery.trim(), undefined, filters);
-        } else if (selectedTag === '📍 Nearest') {
-          results = await ApiClient.getNearbyMosques(23.8103, 90.4125);
-        } else {
-          results = await ApiClient.searchMosques('', undefined, filters);
-        }
-        setDiscoveredMosques(results);
-      } catch {
-        setDiscoveredMosques(BANGLADESH_MOSQUES_FIXTURES);
-      } finally {
-        setIsSearchingLoading(false);
-      }
-    }, 300);
+    const timer = setTimeout(() => {
+      executeSearch();
+    }, 350);
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedTag, activeCollectionTag, isSearchingOrFiltering]);
+  }, [searchQuery, selectedTag, activeCollectionTag, isSearchingOrFiltering, executeSearch]);
 
   const displayedMosques = useMemo(() => {
     if (!isSearchingOrFiltering) {
       return followedMosques;
     }
 
-    const sourceList = discoveredMosques.length > 0 ? discoveredMosques : BANGLADESH_MOSQUES_FIXTURES;
-    const list = sourceList.filter((mosque) => {
-      const matchesSearch =
-        searchQuery.trim() === '' ||
-        mosque.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (mosque.city && mosque.city.toLowerCase().includes(searchQuery.toLowerCase()));
+    let list = discoveredMosques;
 
-      if (!matchesSearch) return false;
-
-      if (activeCollectionTag !== 'ALL') {
+    if (activeCollectionTag !== 'ALL') {
+      list = list.filter((mosque) => {
         const tags = CollectionStorage.getMosqueTags(mosque.id);
-        if (!tags.includes(activeCollectionTag)) return false;
-      }
+        return tags.includes(activeCollectionTag);
+      });
+    }
 
-      if (selectedTag === 'Following') return followedIds.includes(mosque.id);
-      if (selectedTag === 'Women Space') return !!mosque.hasSeparateWomenSpace;
-      if (selectedTag === 'Air Conditioned') return !!mosque.hasAirConditioning;
-      if (selectedTag === 'Parking') return !!mosque.hasParking;
-
-      return true;
-    });
-
-    if (selectedTag === '📍 Nearest') {
+    if (selectedTag === 'Following') {
+      list = list.filter((mosque) => followedIds.includes(mosque.id));
+    } else if (selectedTag === 'Women Space') {
+      list = list.filter((mosque) => !!mosque.hasSeparateWomenSpace);
+    } else if (selectedTag === 'Air Conditioned') {
+      list = list.filter((mosque) => !!mosque.hasAirConditioning);
+    } else if (selectedTag === 'Parking') {
+      list = list.filter((mosque) => !!mosque.hasParking);
+    } else if (selectedTag === '📍 Nearest') {
       return LocationRadarService.sortMosquesByProximity(list);
     }
+
     return list;
-  }, [isSearchingOrFiltering, followedMosques, discoveredMosques, searchQuery, selectedTag, activeCollectionTag, followedIds, collectionsVersion]);
+  }, [isSearchingOrFiltering, followedMosques, discoveredMosques, selectedTag, activeCollectionTag, followedIds]);
 
   const mapMosques = useMemo(() => {
     const mosqueMap = new Map<string, Mosque>();
@@ -435,16 +439,45 @@ export default function App() {
         </View>
       </View>
 
-      {/* Search Input */}
+      {/* Search Input with Search & Clear Buttons */}
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder={LocalizationService.t('searchPlaceholder')}
-          placeholderTextColor={ferioColors.muted}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          clearButtonMode="while-editing"
-        />
+        <View style={styles.searchInputWrapper}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder={LocalizationService.t('searchPlaceholder')}
+            placeholderTextColor={ferioColors.muted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={() => executeSearch()}
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <Pressable
+              onPress={() => {
+                setSearchQuery('');
+                if (selectedTag === 'All' && activeCollectionTag === 'ALL') {
+                  setDiscoveredMosques([]);
+                }
+              }}
+              style={({ pressed }) => [styles.clearSearchBtn, pressed && styles.pressed]}
+              accessibilityLabel="Clear search text"
+            >
+              <Text style={styles.clearSearchText}>✕</Text>
+            </Pressable>
+          )}
+        </View>
+
+        <Pressable
+          onPress={() => executeSearch()}
+          style={({ pressed }) => [styles.searchActionBtn, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Execute search"
+        >
+          <Text style={styles.searchActionBtnText}>
+            {lang === 'bn' ? 'খুঁজুন' : 'Search'}
+          </Text>
+        </Pressable>
       </View>
 
       {/* Routine Collection Filter Pills (ADR-052) */}
@@ -511,16 +544,13 @@ export default function App() {
           data={displayedMosques}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
-            <>
-              {topFollowedMosque ? (
-                <PrayerCountdownBanner
-                  schedule={topFollowedMosque.prayerSchedule}
-                  autoSilentSettings={autoSilentSettings}
-                  onPressAutoSilentSettings={() => setIsModalOpen(true)}
-                />
-              ) : null}
-              <DailyHadithCard language={lang} />
-            </>
+            topFollowedMosque ? (
+              <PrayerCountdownBanner
+                schedule={topFollowedMosque.prayerSchedule}
+                autoSilentSettings={autoSilentSettings}
+                onPressAutoSilentSettings={() => setIsModalOpen(true)}
+              />
+            ) : null
           }
           renderItem={({ item }) => (
             <MosqueCard
@@ -530,6 +560,11 @@ export default function App() {
               onPress={(m) => setSelectedMosque(m)}
             />
           )}
+          ListFooterComponent={
+            <View style={styles.footerContainer}>
+              <DailyHadithCard language={lang} />
+            </View>
+          }
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -902,18 +937,58 @@ const styles = StyleSheet.create({
     color: ferioColors.primary,
   },
   searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: ferioSpacing.lg,
     paddingTop: ferioSpacing.sm,
+    gap: ferioSpacing.sm,
   },
-  searchInput: {
+  searchInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     height: 42,
     backgroundColor: ferioColors.surface,
     borderRadius: ferioRadius.full,
-    paddingHorizontal: ferioSpacing.lg,
-    fontSize: 13,
-    color: ferioColors.primary,
+    paddingHorizontal: ferioSpacing.md,
     borderWidth: 1,
     borderColor: ferioColors.border,
+  },
+  searchIcon: {
+    fontSize: 14,
+    marginRight: ferioSpacing.xs,
+  },
+  searchInput: {
+    flex: 1,
+    height: '100%',
+    fontSize: 13,
+    color: ferioColors.primary,
+    padding: 0,
+  },
+  clearSearchBtn: {
+    padding: 4,
+  },
+  clearSearchText: {
+    fontSize: 13,
+    color: ferioColors.muted,
+    fontWeight: '600',
+  },
+  searchActionBtn: {
+    height: 42,
+    paddingHorizontal: ferioSpacing.lg,
+    backgroundColor: ferioColors.primary,
+    borderRadius: ferioRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchActionBtnText: {
+    color: ferioColors.primaryForeground,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  footerContainer: {
+    paddingTop: ferioSpacing.md,
+    paddingBottom: ferioSpacing.xl,
   },
   filterChipContainer: {
     paddingVertical: ferioSpacing.xs,

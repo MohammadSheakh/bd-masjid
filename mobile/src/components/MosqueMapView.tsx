@@ -60,28 +60,28 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
     <View style={styles.container}>
       {/* Map Canvas with OpenStreetMap Tiles */}
       <View style={[styles.canvas, { height: mapHeight }]}>
-        {/* OpenStreetMap Raster Tile Layer */}
+        {/* OpenStreetMap Raster Tile Layer (Standard OSM - No API Key Required) */}
         <View style={styles.tileGrid} pointerEvents="none">
           <View style={styles.tileRow}>
             <Image
-              source={{ uri: 'https://a.basemaps.cartocdn.com/light_all/13/6152/3567.png' }}
+              source={{ uri: 'https://a.tile.openstreetmap.org/13/6152/3567.png' }}
               style={styles.mapTile}
               resizeMode="cover"
             />
             <Image
-              source={{ uri: 'https://b.basemaps.cartocdn.com/light_all/13/6153/3567.png' }}
+              source={{ uri: 'https://b.tile.openstreetmap.org/13/6153/3567.png' }}
               style={styles.mapTile}
               resizeMode="cover"
             />
           </View>
           <View style={styles.tileRow}>
             <Image
-              source={{ uri: 'https://c.basemaps.cartocdn.com/light_all/13/6152/3568.png' }}
+              source={{ uri: 'https://c.tile.openstreetmap.org/13/6152/3568.png' }}
               style={styles.mapTile}
               resizeMode="cover"
             />
             <Image
-              source={{ uri: 'https://a.basemaps.cartocdn.com/light_all/13/6153/3568.png' }}
+              source={{ uri: 'https://a.tile.openstreetmap.org/13/6153/3568.png' }}
               style={styles.mapTile}
               resizeMode="cover"
             />
