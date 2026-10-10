@@ -280,3 +280,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **16.4. Integration into MosqueDetailSheet & Verification**
   - [x] Replace basic donation list in `MosqueDetailSheet.tsx` with `DonationChannelsCard`.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 17: Categorized Mosque Collections & Custom Bookmarks (ADR-052)
+
+- [ ] **17.1. Collection Tag Model & Fast Synchronous Storage**
+  - [ ] Implement `collectionService.ts` with tags (`HOME`, `WORK`, `JUMUAH`, `FAVORITE`), icons, and bilingual labels.
+  - [ ] Add `CollectionStorage` in `storage.ts` with synchronous MMKV caching and backfill migration.
+- [ ] **17.2. Ferio CollectionTagModal Sheet**
+  - [ ] Create `CollectionTagModal.tsx` with multi-select tag chips, instant saving, and haptic feedback.
+- [ ] **17.3. Contextual Feed Filter Bar**
+  - [ ] Create `CollectionFilterBar.tsx` with smooth horizontal tag pills and counter indicators.
+- [ ] **17.4. Integration into App Feed & MosqueDetailSheet**
+  - [ ] Wire `CollectionFilterBar` and `CollectionTagModal` in `App.tsx` and `MosqueDetailSheet.tsx`.
+  - [ ] Run benchmark gate and TypeScript compilation.
