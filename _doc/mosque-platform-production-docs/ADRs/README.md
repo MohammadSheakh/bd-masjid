@@ -51,6 +51,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-043](ADR-043-mobile-contributor-pin-drop-and-add-mosque-flow.md) | Mobile Contributor Pin-Drop, Duplicate Prevention, and Add Mosque Sheet Architecture | Accepted | 2026-10-10 | Contributor Mapping, Pin-Drop, Duplicate Check & Multi-Step Sheet |
 | [ADR-044](ADR-044-mobile-mosque-notice-board-and-announcements-hub.md) | Mobile Mosque Notice Board, Announcements Hub, and Priority Alerts | Accepted | 2026-10-10 | Notice Board, Janaazah/Eid/Ramadan Alerts, Priority Badging & Offline Cache |
 | [ADR-045](ADR-045-mobile-crowdsourced-issue-reporting-and-delisting-protection.md) | Mobile Crowdsourced Issue Reporting and Delisting Protection | Accepted | 2026-10-10 | ADR-020, MosqueReport, Delisting Safeguards & Ferio Report Modal |
+| [ADR-046](ADR-046-mobile-sensor-fused-qibla-compass.md) | Mobile Real-Time Sensor-Fused Qibla Compass | Accepted | 2026-10-10 | Qibla Compass, Great-Circle Kaaba Bearing, Ferio Dial & Alignment Feedback |
 
 
 ---
