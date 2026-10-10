@@ -192,3 +192,47 @@ export const CollectionStorage = {
     return Object.keys(all).filter((id) => all[id]?.includes(tag));
   },
 };
+
+const OUTBOX_STORAGE_KEY = 'bd_masjid_offline_outbox_queue';
+
+export const OutboxStorage = {
+  getOutbox(): any[] {
+    const raw = syncKvCache.get(OUTBOX_STORAGE_KEY);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  },
+
+  setOutbox(mutations: any[]): void {
+    syncKvCache.set(OUTBOX_STORAGE_KEY, JSON.stringify(mutations));
+  },
+
+  addMutation(mutation: any): void {
+    const current = this.getOutbox();
+    this.setOutbox([...current, mutation]);
+  },
+
+  removeMutation(id: string): void {
+    const current = this.getOutbox();
+    this.setOutbox(current.filter((m) => m.id !== id));
+  },
+
+  updateMutation(id: string, updates: Record<string, any>): void {
+    const current = this.getOutbox();
+    this.setOutbox(
+      current.map((m) => (m.id === id ? { ...m, ...updates } : m))
+    );
+  },
+
+  getPendingCount(): number {
+    return this.getOutbox().filter((m) => m.status !== 'FAILED').length;
+  },
+
+  clearOutbox(): void {
+    syncKvCache.delete(OUTBOX_STORAGE_KEY);
+  },
+};
