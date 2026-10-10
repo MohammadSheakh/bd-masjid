@@ -23,6 +23,7 @@ import {
   FeedAnnouncementsParams,
   MosqueAnnouncement as DomainAnnouncement,
 } from '../types/announcement';
+import { CreateDonationPayload, DonationSubmissionResponse } from '../types/donation';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -745,6 +746,26 @@ export const ApiClient = {
 
     return fetchWithFallback<RoleClaimResponse>(
       `/community/${mosqueId}/claims`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      fallbackResponse
+    );
+  },
+
+  async submitDonationChannel(
+    mosqueId: string,
+    payload: CreateDonationPayload
+  ): Promise<DonationSubmissionResponse> {
+    const fallbackResponse: DonationSubmissionResponse = {
+      id: `donation-${Date.now()}`,
+      success: true,
+      message: 'Donation channel draft submitted for multi-signatory committee review.',
+    };
+
+    return fetchWithFallback<DonationSubmissionResponse>(
+      `/mosques/${mosqueId}/donations`,
       {
         method: 'POST',
         body: JSON.stringify(payload),
