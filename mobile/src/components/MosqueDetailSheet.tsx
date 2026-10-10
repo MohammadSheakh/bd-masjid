@@ -7,7 +7,7 @@ import {
   ScrollView,
   Pressable,
 } from 'react-native';
-import { Mosque, MosqueDonationMethod, MosqueStaffMember, PrayerSchedule } from '../types/mosque';
+import { Mosque, MosqueStaffMember, PrayerSchedule } from '../types/mosque';
 import { formatTo12Hour } from '../lib/time';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 import { AttendanceAffiliationCard } from './AttendanceAffiliationCard';
@@ -17,6 +17,7 @@ import { ReportIssueModal } from './ReportIssueModal';
 import { LeadershipRosterCard } from './LeadershipRosterCard';
 import { FacilitiesCard } from './FacilitiesCard';
 import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
+import { DonationChannelsCard } from './DonationChannelsCard';
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -33,7 +34,6 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   onToggleFollow,
   onClose,
 }) => {
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [noticeModalVisible, setNoticeModalVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
@@ -58,11 +58,6 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
     { name: 'Isha', jammat: schedule?.ishaJamaat, start: schedule?.ishaStart },
     { name: "Jumu'ah", jammat: schedule?.jumuahJamaat, start: '12:45' },
   ];
-
-  const handleCopy = (method: MosqueDonationMethod) => {
-    setCopiedId(method.id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -168,48 +163,9 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               </View>
             </View>
 
-            {/* Card 2: Verified Donation Channels (ADR-028) */}
+            {/* Card 2: Verified Donation Channels (ADR-028, ADR-051) */}
             {mosque.donationMethods && mosque.donationMethods.length > 0 && (
-              <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>Verified Donations</Text>
-                  <Text style={styles.cardHeaderSub}>1-tap copy</Text>
-                </View>
-
-                {mosque.donationMethods.map((method) => (
-                  <View key={method.id} style={styles.donationItem}>
-                    <View style={styles.donationDetails}>
-                      <View style={styles.methodHeader}>
-                        <Text style={styles.methodName}>{method.methodType}</Text>
-                        <Text style={styles.accountTypeBadge}>{method.accountType}</Text>
-                      </View>
-                      <Text style={styles.accountNumber}>{method.accountNumber}</Text>
-                      {method.accountTitle && (
-                        <Text style={styles.accountTitle}>{method.accountTitle}</Text>
-                      )}
-                      {method.verifiedByRoles && (
-                        <Text style={styles.provenanceText}>
-                          ✓ Verified by {method.verifiedByRoles.join(', ').toLowerCase()}
-                        </Text>
-                      )}
-                    </View>
-
-                    <Pressable
-                      onPress={() => handleCopy(method)}
-                      style={[styles.copyPill, copiedId === method.id && styles.copyPillActive]}
-                    >
-                      <Text
-                        style={[
-                          styles.copyPillText,
-                          copiedId === method.id && styles.copyPillTextActive,
-                        ]}
-                      >
-                        {copiedId === method.id ? 'Copied!' : 'Copy'}
-                      </Text>
-                    </Pressable>
-                  </View>
-                ))}
-              </View>
+              <DonationChannelsCard donationMethods={mosque.donationMethods} />
             )}
 
             {/* Card 3: Mosque Leadership & Staff Roster (ADR-009, ADR-047) */}
@@ -437,77 +393,6 @@ const styles = StyleSheet.create({
     color: ferioColors.primary,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
-  },
-  donationItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: ferioColors.canvas,
-    borderRadius: ferioRadius.lg,
-    padding: ferioSpacing.sm,
-    marginBottom: ferioSpacing.xs,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
-  },
-  donationDetails: {
-    flex: 1,
-    marginRight: ferioSpacing.sm,
-  },
-  methodHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
-  },
-  methodName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: ferioColors.primary,
-  },
-  accountTypeBadge: {
-    fontSize: 9,
-    color: ferioColors.muted,
-    backgroundColor: '#e5e7eb',
-    paddingHorizontal: 4,
-    borderRadius: 3,
-  },
-  accountNumber: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: ferioColors.primary,
-    fontVariant: ['tabular-nums'],
-    letterSpacing: 0.5,
-  },
-  accountTitle: {
-    fontSize: 11,
-    color: ferioColors.muted,
-    marginTop: 1,
-  },
-  provenanceText: {
-    fontSize: 10,
-    color: ferioColors.accent,
-    fontWeight: '500',
-    marginTop: 2,
-  },
-  copyPill: {
-    paddingHorizontal: ferioSpacing.md,
-    paddingVertical: ferioSpacing.xs,
-    borderRadius: ferioRadius.full,
-    backgroundColor: ferioColors.surface,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
-  },
-  copyPillActive: {
-    backgroundColor: ferioColors.accent,
-    borderColor: ferioColors.accent,
-  },
-  copyPillText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: ferioColors.primary,
-  },
-  copyPillTextActive: {
-    color: '#ffffff',
   },
   staffItem: {
     flexDirection: 'row',
