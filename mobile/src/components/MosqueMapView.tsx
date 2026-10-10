@@ -61,28 +61,28 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
     <View style={styles.container}>
       {/* Map Canvas with OpenStreetMap Tiles */}
       <View style={[styles.canvas, { height: mapHeight }]}>
-        {/* OpenStreetMap Raster Tile Layer (Standard OSM - No API Key Required) */}
+        {/* OpenStreetMap Tile Layer (OpenStreetMap France - Free, No Block, No API Key) */}
         <View style={styles.tileGrid} pointerEvents="none">
           <View style={styles.tileRow}>
             <Image
-              source={{ uri: 'https://a.tile.openstreetmap.org/13/6152/3567.png', headers: OSM_HEADERS }}
+              source={{ uri: 'https://a.tile.openstreetmap.fr/osmfr/13/6152/3567.png', headers: OSM_HEADERS }}
               style={styles.mapTile}
               resizeMode="cover"
             />
             <Image
-              source={{ uri: 'https://b.tile.openstreetmap.org/13/6153/3567.png', headers: OSM_HEADERS }}
+              source={{ uri: 'https://b.tile.openstreetmap.fr/osmfr/13/6153/3567.png', headers: OSM_HEADERS }}
               style={styles.mapTile}
               resizeMode="cover"
             />
           </View>
           <View style={styles.tileRow}>
             <Image
-              source={{ uri: 'https://c.tile.openstreetmap.org/13/6152/3568.png', headers: OSM_HEADERS }}
+              source={{ uri: 'https://c.tile.openstreetmap.fr/osmfr/13/6152/3568.png', headers: OSM_HEADERS }}
               style={styles.mapTile}
               resizeMode="cover"
             />
             <Image
-              source={{ uri: 'https://a.tile.openstreetmap.org/13/6153/3568.png', headers: OSM_HEADERS }}
+              source={{ uri: 'https://a.tile.openstreetmap.fr/osmfr/13/6153/3568.png', headers: OSM_HEADERS }}
               style={styles.mapTile}
               resizeMode="cover"
             />
