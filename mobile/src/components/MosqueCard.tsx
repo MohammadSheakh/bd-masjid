@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { Mosque } from '../types/mosque';
 import { formatTo12Hour } from '../lib/time';
+import { LocationRadarService } from '../services/locationRadarService';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 
 interface MosqueCardProps {
@@ -27,12 +28,8 @@ export const MosqueCard: React.FC<MosqueCardProps> = ({
     { name: 'Isha', time: schedule?.ishaJamaat },
   ];
 
-  const distanceText =
-    mosque.distanceMeters !== undefined
-      ? mosque.distanceMeters >= 1000
-        ? `${(mosque.distanceMeters / 1000).toFixed(1)} km`
-        : `${Math.round(mosque.distanceMeters)} m`
-      : null;
+  const proximity = LocationRadarService.getDistanceToMosqueSync(mosque);
+  const distanceText = proximity.formattedEnglish;
 
   return (
     <Pressable
@@ -74,6 +71,11 @@ export const MosqueCard: React.FC<MosqueCardProps> = ({
 
       {/* Verified Status & Freshness Badge */}
       <View style={styles.metaRow}>
+        <View style={[styles.proximityBadge, proximity.isWalkingDistance && styles.walkingBadge]}>
+          <Text style={[styles.proximityText, proximity.isWalkingDistance && styles.walkingText]}>
+            📍 {proximity.formattedEnglish}
+          </Text>
+        </View>
         <View style={styles.verifiedBadge}>
           <Text style={styles.verifiedText}>Verified Timetable</Text>
         </View>
@@ -190,6 +192,26 @@ const styles = StyleSheet.create({
     color: ferioColors.accent,
     fontSize: 10,
     fontWeight: '600',
+  },
+  proximityBadge: {
+    backgroundColor: '#f4f4f5',
+    paddingHorizontal: ferioSpacing.sm,
+    paddingVertical: 2,
+    borderRadius: ferioRadius.full,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+  },
+  walkingBadge: {
+    backgroundColor: '#ecfdf5',
+    borderColor: '#a7f3d0',
+  },
+  proximityText: {
+    color: ferioColors.muted,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  walkingText: {
+    color: '#059669',
   },
   attendanceBadge: {
     backgroundColor: '#f4f4f5',
