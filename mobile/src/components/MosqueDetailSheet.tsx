@@ -15,6 +15,8 @@ import { TimetableUpdateModal } from './TimetableUpdateModal';
 import { NoticeBoardModal } from './NoticeBoardModal';
 import { ReportIssueModal } from './ReportIssueModal';
 import { LeadershipRosterCard } from './LeadershipRosterCard';
+import { FacilitiesCard } from './FacilitiesCard';
+import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -35,11 +37,14 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [noticeModalVisible, setNoticeModalVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [suggestFacilitiesModalVisible, setSuggestFacilitiesModalVisible] = useState(false);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
+  const [activeFacility, setActiveFacility] = useState(mosque?.facility);
 
   useEffect(() => {
     setActiveSchedule(mosque?.prayerSchedule);
-  }, [mosque?.id, mosque?.prayerSchedule]);
+    setActiveFacility(mosque?.facility);
+  }, [mosque?.id, mosque?.prayerSchedule, mosque?.facility]);
 
   if (!mosque) return null;
 
@@ -212,32 +217,14 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               <LeadershipRosterCard staffMembers={mosque.staffMembers} />
             )}
 
-            {/* Card 4: Facilities Overview (ADR-025) */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Facilities & Amenities</Text>
-                {mosque.capacity ? (
-                  <Text style={styles.capacityBadge}>Capacity: {mosque.capacity.toLocaleString()}</Text>
-                ) : null}
-              </View>
-
-              <View style={styles.facilityGrid}>
-                {[
-                  { label: "Women's Area", available: mosque.hasSeparateWomenSpace },
-                  { label: 'Air Conditioning', available: mosque.hasAirConditioning },
-                  { label: 'Parking Area', available: mosque.hasParking },
-                  { label: 'Wheelchair Access', available: mosque.hasWheelchairAccess },
-                  { label: 'Janaza Facility', available: mosque.hasJanazaFacility },
-                ].map((item) => (
-                  <View key={item.label} style={styles.facilityPill}>
-                    <Text style={item.available ? styles.facIconActive : styles.facIconInactive}>
-                      {item.available ? '●' : '○'}
-                    </Text>
-                    <Text style={styles.facLabel}>{item.label}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
+            {/* Card 4: Facilities Overview (ADR-025, ADR-050) */}
+            <FacilitiesCard
+              mosque={{
+                ...mosque,
+                facility: activeFacility ?? mosque.facility,
+              }}
+              onPressSuggest={() => setSuggestFacilitiesModalVisible(true)}
+            />
 
             {/* Community Issue Reporting Trigger (ADR-020, ADR-045) */}
             <Pressable
@@ -274,6 +261,20 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueId={mosque.id}
           mosqueName={mosque.name}
           onClose={() => setReportModalVisible(false)}
+        />
+
+        <SuggestFacilitiesModal
+          visible={suggestFacilitiesModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          initialFacilities={activeFacility ?? mosque.facility}
+          onClose={() => setSuggestFacilitiesModalVisible(false)}
+          onSuccess={(suggested) => {
+            setActiveFacility((prev) => ({
+              ...(prev ?? {}),
+              ...suggested,
+            }));
+          }}
         />
       </View>
     </Modal>
@@ -539,43 +540,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: ferioColors.accent,
-  },
-  capacityBadge: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: ferioColors.muted,
-  },
-  facilityGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: ferioSpacing.xs,
-  },
-  facilityPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: ferioColors.canvas,
-    borderRadius: ferioRadius.full,
-    paddingHorizontal: ferioSpacing.sm,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
-    marginRight: 4,
-    marginBottom: 4,
-  },
-  facIconActive: {
-    color: ferioColors.accent,
-    fontSize: 10,
-    marginRight: 4,
-  },
-  facIconInactive: {
-    color: ferioColors.muted,
-    fontSize: 10,
-    marginRight: 4,
-  },
-  facLabel: {
-    fontSize: 11,
-    color: ferioColors.primary,
-    fontWeight: '500',
   },
   noticeStrip: {
     flexDirection: 'row',

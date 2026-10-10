@@ -262,6 +262,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Create `FacilitiesCard.tsx` rendering canonical badges, capacity pill, custom amenities tags, and "+ Suggest" CTA.
 - [x] **15.3. Dedicated SuggestFacilitiesModal Sheet**
   - [x] Create `SuggestFacilitiesModal.tsx` with canonical toggles, catalog chips, custom tag input, and submission feedback.
-- [ ] **15.4. Integration into MosqueDetailSheet & Verification**
-  - [ ] Replace basic facility grid in `MosqueDetailSheet.tsx` with `FacilitiesCard` and `SuggestFacilitiesModal`.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **15.4. Integration into MosqueDetailSheet & Verification**
+  - [x] Replace basic facility grid in `MosqueDetailSheet.tsx` with `FacilitiesCard` and `SuggestFacilitiesModal`.
+  - [x] Run benchmark gate and TypeScript compilation.
