@@ -39,6 +39,8 @@ import { PushDeviceService } from './src/services/pushDeviceService';
 import { UserProfile } from './src/types/auth';
 import { OutboxSyncBadge } from './src/components/OutboxSyncBadge';
 import { OfflineOutboxService } from './src/services/offlineOutboxService';
+import { ModeratorReviewModal } from './src/components/ModeratorReviewModal';
+import { ModeratorService } from './src/services/moderatorService';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -61,6 +63,10 @@ export default function App() {
   );
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isOemWizardOpen, setIsOemWizardOpen] = useState(false);
+  const [isModModalOpen, setIsModModalOpen] = useState(false);
+  const [pendingModCount, setPendingModCount] = useState<number>(() =>
+    ModeratorService.getPendingCountSync()
+  );
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() =>
     AuthService.getUserSync()
   );
@@ -178,9 +184,15 @@ export default function App() {
     PushDeviceService.syncDeviceRegistration();
     OfflineOutboxService.drainOutbox();
 
+    const unsubMod = ModeratorService.subscribe((count) => {
+      setPendingModCount(count);
+    });
+    ModeratorService.loadModerationQueue();
+
     return () => {
       unsubNotif();
       unsubAuth();
+      unsubMod();
     };
   }, []);
 
@@ -256,6 +268,23 @@ export default function App() {
             </Text>
             {currentUser && <View style={styles.profileVerifiedDot} />}
           </Pressable>
+
+          {/* Moderator Console Pill (ADR-058) */}
+          {(currentUser?.role === 'MODERATOR' || currentUser?.role === 'ADMIN' || ModeratorService.isModeratorSync()) && (
+            <Pressable
+              onPress={() => setIsModModalOpen(true)}
+              style={({ pressed }) => [styles.modToggleBtn, pressed && styles.pressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Open Moderator Console"
+            >
+              <Text style={styles.modToggleText}>🛡️ Mod</Text>
+              {pendingModCount > 0 && (
+                <View style={styles.modBadge}>
+                  <Text style={styles.modBadgeText}>{pendingModCount}</Text>
+                </View>
+              )}
+            </Pressable>
+          )}
 
           <Pressable
             onPress={() => setIsQiblaOpen(true)}
@@ -455,6 +484,12 @@ export default function App() {
         visible={isOemWizardOpen}
         onClose={() => setIsOemWizardOpen(false)}
       />
+
+      {/* Community Moderator & Scout Review Modal (ADR-058) */}
+      <ModeratorReviewModal
+        visible={isModModalOpen}
+        onClose={() => setIsModModalOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -560,6 +595,37 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: ferioColors.accent,
+  },
+  modToggleBtn: {
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: ferioSpacing.sm + 2,
+    paddingVertical: ferioSpacing.xs,
+    borderRadius: ferioRadius.full,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+  },
+  modToggleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  modBadge: {
+    backgroundColor: '#059669',
+    minWidth: 14,
+    height: 14,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  modBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   qiblaToggleBtn: {
     paddingHorizontal: ferioSpacing.md,

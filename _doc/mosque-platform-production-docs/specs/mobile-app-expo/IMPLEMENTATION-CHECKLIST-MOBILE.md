@@ -398,6 +398,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Implement `moderatorService.ts` checking `MODERATOR` / `ADMIN` role, pending review count, and optimistic triage dispatch.
 - [x] **24.3. Ferio ModeratorReviewModal Sheet**
   - [x] Create `ModeratorReviewModal.tsx` with filter pills, pending mosque cards, coordinate preview, duplicate distance indicator, and Approve / Reject buttons.
-- [ ] **24.4. Top Navbar Mod Pill Integration & Performance Gate**
-  - [ ] Conditionally render `🛡️ Mod (X)` pill in `App.tsx` top navbar when authenticated as moderator.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **24.4. Top Navbar Mod Pill Integration & Performance Gate**
+  - [x] Conditionally render `🛡️ Mod (X)` pill in `App.tsx` top navbar when authenticated as moderator.
+  - [x] Run benchmark gate and TypeScript compilation.
