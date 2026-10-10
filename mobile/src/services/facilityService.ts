@@ -41,15 +41,23 @@ export const CANONICAL_FACILITIES: CanonicalFacilityItem[] = [
 ];
 
 export interface SuggestedFacilitiesPayload {
-  hasFemalePrayerSpace?: boolean;
-  hasAirConditioning?: boolean;
+  totalCapacity?: number | null;
+  toiletCount?: number | null;
   hasSeparateWudu?: boolean;
+  wuduCapacity?: number | null;
+  hasFemalePrayerSpace?: boolean;
+  femaleCapacity?: number | null;
   hasWheelchairAccess?: boolean;
+  hasRamp?: boolean;
+  hasAirConditioning?: boolean;
+  hasFan?: boolean;
   hasJanazaService?: boolean;
   hasParkingCar?: boolean;
-  totalCapacity?: number;
+  hasParkingBike?: boolean;
+  hasLibraryMaktab?: boolean;
   customAmenities?: string[];
   comment?: string;
+  description?: string;
   contributorId?: string;
   contributorName?: string;
 }
