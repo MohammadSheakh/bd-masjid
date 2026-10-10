@@ -6,17 +6,43 @@ import { DonationService } from '../services/donationService';
 interface DonationChannelsCardProps {
   donationMethods: MosqueDonationMethod[];
   language?: 'bn' | 'en';
+  onPressSuggest?: () => void;
 }
 
 export const DonationChannelsCard: React.FC<DonationChannelsCardProps> = ({
   donationMethods,
   language = 'en',
+  onPressSuggest,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const isBn = language === 'bn';
 
   if (!donationMethods || donationMethods.length === 0) {
-    return null;
+    if (!onPressSuggest) return null;
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View>
+            <Text style={styles.cardTitle}>
+              {isBn ? 'অনুদান চ্যানেল' : 'Mosque Donations'}
+            </Text>
+            <Text style={styles.cardHeaderSub}>
+              {isBn ? 'কোনো চ্যানেল যুক্ত নেই' : 'No verified channels listed yet'}
+            </Text>
+          </View>
+        </View>
+        <Pressable
+          style={styles.addChannelBtn}
+          onPress={onPressSuggest}
+          accessibilityRole="button"
+          accessibilityLabel="Add Donation Channel"
+        >
+          <Text style={styles.addChannelBtnText}>
+            {isBn ? '+ অনুদান মাধ্যম যোগ করুন →' : '+ Add Donation Channel →'}
+          </Text>
+        </Pressable>
+      </View>
+    );
   }
 
   const handleCopy = (id: string) => {
@@ -171,6 +197,19 @@ export const DonationChannelsCard: React.FC<DonationChannelsCardProps> = ({
           </View>
         );
       })}
+
+      {onPressSuggest && (
+        <Pressable
+          style={styles.addChannelBtn}
+          onPress={onPressSuggest}
+          accessibilityRole="button"
+          accessibilityLabel="Add Donation Channel"
+        >
+          <Text style={styles.addChannelBtnText}>
+            {isBn ? '+ নতুন অনুদান মাধ্যম যোগ করুন →' : '+ Add / Suggest Donation Channel →'}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 };
@@ -387,5 +426,20 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 6,
     fontStyle: 'italic',
+  },
+  addChannelBtn: {
+    backgroundColor: '#fafafa',
+    borderWidth: 1,
+    borderColor: '#e8e8ea',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  addChannelBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#059669',
   },
 });

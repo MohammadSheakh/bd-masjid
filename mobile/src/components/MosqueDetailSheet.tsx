@@ -18,6 +18,7 @@ import { LeadershipRosterCard } from './LeadershipRosterCard';
 import { FacilitiesCard } from './FacilitiesCard';
 import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
 import { DonationChannelsCard } from './DonationChannelsCard';
+import { SuggestDonationMethodModal } from './SuggestDonationMethodModal';
 import { CollectionTagModal } from './CollectionTagModal';
 import { RoleClaimModal } from './RoleClaimModal';
 import { CreateAnnouncementModal } from './CreateAnnouncementModal';
@@ -48,6 +49,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [tagModalVisible, setTagModalVisible] = useState(false);
   const [roleClaimModalVisible, setRoleClaimModalVisible] = useState(false);
   const [createAnnouncementVisible, setCreateAnnouncementVisible] = useState(false);
+  const [suggestDonationModalVisible, setSuggestDonationModalVisible] = useState(false);
   const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
   const [activeFacility, setActiveFacility] = useState(mosque?.facility);
@@ -190,10 +192,11 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               </View>
             </View>
 
-            {/* Card 2: Verified Donation Channels (ADR-028, ADR-051) */}
-            {mosque.donationMethods && mosque.donationMethods.length > 0 && (
-              <DonationChannelsCard donationMethods={mosque.donationMethods} />
-            )}
+            {/* Card 2: Verified Donation Channels (ADR-028, ADR-051, ADR-067) */}
+            <DonationChannelsCard
+              donationMethods={mosque.donationMethods || []}
+              onPressSuggest={() => setSuggestDonationModalVisible(true)}
+            />
 
             {/* Card 3: Mosque Leadership & Staff Roster (ADR-009, ADR-047, ADR-064) */}
             <LeadershipRosterCard
@@ -284,6 +287,13 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueId={mosque.id}
           mosqueName={mosque.name}
           onClose={() => setCreateAnnouncementVisible(false)}
+        />
+
+        <SuggestDonationMethodModal
+          visible={suggestDonationModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          onClose={() => setSuggestDonationModalVisible(false)}
         />
       </View>
     </Modal>

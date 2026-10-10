@@ -529,6 +529,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Add `submitDonationChannel` to `ApiClient` (`POST /api/v1/mosques/:id/donations`) with offline outbox fallback.
 - [x] **33.2. Ferio SuggestDonationMethodModal Sheet**
   - [x] Create `SuggestDonationMethodModal.tsx` with brand pill selector (bKash, Nagad, Rocket, Upay, Bank), dynamic bank fields, purpose tags, and submission loader.
-- [ ] **33.3. Wire Suggestion Trigger into DonationChannelsCard & Mosque Detail Sheet**
-  - [ ] Add `+ Add Donation Channel / অনুদান মাধ্যম যোগ করুন` trigger to `DonationChannelsCard.tsx` and `MosqueDetailSheet.tsx`.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **33.3. Wire Suggestion Trigger into DonationChannelsCard & Mosque Detail Sheet**
+  - [x] Add `+ Add Donation Channel / অনুদান মাধ্যম যোগ করুন` trigger to `DonationChannelsCard.tsx` and `MosqueDetailSheet.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
