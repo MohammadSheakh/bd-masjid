@@ -15,6 +15,7 @@ import { FacilityService, SuggestedFacilitiesPayload } from '../services/facilit
 import { OfflineOutboxService } from '../services/offlineOutboxService';
 import { OutboxMutationType } from '../types/outbox';
 import { ModerationAction, ModerationQueueItem, ResolveModerationPayload } from '../types/moderation';
+import { ContributorActivityItem, ContributorReputationSummary } from '../types/contributor';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -564,6 +565,71 @@ export const ApiClient = {
         body: JSON.stringify({ action, notes }),
       },
       { success: true, message: `Item ${action.toLowerCase()}d successfully` }
+    );
+  },
+
+  async fetchContributorReputation(userId?: string): Promise<ContributorReputationSummary> {
+    const fallbackSummary: ContributorReputationSummary = {
+      userId: userId || 'usr-scout-dhaka',
+      scoutPoints: 450,
+      scoutTier: 'GOLD',
+      verifiedMosquesCount: 12,
+      scheduleUpdatesCount: 34,
+      facilitySuggestionsCount: 19,
+      issueReportsCount: 7,
+      rankTitle: 'Chief Musalli Scout (ঢাকা)',
+      nextTierPoints: 600,
+    };
+    return fetchWithFallback<ContributorReputationSummary>(
+      userId ? `/contributors/${userId}/reputation` : '/contributors/me/reputation',
+      { method: 'GET' },
+      fallbackSummary
+    );
+  },
+
+  async fetchContributorHistory(userId?: string): Promise<ContributorActivityItem[]> {
+    const fallbackHistory: ContributorActivityItem[] = [
+      {
+        id: 'act-1',
+        type: 'MOSQUE_CREATED',
+        targetName: 'Baitul Mukarram National Mosque',
+        location: 'Paltan, Dhaka',
+        status: 'APPROVED',
+        pointsEarned: 100,
+        createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+      },
+      {
+        id: 'act-2',
+        type: 'SCHEDULE_UPDATED',
+        targetName: 'Gulshan Society Jame Masjid',
+        location: 'Gulshan 2, Dhaka',
+        status: 'APPROVED',
+        pointsEarned: 25,
+        createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+      },
+      {
+        id: 'act-3',
+        type: 'FACILITY_SUGGESTED',
+        targetName: 'Dhanmondi Eidgah Masjid',
+        location: 'Road 6, Dhanmondi',
+        status: 'PENDING',
+        pointsEarned: 10,
+        createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+      },
+      {
+        id: 'act-4',
+        type: 'REPORT_SUBMITTED',
+        targetName: 'Chawkbazar Shahi Masjid',
+        location: 'Old Dhaka',
+        status: 'APPROVED',
+        pointsEarned: 15,
+        createdAt: new Date(Date.now() - 86400000 * 12).toISOString(),
+      },
+    ];
+    return fetchWithFallback<ContributorActivityItem[]>(
+      userId ? `/contributors/${userId}/activity` : '/contributors/me/activity',
+      { method: 'GET' },
+      fallbackHistory
     );
   },
 };

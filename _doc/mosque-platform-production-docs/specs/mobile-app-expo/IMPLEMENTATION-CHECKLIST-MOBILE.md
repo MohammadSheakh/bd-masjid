@@ -420,9 +420,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 26: Contributor Activity & Scout Reputation Console (ADR-060)
 
-- [ ] **26.1. Contributor Reputation Domain Contracts & ApiClient Transport**
-  - [ ] Add `ScoutTier`, `ContributorReputationSummary`, and `ContributorActivityItem` to `types/contributor.ts`.
-  - [ ] Add `fetchContributorReputation` and `fetchContributorHistory` to `ApiClient`.
+- [x] **26.1. Contributor Reputation Domain Contracts & ApiClient Transport**
+  - [x] Add `ScoutTier`, `ContributorReputationSummary`, and `ContributorActivityItem` to `types/contributor.ts`.
+  - [x] Add `fetchContributorReputation` and `fetchContributorHistory` to `ApiClient`.
 - [ ] **26.2. Dedicated ContributorService with Synchronous Cache**
   - [ ] Implement `contributorService.ts` providing synchronous reputation state and optimistic scout point bonuses.
 - [ ] **26.3. Ferio ContributorActivityModal Sheet**
