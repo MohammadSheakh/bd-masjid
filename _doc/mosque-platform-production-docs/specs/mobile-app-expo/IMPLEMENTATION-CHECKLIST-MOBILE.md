@@ -410,8 +410,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Define `DeviceHardwareMetrics` and `SanitizedDiagnosticReport` in `types/diagnostics.ts`.
 - [x] **25.2. Live DiagnosticsService with Frame Loop & Memory Profiler**
   - [x] Implement `diagnosticsService.ts` measuring live FPS/frame time, heap footprint, network latency, and report generation.
-- [ ] **25.3. Ferio DiagnosticsTelemetryModal Sheet**
-  - [ ] Create `DiagnosticsTelemetryModal.tsx` with live FPS gauge badge, progress bars, hardware specs grid, and 1-tap clipboard report copy.
+- [x] **25.3. Ferio DiagnosticsTelemetryModal Sheet**
+  - [x] Create `DiagnosticsTelemetryModal.tsx` with live FPS gauge badge, progress bars, hardware specs grid, and 1-tap clipboard report copy.
 - [ ] **25.4. Long-Press Header Trigger Integration & Performance Gate**
   - [ ] Wire gestural trigger on header title in `App.tsx` and run benchmark harness verification.
   - [ ] Run benchmark gate and TypeScript compilation.
