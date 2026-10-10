@@ -846,7 +846,7 @@ export const ApiClient = {
     };
 
     return fetchWithFallback<RoleClaimResponse>(
-      `/community/${mosqueId}/claims`,
+      `/mosques/${mosqueId}/role-claims`,
       {
         method: 'POST',
         body: JSON.stringify(payload),

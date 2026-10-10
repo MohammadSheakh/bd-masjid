@@ -4,24 +4,29 @@
  */
 
 export type MosqueStaffRole =
-  | 'KHATIB'
-  | 'SENIOR_IMAM'
   | 'IMAM'
+  | 'SENIOR_IMAM'
+  | 'KHATIB'
   | 'MUAZZIN'
+  | 'KHADEM'
   | 'MUTAWALLI'
+  | 'MOSQUE_ADMIN'
   | 'PRESIDENT'
   | 'SECRETARY'
   | 'TREASURER'
+  | 'COMMITTEE_PRESIDENT'
+  | 'COMMITTEE_VICE_PRESIDENT'
+  | 'COMMITTEE_SECRETARY'
   | 'COMMITTEE_MEMBER'
-  | 'KHADEM'
   | 'CUSTOM';
 
 export interface CreateRoleClaimPayload {
-  role: MosqueStaffRole;
+  role: MosqueStaffRole | string;
   customRoleTitle?: string;
   name: string;
   phoneNumber: string;
   startDate?: string;
+  imageUrl?: string;
   evidence?: string;
   documentUrl?: string;
 }
@@ -29,7 +34,7 @@ export interface CreateRoleClaimPayload {
 export interface RoleClaimResponse {
   id: string;
   mosqueId: string;
-  role: MosqueStaffRole;
+  role: MosqueStaffRole | string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   message: string;
 }
