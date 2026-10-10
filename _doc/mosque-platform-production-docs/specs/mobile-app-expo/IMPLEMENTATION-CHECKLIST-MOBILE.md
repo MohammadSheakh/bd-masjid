@@ -117,9 +117,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [ ] App immediately displays cached data on cold start while refreshing in background.
   - [ ] Display offline warning banner if network request fails: *"Offline — showing cached schedule"*.
 
-- [ ] **5.2. Attendance Affiliation (ADR-024)**
-  - [ ] Single-tap attendance toggle (Regular / Occasional / None).
-  - [ ] Sync attendance with server immediately; queue locally in MMKV if offline and replay on reconnect.
+- [x] **5.2. Attendance Affiliation (ADR-024, ADR-035)**
+  - [x] Single-tap attendance toggle (Regular / Occasional / None).
+  - [x] Sync attendance with server immediately; queue locally in synchronous storage if offline and optimistic count update.
 
 ---
 

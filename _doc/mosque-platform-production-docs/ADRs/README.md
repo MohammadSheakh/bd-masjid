@@ -40,6 +40,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-032](ADR-032-mobile-interactive-map-viewport-and-pin-hierarchy.md) | Mobile Interactive Map Viewport, Custom Pin Hierarchy, and Direct Detail Navigation | Accepted | 2026-10-10 | Interactive Map, Pin Hierarchy & Direct Navigation |
 | [ADR-033](ADR-033-mobile-tiered-storage-and-smart-api-client.md) | Mobile Tiered Storage Architecture, Hardware Token Encryption, and Smart Localhost API Client | Accepted | 2026-10-10 | Tiered Storage, Hardware KeyStore & Smart API Client |
 | [ADR-034](ADR-034-android-native-auto-silent-engine-and-prior-state-dnd.md) | Android Native Auto-Silent Engine, Prior-State DND Preservation, and Exact Alarm Scheduling | Accepted | 2026-10-10 | Auto-Silent, Android DND, Prior-State Invariant & AlarmManager |
+| [ADR-035](ADR-035-mobile-attendance-affiliation-and-dual-count-transparency.md) | Mobile Community Attendance Affiliation, Dual-Count Transparency, and Optimistic Sync Architecture | Accepted | 2026-10-10 | Attendance Affiliation, Dual Metrics, Optimistic Sync & ADR-024 Parity |
 
 
 ---
