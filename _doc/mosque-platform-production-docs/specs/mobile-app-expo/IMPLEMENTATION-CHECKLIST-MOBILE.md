@@ -183,3 +183,14 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Multi-step guided sheet (`AddMosqueSheet.tsx`): Location confirm, info & prayer times, amenities & submit.
   - [x] Real-time proximity duplicate check ($\le 150$m warning alert).
   - [x] Immediate optimistic map integration with backend `POST /api/v1/mosques` dispatch.
+
+---
+
+## Phase 9: Mosque Notice Board & Announcements Hub (ADR-044)
+
+- [ ] **9.1. Notice Board Data Model, Taxonomy & Mock Fixtures**
+  - [ ] Define announcement types (`JANAZAH`, `EID_PRAYER`, `RAMADAN`, `FRIDAY_KHUTBAH`, `GENERAL_NOTICE`).
+  - [ ] Cache announcements in synchronous storage for offline availability with expiration pruning.
+- [ ] **9.2. Ferio Notice Board Banner & Modal Sheet**
+  - [ ] Sticky/prominent notice indicator on `MosqueDetailSheet.tsx` with active notice badge counter.
+  - [ ] Progressive Notice Board sheet (`NoticeBoardModal.tsx`) with category-themed chips and share action.
