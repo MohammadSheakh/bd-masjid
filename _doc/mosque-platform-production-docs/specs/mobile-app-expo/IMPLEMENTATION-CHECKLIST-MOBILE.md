@@ -217,3 +217,14 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Create `QiblaCompassModal.tsx` with high-contrast 360° monochrome dial and emerald needle.
   - [x] Alignment state detection ($\pm 2^\circ$) with visual emerald pulse and "Facing Kaaba" feedback.
   - [x] Add Qibla Compass launcher pill on top navbar of `App.tsx`.
+
+---
+
+## Phase 12: Mosque Leadership & Staff Directory (ADR-047)
+
+- [ ] **12.1. Leadership Data Model & Staff API Fetching**
+  - [ ] Implement `fetchMosqueStaff` in `ApiClient` (`GET /mosques/:id/staff`).
+  - [ ] Support role taxonomy (`Khatib`, `Senior Pesh Imam`, `Imam`, `Moazzin`, `Mutawalli`, `President`).
+- [ ] **12.2. Ferio LeadershipRosterCard & Direct Phone Dialer**
+  - [ ] Create `LeadershipRosterCard.tsx` with role badges, verified tags, and direct telephone trigger (`tel:` Linking).
+  - [ ] Integrate into `MosqueDetailSheet.tsx` with expandable card view.
