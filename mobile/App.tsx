@@ -19,6 +19,7 @@ import { AutoSilentModal } from './src/components/AutoSilentModal';
 import { MosqueDetailSheet } from './src/components/MosqueDetailSheet';
 import { MosqueMapView } from './src/components/MosqueMapView';
 import { OfflineBanner } from './src/components/OfflineBanner';
+import { AddMosqueSheet } from './src/components/AddMosqueSheet';
 import { PreferencesStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
@@ -29,6 +30,8 @@ import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
 
 export default function App() {
+  const [mosquesList, setMosquesList] = useState<Mosque[]>(BANGLADESH_MOSQUES_FIXTURES);
+  const [addMosqueCoords, setAddMosqueCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('All');
   const [viewportMode, setViewportMode] = useState<ViewportMode>('list');
@@ -88,7 +91,7 @@ export default function App() {
   };
 
   const filteredMosques = useMemo(() => {
-    return BANGLADESH_MOSQUES_FIXTURES.filter((mosque) => {
+    return mosquesList.filter((mosque) => {
       const matchesSearch =
         searchQuery.trim() === '' ||
         mosque.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -103,11 +106,11 @@ export default function App() {
 
       return true;
     });
-  }, [searchQuery, selectedTag, followedIds]);
+  }, [mosquesList, searchQuery, selectedTag, followedIds]);
 
   const topFollowedMosque = useMemo(() => {
-    return BANGLADESH_MOSQUES_FIXTURES.find((m) => followedIds.includes(m.id)) ?? BANGLADESH_MOSQUES_FIXTURES[0];
-  }, [followedIds]);
+    return mosquesList.find((m) => followedIds.includes(m.id)) ?? mosquesList[0];
+  }, [mosquesList, followedIds]);
 
   useEffect(() => {
     TelemetryService.initTelemetry();
@@ -230,6 +233,7 @@ export default function App() {
           followedIds={followedIds}
           selectedMosqueId={selectedMosque?.id}
           onSelectMosque={(m) => setSelectedMosque(m)}
+          onPinDropped={(coords) => setAddMosqueCoords(coords)}
           onLocateMe={() => {
             setSelectedTag('All');
             setSearchQuery('');
@@ -267,6 +271,20 @@ export default function App() {
         onToggleFollow={toggleFollow}
         onClose={() => setSelectedMosque(null)}
       />
+
+      {/* Contributor Add Mosque Sheet */}
+      {addMosqueCoords && (
+        <AddMosqueSheet
+          visible={!!addMosqueCoords}
+          initialCoords={addMosqueCoords}
+          existingMosques={mosquesList}
+          onClose={() => setAddMosqueCoords(null)}
+          onMosqueCreated={(newMosque) => {
+            setMosquesList((prev) => [newMosque, ...prev]);
+            setSelectedMosque(newMosque);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

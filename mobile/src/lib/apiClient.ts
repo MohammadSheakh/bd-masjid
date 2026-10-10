@@ -175,4 +175,34 @@ export const ApiClient = {
       offlineListeners.delete(listener);
     };
   },
+
+  async createMosque(
+    payload: Partial<Mosque>
+  ): Promise<{ success: boolean; mosque: Mosque }> {
+    const fallbackMosque: Mosque = {
+      id: `mosque-${Date.now()}`,
+      name: payload.name || 'New Community Mosque',
+      latitude: payload.latitude || 23.8103,
+      longitude: payload.longitude || 90.4125,
+      address: payload.address || '',
+      city: payload.city || 'Dhaka',
+      country: 'Bangladesh',
+      operationalStatus: 'OPEN',
+      verificationStatus: 'PENDING_VERIFICATION',
+      prayerSchedule: payload.prayerSchedule,
+      hasAirConditioning: payload.hasAirConditioning,
+      hasSeparateWomenSpace: payload.hasSeparateWomenSpace,
+      hasParking: payload.hasParking,
+      hasWheelchairAccess: payload.hasWheelchairAccess,
+    };
+
+    return fetchWithFallback<{ success: boolean; mosque: Mosque }>(
+      '/mosques',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      { success: true, mosque: fallbackMosque }
+    );
+  },
 };

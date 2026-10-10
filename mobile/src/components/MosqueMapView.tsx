@@ -18,6 +18,7 @@ interface MosqueMapViewProps {
   selectedMosqueId?: string | null;
   onSelectMosque: (mosque: Mosque) => void;
   onLocateMe?: () => void;
+  onPinDropped?: (coords: { lat: number; lng: number }) => void;
 }
 
 // Bounding box for Bangladesh urban focus (Dhaka center)
@@ -32,6 +33,7 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
   selectedMosqueId,
   onSelectMosque,
   onLocateMe,
+  onPinDropped,
 }) => {
   const [isPinDropMode, setIsPinDropMode] = useState(false);
   const [crosshairCoords, setCrosshairCoords] = useState({
@@ -97,15 +99,33 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
       {/* Floating Control Buttons */}
       <View style={styles.controlsRow}>
         <Pressable
-          onPress={() => setIsPinDropMode((prev) => !prev)}
+          onPress={() => {
+            if (isPinDropMode && onPinDropped) {
+              onPinDropped(crosshairCoords);
+              setIsPinDropMode(false);
+            } else {
+              setIsPinDropMode(true);
+            }
+          }}
           style={[styles.actionPill, isPinDropMode && styles.actionPillActive]}
           accessibilityRole="button"
-          accessibilityLabel="Toggle Contributor Pin Drop Mode"
+          accessibilityLabel={isPinDropMode ? 'Confirm and Add Mosque at Pin' : 'Toggle Contributor Pin Drop Mode'}
         >
           <Text style={[styles.actionText, isPinDropMode && styles.actionTextActive]}>
-            {isPinDropMode ? '✕ Cancel Pin Drop' : '+ Drop Mosque Pin'}
+            {isPinDropMode ? '✓ Add Mosque at Pin' : '+ Drop Mosque Pin'}
           </Text>
         </Pressable>
+
+        {isPinDropMode && (
+          <Pressable
+            onPress={() => setIsPinDropMode(false)}
+            style={styles.actionPill}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel Pin Drop"
+          >
+            <Text style={styles.actionText}>✕ Cancel</Text>
+          </Pressable>
+        )}
 
         <Pressable
           onPress={onLocateMe}
