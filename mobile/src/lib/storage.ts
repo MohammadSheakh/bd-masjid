@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
   FOLLOWED_MOSQUES: 'bd_masjid_followed_mosque_ids',
   AUTO_SILENT: 'bd_masjid_auto_silent_settings',
   ATTENDANCE_PREFIX: 'bd_masjid_attendance_',
+  OEM_WIZARD_DISMISSED: 'bd_masjid_oem_wizard_dismissed',
 } as const;
 
 /**
@@ -89,5 +90,13 @@ export const PreferencesStorage = {
     } else {
       syncKvCache.set(`${STORAGE_KEYS.ATTENDANCE_PREFIX}${mosqueId}`, status);
     }
+  },
+
+  isOemWizardDismissed(): boolean {
+    return syncKvCache.get(STORAGE_KEYS.OEM_WIZARD_DISMISSED) === 'true';
+  },
+
+  setOemWizardDismissed(): void {
+    syncKvCache.set(STORAGE_KEYS.OEM_WIZARD_DISMISSED, 'true');
   },
 };
