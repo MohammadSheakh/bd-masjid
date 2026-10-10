@@ -73,6 +73,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-065](ADR-065-mobile-community-announcements-and-janazah-emergency-bulletin-feed.md) | Mobile Community Announcements and Janazah / Emergency Bulletin Feed | Accepted | 2026-10-10 | Announcements Feed, Janazah Notices, Spatial Query, Ferio Bulletin Sheet & ADR-065 |
 | [ADR-066](ADR-066-mobile-musalli-attendance-status-and-regular-congregation-hub.md) | Mobile Musalli Attendance Status and Regular Congregation Hub | Accepted | 2026-10-10 | Attendance Affiliation, Regular Musalli Toggle, Headcount Summary & ADR-066 |
 | [ADR-067](ADR-067-mobile-crowdsourced-donation-channel-submission-sheet.md) | Mobile Crowdsourced Donation Channel Submission Sheet | Accepted | 2026-10-10 | Donation Channels, bKash/Nagad/Bank, Two-Person Verification & Suggest Modal |
+| [ADR-068](ADR-068-mobile-prayer-schedule-revision-history-and-audit-timeline-sheet.md) | Mobile Prayer Schedule Revision History and Audit Timeline Sheet | Accepted | 2026-10-10 | Schedule Audit, Visual Diff Badges, Timeline Sheet, GET /mosques/:id/prayer-schedule/history |
 
 
 ---
