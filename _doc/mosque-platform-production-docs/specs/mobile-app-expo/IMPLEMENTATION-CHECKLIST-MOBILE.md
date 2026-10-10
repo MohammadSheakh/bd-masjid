@@ -564,11 +564,11 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 36: Mobile App Enterprise Containerization & Unified Docker Compose (ADR-070)
 
-- [ ] **36.1. Build Context Optimization & Multi-Stage Dockerfile**
-  - [ ] Create `mobile/.dockerignore` filtering non-production context (`.git`, `node_modules`, `.expo`, logs).
-  - [ ] Implement production-grade multi-stage `mobile/Dockerfile` with `base`, `dev` (Metro on 8081), `builder`, and `production` (Nginx Alpine on 8082) targets.
-- [ ] **36.2. Hardened Nginx Reverse Proxy & Static Distribution Config**
-  - [ ] Create `mobile/nginx.conf` with gzip compression, security headers, and SPA routing fallback.
+- [x] **36.1. Build Context Optimization & Multi-Stage Dockerfile**
+  - [x] Create `mobile/.dockerignore` filtering non-production context (`.git`, `node_modules`, `.expo`, logs).
+  - [x] Implement production-grade multi-stage `mobile/Dockerfile` with `base`, `dev` (Metro on 8081), `builder`, and `production` (Nginx Alpine on 8082) targets.
+- [x] **36.2. Hardened Nginx Reverse Proxy & Static Distribution Config**
+  - [x] Create `mobile/nginx.conf` with gzip compression, security headers, and SPA routing fallback.
 - [ ] **36.3. Root docker-compose.yml Integration & Healthcheck Verification**
   - [ ] Add `mobile` service to root `docker-compose.yml` with port 8082 web distribution, port 8081 Metro bundler, backend health dependency, and HTTP probe.
   - [ ] Verify `docker compose config` syntax across backend, frontend, redis, cloudflared, and mobile.
