@@ -472,6 +472,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Implement `locationRadarService.ts` maintaining memoized distance cache, coordinate threshold gating, and fast array comparator.
 - [x] **29.3. Ferio MosqueCard Proximity Distance Badge**
   - [x] Add emerald walking distance pill (`📍 350m` / `📍 ৩৫০ মি.`) to `MosqueCard.tsx` metadata row.
-- [ ] **29.4. Filter Bar "Nearest" Sorting Toggle & Performance Benchmark Gate**
-  - [ ] Add `📍 Nearest / নিকটবর্তী` toggle filter chip in `App.tsx` sorting mosques by proximity.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **29.4. Filter Bar "Nearest" Sorting Toggle & Performance Benchmark Gate**
+  - [x] Add `📍 Nearest / নিকটবর্তী` toggle filter chip in `App.tsx` sorting mosques by proximity.
+  - [x] Run benchmark gate and TypeScript compilation.

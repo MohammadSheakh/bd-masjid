@@ -43,9 +43,10 @@ import { ModeratorReviewModal } from './src/components/ModeratorReviewModal';
 import { ModeratorService } from './src/services/moderatorService';
 import { DiagnosticsTelemetryModal } from './src/components/DiagnosticsTelemetryModal';
 import { OfflineMapRegionsModal } from './src/components/OfflineMapRegionsModal';
+import { LocationRadarService } from './src/services/locationRadarService';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
-const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
+const AMENITY_TAGS = ['All', '📍 Nearest', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
 
 export default function App() {
   const [mosquesList, setMosquesList] = useState<Mosque[]>(BANGLADESH_MOSQUES_FIXTURES);
@@ -130,7 +131,7 @@ export default function App() {
   };
 
   const filteredMosques = useMemo(() => {
-    return mosquesList.filter((mosque) => {
+    const list = mosquesList.filter((mosque) => {
       const matchesSearch =
         searchQuery.trim() === '' ||
         mosque.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -150,6 +151,11 @@ export default function App() {
 
       return true;
     });
+
+    if (selectedTag === '📍 Nearest') {
+      return LocationRadarService.sortMosquesByProximity(list);
+    }
+    return list;
   }, [mosquesList, searchQuery, selectedTag, followedIds, activeCollectionTag, collectionsVersion]);
 
   const collectionCounts = useMemo(() => {
@@ -347,13 +353,14 @@ export default function App() {
         >
           {AMENITY_TAGS.map((tag) => {
             const active = selectedTag === tag;
+            const displayLabel = tag === '📍 Nearest' && lang === 'bn' ? '📍 নিকটবর্তী' : tag;
             return (
               <Pressable
                 key={tag}
                 onPress={() => setSelectedTag(tag)}
                 style={[styles.chip, active && styles.chipActive]}
               >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{tag}</Text>
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>{displayLabel}</Text>
               </Pressable>
             );
           })}
