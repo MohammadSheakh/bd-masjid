@@ -19,6 +19,7 @@ import { FacilitiesCard } from './FacilitiesCard';
 import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
 import { DonationChannelsCard } from './DonationChannelsCard';
 import { SuggestDonationMethodModal } from './SuggestDonationMethodModal';
+import { PrayerScheduleAuditModal } from './PrayerScheduleAuditModal';
 import { CollectionTagModal } from './CollectionTagModal';
 import { RoleClaimModal } from './RoleClaimModal';
 import { CreateAnnouncementModal } from './CreateAnnouncementModal';
@@ -50,6 +51,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [roleClaimModalVisible, setRoleClaimModalVisible] = useState(false);
   const [createAnnouncementVisible, setCreateAnnouncementVisible] = useState(false);
   const [suggestDonationModalVisible, setSuggestDonationModalVisible] = useState(false);
+  const [auditModalVisible, setAuditModalVisible] = useState(false);
   const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
   const [activeFacility, setActiveFacility] = useState(mosque?.facility);
@@ -172,14 +174,24 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
                   <Text style={styles.cardTitle}>Daily Jammat Timetable</Text>
                   <Text style={styles.cardHeaderSub}>Direct community correction</Text>
                 </View>
-                <Pressable
-                  onPress={() => setUpdateModalVisible(true)}
-                  style={styles.updateTimesBtn}
-                  accessibilityRole="button"
-                  accessibilityLabel="Update prayer times"
-                >
-                  <Text style={styles.updateTimesBtnText}>+ Update</Text>
-                </Pressable>
+                <View style={styles.timetableActions}>
+                  <Pressable
+                    onPress={() => setAuditModalVisible(true)}
+                    style={styles.historyBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="View schedule revision history"
+                  >
+                    <Text style={styles.historyBtnText}>🕒 History</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setUpdateModalVisible(true)}
+                    style={styles.updateTimesBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Update prayer times"
+                  >
+                    <Text style={styles.updateTimesBtnText}>+ Update</Text>
+                  </Pressable>
+                </View>
               </View>
 
               <View style={styles.timetableTable}>
@@ -294,6 +306,14 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueId={mosque.id}
           mosqueName={mosque.name}
           onClose={() => setSuggestDonationModalVisible(false)}
+        />
+
+        <PrayerScheduleAuditModal
+          visible={auditModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          onClose={() => setAuditModalVisible(false)}
+          onReportDiscrepancy={() => setReportModalVisible(true)}
         />
       </View>
     </Modal>
@@ -434,6 +454,24 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: ferioColors.accent,
+  },
+  timetableActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  historyBtn: {
+    backgroundColor: '#f4f4f5',
+    paddingHorizontal: ferioSpacing.sm,
+    paddingVertical: 5,
+    borderRadius: ferioRadius.full,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+  },
+  historyBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: ferioColors.muted,
   },
   updateTimesBtn: {
     backgroundColor: '#f4f4f5',

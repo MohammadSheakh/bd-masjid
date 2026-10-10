@@ -543,7 +543,7 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **34.2. Schedule Diff Calculation Engine & Ferio PrayerScheduleAuditModal Sheet**
   - [x] Implement `scheduleDiff.ts` helper computing waqt-by-waqt time deltas (`+15m`, `-10m`, formatted times).
   - [x] Create `PrayerScheduleAuditModal.tsx` rendering chronological change timeline cards, visual diff pills, editor attribution, and "Report Discrepancy" action.
-- [ ] **34.3. Wire Revision History Trigger into Timetable Card & MosqueDetailSheet**
-  - [ ] Add `🕒 History / ইতিহাস` trigger button to timetable section in `MosqueDetailSheet.tsx`.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **34.3. Wire Revision History Trigger into Timetable Card & MosqueDetailSheet**
+  - [x] Add `🕒 History / ইতিহাস` trigger button to timetable section in `MosqueDetailSheet.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
 
