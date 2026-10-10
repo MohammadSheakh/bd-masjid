@@ -23,12 +23,14 @@ import { AddMosqueSheet } from './src/components/AddMosqueSheet';
 import { QiblaCompassModal } from './src/components/QiblaCompassModal';
 import { DailyHadithCard } from './src/components/DailyHadithCard';
 import { CollectionFilterBar, CollectionFilterSelection } from './src/components/CollectionFilterBar';
+import { NotificationInboxModal } from './src/components/NotificationInboxModal';
 import { PreferencesStorage, CollectionStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
 import { PrayerNotificationService } from './src/services/prayerNotificationService';
 import { TelemetryService } from './src/services/telemetryService';
 import { LocalizationService, Language } from './src/services/localizationService';
+import { NotificationInboxService } from './src/services/notificationInboxService';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -45,6 +47,10 @@ export default function App() {
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQiblaOpen, setIsQiblaOpen] = useState(false);
+  const [isNotificationInboxOpen, setIsNotificationInboxOpen] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState<number>(() =>
+    NotificationInboxService.getUnreadCountSync()
+  );
   const [lang, setLang] = useState<Language>(() => LocalizationService.getLanguage());
   const [activeCollectionTag, setActiveCollectionTag] = useState<CollectionFilterSelection>('ALL');
   const [collectionsVersion, setCollectionsVersion] = useState(0);
@@ -144,6 +150,15 @@ export default function App() {
     AutoSilentService.checkDndPermission().then((granted) => {
       setAutoSilentSettings((prev) => ({ ...prev, hasDndPermission: granted }));
     });
+
+    const unsubNotif = NotificationInboxService.subscribeUnreadCount((count) => {
+      setUnreadNotificationCount(count);
+    });
+    NotificationInboxService.syncUnreadCount();
+
+    return () => {
+      unsubNotif();
+    };
   }, []);
 
   useEffect(() => {
@@ -184,6 +199,23 @@ export default function App() {
             <Text style={styles.langToggleText}>
               {lang === 'bn' ? 'বাং' : 'EN'}
             </Text>
+          </Pressable>
+
+          {/* In-App Notification Bell Pill (ADR-053) */}
+          <Pressable
+            onPress={() => setIsNotificationInboxOpen(true)}
+            style={({ pressed }) => [styles.bellToggleBtn, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Open Notification Inbox"
+          >
+            <Text style={styles.bellIcon}>🔔</Text>
+            {unreadNotificationCount > 0 && (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>
+                  {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                </Text>
+              </View>
+            )}
           </Pressable>
 
           <Pressable
@@ -355,6 +387,17 @@ export default function App() {
         visible={isQiblaOpen}
         onClose={() => setIsQiblaOpen(false)}
       />
+
+      {/* In-App Notification Inbox Sheet (ADR-053) */}
+      <NotificationInboxModal
+        visible={isNotificationInboxOpen}
+        onClose={() => setIsNotificationInboxOpen(false)}
+        onSelectMosque={(mosqueId) => {
+          const found = mosquesList.find((m) => m.id === mosqueId);
+          if (found) setSelectedMosque(found);
+        }}
+        isBangla={lang === 'bn'}
+      />
     </SafeAreaView>
   );
 }
@@ -403,6 +446,37 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: ferioColors.primary,
+  },
+  bellToggleBtn: {
+    position: 'relative',
+    paddingHorizontal: ferioSpacing.sm + 2,
+    paddingVertical: ferioSpacing.xs,
+    borderRadius: ferioRadius.full,
+    backgroundColor: ferioColors.canvas,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bellIcon: {
+    fontSize: 12,
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: ferioColors.accent,
+    minWidth: 15,
+    height: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  bellBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: ferioColors.primaryForeground,
   },
   qiblaToggleBtn: {
     paddingHorizontal: ferioSpacing.md,

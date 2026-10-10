@@ -307,6 +307,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Implement `notificationInboxService.ts` with unread count caching, category filtering, and offline fixtures.
 - [x] **18.3. Ferio NotificationInboxModal Sheet**
   - [x] Create `NotificationInboxModal.tsx` with category filters, unread dot indicators, and mark-all-read trigger.
-- [ ] **18.4. Top Navbar Bell Trigger & Verification**
-  - [ ] Add bell icon with unread count badge in `App.tsx` top navbar.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **18.4. Top Navbar Bell Trigger & Verification**
+  - [x] Add bell icon with unread count badge in `App.tsx` top navbar.
+  - [x] Run benchmark gate and TypeScript compilation.
