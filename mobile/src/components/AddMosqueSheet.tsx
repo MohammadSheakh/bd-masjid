@@ -13,6 +13,8 @@ import {
 import { Mosque } from '../types/mosque';
 import { ApiClient } from '../lib/apiClient';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
+import { ContributorAttributionBanner } from './ContributorAttributionBanner';
+import { AuthService } from '../services/authService';
 
 interface AddMosqueSheetProps {
   visible: boolean;
@@ -20,6 +22,7 @@ interface AddMosqueSheetProps {
   existingMosques: Mosque[];
   onClose: () => void;
   onMosqueCreated: (mosque: Mosque) => void;
+  onOpenAuthModal?: () => void;
 }
 
 function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -40,6 +43,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
   existingMosques,
   onClose,
   onMosqueCreated,
+  onOpenAuthModal,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,6 +75,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
     }
     setIsSubmitting(true);
     try {
+      const activeUser = AuthService.getUserSync();
       const res = await ApiClient.createMosque({
         name: name.trim(),
         address: address.trim() || undefined,
@@ -81,7 +86,9 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
         hasSeparateWomenSpace: amenities.womenSpace,
         hasParking: amenities.parking,
         hasWheelchairAccess: amenities.wheelchair,
-      });
+        contributorId: activeUser?.id,
+        contributorName: activeUser?.name,
+      } as Partial<Mosque>);
       if (res.success && res.mosque) {
         onMosqueCreated(res.mosque);
         Alert.alert('Mosque Submitted', 'Thank you! Your submission is now visible pending community verification.');
@@ -113,6 +120,9 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
           </View>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
+            {/* Contributor Attribution Banner */}
+            <ContributorAttributionBanner onOpenAuthModal={onOpenAuthModal} />
+
             {step === 1 && (
               <View style={styles.stepContent}>
                 <View style={styles.coordBox}>

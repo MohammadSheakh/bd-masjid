@@ -410,6 +410,7 @@ export default function App() {
           initialCoords={addMosqueCoords}
           existingMosques={mosquesList}
           onClose={() => setAddMosqueCoords(null)}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
           onMosqueCreated={(newMosque) => {
             setMosquesList((prev) => [newMosque, ...prev]);
             setSelectedMosque(newMosque);
