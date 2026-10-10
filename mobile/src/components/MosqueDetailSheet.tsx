@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   StyleSheet,
@@ -7,10 +7,11 @@ import {
   ScrollView,
   Pressable,
 } from 'react-native';
-import { Mosque, MosqueDonationMethod, MosqueStaffMember } from '../types/mosque';
+import { Mosque, MosqueDonationMethod, MosqueStaffMember, PrayerSchedule } from '../types/mosque';
 import { formatTo12Hour } from '../lib/time';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 import { AttendanceAffiliationCard } from './AttendanceAffiliationCard';
+import { TimetableUpdateModal } from './TimetableUpdateModal';
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -28,10 +29,16 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   onClose,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
+
+  useEffect(() => {
+    setActiveSchedule(mosque?.prayerSchedule);
+  }, [mosque?.id, mosque?.prayerSchedule]);
 
   if (!mosque) return null;
 
-  const schedule = mosque.prayerSchedule;
+  const schedule = activeSchedule ?? mosque.prayerSchedule;
 
   const prayerRows = [
     { name: 'Fajr', jammat: schedule?.fajrJamaat, start: schedule?.fajrStart },
@@ -93,10 +100,18 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
             {/* Card 1: Complete Timetable Breakdown */}
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Daily Jammat Timetable</Text>
-                <View style={styles.badgeSuccess}>
-                  <Text style={styles.badgeSuccessText}>Verified Active</Text>
+                <View>
+                  <Text style={styles.cardTitle}>Daily Jammat Timetable</Text>
+                  <Text style={styles.cardHeaderSub}>Direct community correction</Text>
                 </View>
+                <Pressable
+                  onPress={() => setUpdateModalVisible(true)}
+                  style={styles.updateTimesBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Update prayer times"
+                >
+                  <Text style={styles.updateTimesBtnText}>+ Update</Text>
+                </Pressable>
               </View>
 
               <View style={styles.timetableTable}>
@@ -204,6 +219,17 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
             </View>
           </ScrollView>
         </View>
+
+        <TimetableUpdateModal
+          visible={updateModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          currentSchedule={schedule}
+          onClose={() => setUpdateModalVisible(false)}
+          onScheduleUpdated={(partial) => {
+            setActiveSchedule((prev) => ({ ...(prev ?? {}), ...partial }));
+          }}
+        />
       </View>
     </Modal>
   );
@@ -330,6 +356,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: ferioColors.accent,
+  },
+  updateTimesBtn: {
+    backgroundColor: '#f4f4f5',
+    paddingHorizontal: ferioSpacing.sm,
+    paddingVertical: 5,
+    borderRadius: ferioRadius.full,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+  },
+  updateTimesBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: ferioColors.primary,
   },
   timetableTable: {
     borderTopWidth: 1,
