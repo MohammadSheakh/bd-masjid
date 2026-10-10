@@ -43,6 +43,7 @@ import { ModeratorReviewModal } from './src/components/ModeratorReviewModal';
 import { ModeratorService } from './src/services/moderatorService';
 import { DiagnosticsTelemetryModal } from './src/components/DiagnosticsTelemetryModal';
 import { RamadanFastingModal } from './src/components/RamadanFastingModal';
+import { OfflineMapRegionsModal } from './src/components/OfflineMapRegionsModal';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -68,6 +69,7 @@ export default function App() {
   const [isModModalOpen, setIsModModalOpen] = useState(false);
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
   const [isRamadanOpen, setIsRamadanOpen] = useState(false);
+  const [isOfflineRegionsOpen, setIsOfflineRegionsOpen] = useState(false);
   const [pendingModCount, setPendingModCount] = useState<number>(() =>
     ModeratorService.getPendingCountSync()
   );
@@ -423,6 +425,7 @@ export default function App() {
             setSelectedTag('All');
             setSearchQuery('');
           }}
+          onOpenOfflineRegions={() => setIsOfflineRegionsOpen(true)}
         />
       )}
 
@@ -519,6 +522,13 @@ export default function App() {
       <RamadanFastingModal
         visible={isRamadanOpen}
         onClose={() => setIsRamadanOpen(false)}
+        isBangla={lang === 'bn'}
+      />
+
+      {/* Offline Map Regions Manager Modal (ADR-062) */}
+      <OfflineMapRegionsModal
+        visible={isOfflineRegionsOpen}
+        onClose={() => setIsOfflineRegionsOpen(false)}
         isBangla={lang === 'bn'}
       />
     </SafeAreaView>

@@ -19,6 +19,7 @@ interface MosqueMapViewProps {
   onSelectMosque: (mosque: Mosque) => void;
   onLocateMe?: () => void;
   onPinDropped?: (coords: { lat: number; lng: number }) => void;
+  onOpenOfflineRegions?: () => void;
 }
 
 // Bounding box for Bangladesh urban focus (Dhaka center)
@@ -34,6 +35,7 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
   onSelectMosque,
   onLocateMe,
   onPinDropped,
+  onOpenOfflineRegions,
 }) => {
   const [isPinDropMode, setIsPinDropMode] = useState(false);
   const [crosshairCoords, setCrosshairCoords] = useState({
@@ -135,6 +137,17 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
         >
           <Text style={styles.actionText}>⌖ Locate Me</Text>
         </Pressable>
+
+        {onOpenOfflineRegions && (
+          <Pressable
+            onPress={onOpenOfflineRegions}
+            style={styles.actionPill}
+            accessibilityRole="button"
+            accessibilityLabel="Open Offline Map Regions Manager"
+          >
+            <Text style={styles.actionText}>🗺️ Offline Maps</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );
