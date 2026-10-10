@@ -50,6 +50,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-042](ADR-042-mobile-low-end-hardware-performance-profiling-and-benchmark-gate.md) | Mobile Low-End Hardware Performance Profiling and Automated Benchmark Gate | Accepted | 2026-10-10 | Low-End Hardware, $\le 3$GB RAM, Memory Ceilings, 60 FPS & Benchmark Harness |
 | [ADR-043](ADR-043-mobile-contributor-pin-drop-and-add-mosque-flow.md) | Mobile Contributor Pin-Drop, Duplicate Prevention, and Add Mosque Sheet Architecture | Accepted | 2026-10-10 | Contributor Mapping, Pin-Drop, Duplicate Check & Multi-Step Sheet |
 | [ADR-044](ADR-044-mobile-mosque-notice-board-and-announcements-hub.md) | Mobile Mosque Notice Board, Announcements Hub, and Priority Alerts | Accepted | 2026-10-10 | Notice Board, Janaazah/Eid/Ramadan Alerts, Priority Badging & Offline Cache |
+| [ADR-045](ADR-045-mobile-crowdsourced-issue-reporting-and-delisting-protection.md) | Mobile Crowdsourced Issue Reporting and Delisting Protection | Accepted | 2026-10-10 | ADR-020, MosqueReport, Delisting Safeguards & Ferio Report Modal |
 
 
 ---

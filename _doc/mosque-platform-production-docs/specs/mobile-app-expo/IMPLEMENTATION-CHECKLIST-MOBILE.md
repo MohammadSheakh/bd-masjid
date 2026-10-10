@@ -194,3 +194,14 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **9.2. Ferio Notice Board Banner & Modal Sheet**
   - [x] Sticky/prominent notice indicator on `MosqueDetailSheet.tsx` with active notice badge counter.
   - [x] Progressive Notice Board sheet (`NoticeBoardModal.tsx`) with category-themed chips and share action.
+
+---
+
+## Phase 10: Crowdsourced Mosque Issue Reporting (ADR-045)
+
+- [ ] **10.1. Report Issue API & Offline Queue Integration**
+  - [ ] Add `ReportType` enum and `submitMosqueReport` to `ApiClient` (`POST /mosques/:id/reports`).
+  - [ ] Support offline queueing in synchronous storage if disconnected.
+- [ ] **10.2. Ferio ReportIssueModal & MosqueDetailSheet Trigger**
+  - [ ] Create `ReportIssueModal.tsx` with category selector chips (`PRAYER_TIME`, `LOCATION`, `CLOSED_MOSQUE`, `DUPLICATE`, `OTHER`), description text area, and optional contact email.
+  - [ ] Add `⚠️ Report an Issue` entry point in `MosqueDetailSheet.tsx` with instant feedback toast.
