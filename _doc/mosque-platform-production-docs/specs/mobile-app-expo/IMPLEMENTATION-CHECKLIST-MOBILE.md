@@ -303,8 +303,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **18.1. Notification Domain Types & API Client Integration**
   - [x] Add `NotificationType`, `UserNotification`, and `PaginatedNotifications` to `types/mosque.ts`.
   - [x] Add `fetchUserNotifications`, `fetchUnreadNotificationCount`, `markNotificationAsRead`, and `markAllNotificationsAsRead` in `ApiClient`.
-- [ ] **18.2. Notification Inbox Service & Local State**
-  - [ ] Implement `notificationInboxService.ts` with unread count caching, category filtering, and offline fixtures.
+- [x] **18.2. Notification Inbox Service & Local State**
+  - [x] Implement `notificationInboxService.ts` with unread count caching, category filtering, and offline fixtures.
 - [ ] **18.3. Ferio NotificationInboxModal Sheet**
   - [ ] Create `NotificationInboxModal.tsx` with category filters, unread dot indicators, and mark-all-read trigger.
 - [ ] **18.4. Top Navbar Bell Trigger & Verification**
