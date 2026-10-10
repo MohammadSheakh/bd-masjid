@@ -288,8 +288,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **17.1. Collection Tag Model & Fast Synchronous Storage**
   - [x] Implement `collectionService.ts` with tags (`HOME`, `WORK`, `JUMUAH`, `FAVORITE`), icons, and bilingual labels.
   - [x] Add `CollectionStorage` in `storage.ts` with synchronous MMKV caching and backfill migration.
-- [ ] **17.2. Ferio CollectionTagModal Sheet**
-  - [ ] Create `CollectionTagModal.tsx` with multi-select tag chips, instant saving, and haptic feedback.
+- [x] **17.2. Ferio CollectionTagModal Sheet**
+  - [x] Create `CollectionTagModal.tsx` with multi-select tag chips, instant saving, and haptic feedback.
 - [ ] **17.3. Contextual Feed Filter Bar**
   - [ ] Create `CollectionFilterBar.tsx` with smooth horizontal tag pills and counter indicators.
 - [ ] **17.4. Integration into App Feed & MosqueDetailSheet**
