@@ -210,9 +210,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 11: Real-time Sensor-Fused Qibla Compass (ADR-046)
 
-- [ ] **11.1. Qibla Mathematical Geodesic Engine**
-  - [ ] Implement Great-Circle forward azimuth calculation from GPS to Kaaba ($21.4225^\circ\text{N}, 39.8262^\circ\text{E}$).
-  - [ ] Calculate geodesic distance in kilometers ($\approx 5,100\text{ km}$ from Bangladesh).
+- [x] **11.1. Qibla Mathematical Geodesic Engine**
+  - [x] Implement Great-Circle forward azimuth calculation from GPS to Kaaba ($21.4225^\circ\text{N}, 39.8262^\circ\text{E}$).
+  - [x] Calculate geodesic distance in kilometers ($\approx 5,100\text{ km}$ from Bangladesh).
 - [ ] **11.2. Ferio Qibla Compass UI & Alignment Interaction**
   - [ ] Create `QiblaCompassModal.tsx` with high-contrast 360° monochrome dial and emerald needle.
   - [ ] Alignment state detection ($\pm 2^\circ$) with visual emerald pulse and "Facing Kaaba" feedback.
