@@ -28,6 +28,7 @@ interface MosqueDetailSheetProps {
   isFollowed?: boolean;
   onToggleFollow?: (id: string) => void;
   onClose: () => void;
+  onOpenAuthModal?: () => void;
 }
 
 export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
@@ -36,6 +37,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   isFollowed = false,
   onToggleFollow,
   onClose,
+  onOpenAuthModal,
 }) => {
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [noticeModalVisible, setNoticeModalVisible] = useState(false);
@@ -221,6 +223,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueName={mosque.name}
           currentSchedule={schedule}
           onClose={() => setUpdateModalVisible(false)}
+          onOpenAuthModal={onOpenAuthModal}
           onScheduleUpdated={(partial) => {
             setActiveSchedule((prev) => ({ ...(prev ?? {}), ...partial }));
           }}
@@ -246,6 +249,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueName={mosque.name}
           initialFacilities={activeFacility ?? mosque.facility}
           onClose={() => setSuggestFacilitiesModalVisible(false)}
+          onOpenAuthModal={onOpenAuthModal}
           onSuccess={(suggested) => {
             setActiveFacility((prev) => ({
               ...(prev ?? {}),

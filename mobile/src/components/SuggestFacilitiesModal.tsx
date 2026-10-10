@@ -20,6 +20,8 @@ import {
   SuggestedFacilitiesPayload,
 } from '../services/facilityService';
 import { ferioColors } from '../theme/tokens';
+import { ContributorAttributionBanner } from './ContributorAttributionBanner';
+import { AuthService } from '../services/authService';
 
 interface SuggestFacilitiesModalProps {
   visible: boolean;
@@ -29,6 +31,7 @@ interface SuggestFacilitiesModalProps {
   language?: 'bn' | 'en';
   onClose: () => void;
   onSuccess?: (suggested: SuggestedFacilitiesPayload) => void;
+  onOpenAuthModal?: () => void;
 }
 
 export const SuggestFacilitiesModal: React.FC<SuggestFacilitiesModalProps> = ({
@@ -39,6 +42,7 @@ export const SuggestFacilitiesModal: React.FC<SuggestFacilitiesModalProps> = ({
   language = 'en',
   onClose,
   onSuccess,
+  onOpenAuthModal,
 }) => {
   const isBn = language === 'bn';
 
@@ -93,6 +97,7 @@ export const SuggestFacilitiesModal: React.FC<SuggestFacilitiesModalProps> = ({
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    const activeUser = AuthService.getUserSync();
     const payload: SuggestedFacilitiesPayload = {
       hasFemalePrayerSpace: canonical.hasFemalePrayerSpace,
       hasAirConditioning: canonical.hasAirConditioning,
@@ -103,6 +108,8 @@ export const SuggestFacilitiesModal: React.FC<SuggestFacilitiesModalProps> = ({
       totalCapacity: capacity ? parseInt(capacity, 10) || undefined : undefined,
       customAmenities: selectedCustom,
       comment: comment.trim() || undefined,
+      contributorId: activeUser?.id,
+      contributorName: activeUser?.name,
     };
 
     try {
@@ -143,6 +150,9 @@ export const SuggestFacilitiesModal: React.FC<SuggestFacilitiesModalProps> = ({
           </View>
 
           <ScrollView style={styles.scrollArea} contentContainerStyle={styles.scrollContent}>
+            {/* Contributor Attribution Banner */}
+            <ContributorAttributionBanner onOpenAuthModal={onOpenAuthModal} />
+
             {/* Canonical Facilities Switches */}
             <Text style={styles.sectionTitle}>
               {isBn ? '১. প্রধান সুযোগ-সুবিধাসমূহ' : '1. Core Architectural Facilities'}

@@ -365,9 +365,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Implement `ContributorAttributionBanner.tsx` showing synchronous session status (Verified Contributor vs Anonymous Musalli) with 1-tap sign-in trigger.
 - [x] **22.2. Wire Attribution into AddMosqueSheet**
   - [x] Embed `ContributorAttributionBanner` in `AddMosqueSheet.tsx` and pass `contributorId` & `contributorName` in payload.
-- [ ] **22.3. Wire Attribution into TimetableUpdateModal & SuggestFacilitiesModal**
-  - [ ] Embed `ContributorAttributionBanner` in `TimetableUpdateModal.tsx` and attach `updatedBy` provenance.
-  - [ ] Embed `ContributorAttributionBanner` in `SuggestFacilitiesModal.tsx` and attach `contributorId` in suggestion payload.
+- [x] **22.3. Wire Attribution into TimetableUpdateModal & SuggestFacilitiesModal**
+  - [x] Embed `ContributorAttributionBanner` in `TimetableUpdateModal.tsx` and attach `updatedBy` provenance.
+  - [x] Embed `ContributorAttributionBanner` in `SuggestFacilitiesModal.tsx` and attach `contributorId` in suggestion payload.
 - [ ] **22.4. Wire Attribution into ReportIssueModal & Performance Verification**
   - [ ] Embed `ContributorAttributionBanner` in `ReportIssueModal.tsx` and prefill contact email.
   - [ ] Run benchmark gate and TypeScript compilation.

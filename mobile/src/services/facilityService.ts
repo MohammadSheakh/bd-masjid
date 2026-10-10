@@ -50,6 +50,8 @@ export interface SuggestedFacilitiesPayload {
   totalCapacity?: number;
   customAmenities?: string[];
   comment?: string;
+  contributorId?: string;
+  contributorName?: string;
 }
 
 export const FacilityService = {

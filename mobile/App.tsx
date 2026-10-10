@@ -401,6 +401,7 @@ export default function App() {
         isFollowed={selectedMosque ? followedIds.includes(selectedMosque.id) : false}
         onToggleFollow={toggleFollow}
         onClose={() => setSelectedMosque(null)}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
       />
 
       {/* Contributor Add Mosque Sheet */}
