@@ -104,9 +104,14 @@ export interface MosqueDonationMethod {
   accountNumber: string;
   accountTitle?: string | null;
   bankName?: string | null;
+  branchName?: string | null;
+  routingNumber?: string | null;
   instructions?: string | null;
   isVerified: boolean;
   verifiedByRoles?: string[];
+  creatorName?: string | null;
+  creatorRole?: string | null;
+  creatorImageUrl?: string | null;
 }
 
 export interface Mosque {

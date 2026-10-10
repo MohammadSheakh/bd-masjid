@@ -270,9 +270,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 16: Mosque Donation Channels Hub & Multi-Signatory Badges (ADR-051)
 
-- [ ] **16.1. Donation Channel Types & Provenance Fixtures**
-  - [ ] Extend `MosqueDonationMethod` with creator provenance, branch, and bank fields.
-  - [ ] Enrich Bangladeshi fixtures with multi-signatory roles and verified creator attribution.
+- [x] **16.1. Donation Channel Types & Provenance Fixtures**
+  - [x] Extend `MosqueDonationMethod` with creator provenance, branch, and bank fields.
+  - [x] Enrich Bangladeshi fixtures with multi-signatory roles and verified creator attribution.
 - [ ] **16.2. Donation Service & Brand Helpers**
   - [ ] Implement `donationService.ts` with brand tokens (bKash, Nagad, Rocket, Bank), USSD codes, and safety labels.
 - [ ] **16.3. Ferio DonationChannelsCard Component**

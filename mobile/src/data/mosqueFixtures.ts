@@ -73,6 +73,8 @@ export const BANGLADESH_MOSQUES_FIXTURES: Mosque[] = [
         accountTitle: 'Baitul Mukarram Mosque Fund',
         isVerified: true,
         verifiedByRoles: ['PRESIDENT', 'GENERAL_SECRETARY', 'MUTAWALLI'],
+        creatorName: 'Al-Haj Abdul Latif',
+        creatorRole: 'President',
       },
       {
         id: 'don-2',
@@ -82,6 +84,8 @@ export const BANGLADESH_MOSQUES_FIXTURES: Mosque[] = [
         accountTitle: 'Baitul Mukarram Development',
         isVerified: true,
         verifiedByRoles: ['PRESIDENT', 'MUTAWALLI'],
+        creatorName: 'Al-Haj Abdul Latif',
+        creatorRole: 'President',
       },
       {
         id: 'don-3',
@@ -89,9 +93,13 @@ export const BANGLADESH_MOSQUES_FIXTURES: Mosque[] = [
         accountType: 'BANK_ACCOUNT',
         accountNumber: '2050123456789',
         bankName: 'Islami Bank Bangladesh PLC',
+        branchName: 'Motijheel Corporate Branch',
+        routingNumber: '125272855',
         accountTitle: 'Baitul Mukarram National Mosque Maintenance Fund',
         isVerified: true,
         verifiedByRoles: ['PRESIDENT', 'GENERAL_SECRETARY'],
+        creatorName: 'Mawlana Mizanur Rahman',
+        creatorRole: 'Senior Pesh Imam',
       },
     ],
     announcements: [
@@ -162,6 +170,19 @@ export const BANGLADESH_MOSQUES_FIXTURES: Mosque[] = [
       occasionalCount: 850,
       userStatus: 'NONE',
     },
+    donationMethods: [
+      {
+        id: 'don-tara-1',
+        methodType: 'BKASH',
+        accountType: 'PERSONAL',
+        accountNumber: '01912345678',
+        accountTitle: 'Khadem Nurul Islam (Personal)',
+        isVerified: true,
+        verifiedByRoles: ['MUTAWALLI'],
+        creatorName: 'Khadem Nurul Islam',
+        creatorRole: 'Mutawalli',
+      },
+    ],
   },
   {
     id: 'mosque-chattogram-anderkilla',
