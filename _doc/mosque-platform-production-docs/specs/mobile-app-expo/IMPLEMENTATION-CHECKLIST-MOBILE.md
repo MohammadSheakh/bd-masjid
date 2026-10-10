@@ -475,3 +475,16 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **29.4. Filter Bar "Nearest" Sorting Toggle & Performance Benchmark Gate**
   - [x] Add `📍 Nearest / নিকটবর্তী` toggle filter chip in `App.tsx` sorting mosques by proximity.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 30: Mosque Leadership Role Claim & Staff Verification Sheet (ADR-064)
+
+- [ ] **30.1. Role Claim Domain Contracts & ApiClient Transport**
+  - [ ] Define `MosqueStaffRole` and `CreateRoleClaimPayload` in `types/community.ts`.
+  - [ ] Add `submitRoleClaim` to `ApiClient` (`POST /api/v1/community/:id/claims`) with offline outbox fallback.
+- [ ] **30.2. Ferio RoleClaimModal Sheet**
+  - [ ] Create `RoleClaimModal.tsx` with role pill selector, applicant name/phone inputs, appointment evidence details, and submission loader.
+- [ ] **30.3. Wire Role Claim Trigger into Mosque Detail Sheet & Performance Gate**
+  - [ ] Add "Claim Leadership Role" trigger in `LeadershipRosterCard.tsx` / `MosqueDetailSheet.tsx`.
+  - [ ] Run benchmark gate and TypeScript compilation.
