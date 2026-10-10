@@ -415,3 +415,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **25.4. Long-Press Header Trigger Integration & Performance Gate**
   - [x] Wire gestural trigger on header title in `App.tsx` and run benchmark harness verification.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 26: Contributor Activity & Scout Reputation Console (ADR-060)
+
+- [ ] **26.1. Contributor Reputation Domain Contracts & ApiClient Transport**
+  - [ ] Add `ScoutTier`, `ContributorReputationSummary`, and `ContributorActivityItem` to `types/contributor.ts`.
+  - [ ] Add `fetchContributorReputation` and `fetchContributorHistory` to `ApiClient`.
+- [ ] **26.2. Dedicated ContributorService with Synchronous Cache**
+  - [ ] Implement `contributorService.ts` providing synchronous reputation state and optimistic scout point bonuses.
+- [ ] **26.3. Ferio ContributorActivityModal Sheet**
+  - [ ] Create `ContributorActivityModal.tsx` with gold scout tier badge, stat breakdown cards, activity timeline, and status pills.
+- [ ] **26.4. Profile Integration & Performance Verification**
+  - [ ] Wire trigger in `AuthSessionModal.tsx` to launch `ContributorActivityModal`.
+  - [ ] Run benchmark gate and TypeScript compilation.
