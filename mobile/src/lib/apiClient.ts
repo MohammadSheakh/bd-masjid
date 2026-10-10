@@ -12,6 +12,8 @@ import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
 import { BANGLADESH_NOTIFICATION_FIXTURES } from '../data/notificationFixtures';
 import { PreferencesStorage, SecureTokenStorage } from './storage';
 import { FacilityService, SuggestedFacilitiesPayload } from '../services/facilityService';
+import { OfflineOutboxService } from '../services/offlineOutboxService';
+import { OutboxMutationType } from '../types/outbox';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -63,6 +65,26 @@ async function fetchWithFallback<T>(
   } catch (error) {
     // Graceful offline fallback: flag offline status and return fixture
     notifyOfflineStatus(true);
+
+    // If this was a mutation (POST/PUT/DELETE/PATCH), queue in offline outbox for automatic sync
+    if (options.method && options.method !== 'GET') {
+      let mutationType: OutboxMutationType = 'REPORT_ISSUE';
+      if (endpoint.includes('/attendance')) mutationType = 'ATTENDANCE';
+      else if (endpoint.includes('/prayer-schedule')) mutationType = 'TIMETABLE_UPDATE';
+      else if (endpoint === '/mosques') mutationType = 'CREATE_MOSQUE';
+      else if (endpoint.includes('/suggestions')) mutationType = 'SUGGEST_FACILITY';
+
+      try {
+        const payload = options.body ? JSON.parse(options.body as string) : null;
+        OfflineOutboxService.enqueueMutation(
+          mutationType,
+          endpoint,
+          options.method as any,
+          payload
+        ).catch(() => {});
+      } catch {}
+    }
+
     return fallbackData;
   }
 }
