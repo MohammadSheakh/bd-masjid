@@ -10,6 +10,7 @@ import {
 import { Mosque, MosqueDonationMethod, MosqueStaffMember } from '../types/mosque';
 import { formatTo12Hour } from '../lib/time';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
+import { AttendanceAffiliationCard } from './AttendanceAffiliationCard';
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -83,6 +84,12 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
+            {/* Community Attendance Affiliation & Dual-Count (ADR-024, ADR-035) */}
+            <AttendanceAffiliationCard
+              mosqueId={mosque.id}
+              summary={mosque.attendanceSummary}
+            />
+
             {/* Card 1: Complete Timetable Breakdown */}
             <View style={styles.card}>
               <View style={styles.cardHeader}>

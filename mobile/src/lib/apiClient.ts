@@ -5,9 +5,9 @@
  * - Resilient offline fallback to structured Bangladeshi fixtures
  */
 import { Platform } from 'react-native';
-import { Mosque } from '../types/mosque';
+import { AttendanceStatus, AttendanceSummary, Mosque } from '../types/mosque';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
-import { SecureTokenStorage } from './storage';
+import { PreferencesStorage, SecureTokenStorage } from './storage';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -89,5 +89,27 @@ export const ApiClient = {
       { method: 'POST' },
       { success: true, isFollowed: true }
     );
+  },
+
+  async setAttendance(
+    mosqueId: string,
+    status: AttendanceStatus
+  ): Promise<AttendanceSummary> {
+    // Synchronously update local preferences for instant UI hydration
+    PreferencesStorage.setUserAttendance(mosqueId, status);
+
+    const isDelete = status === 'NONE';
+    const endpoint = `/mosques/${mosqueId}/attendance`;
+    const options: RequestInit = isDelete
+      ? { method: 'DELETE' }
+      : { method: 'PUT', body: JSON.stringify({ status }) };
+
+    const fallback: AttendanceSummary = {
+      regularCount: status === 'REGULAR' ? 42 : 41,
+      occasionalCount: status === 'OCCASIONAL' ? 19 : 18,
+      userStatus: status,
+    };
+
+    return fetchWithFallback<AttendanceSummary>(endpoint, options, fallback);
   },
 };

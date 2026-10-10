@@ -77,6 +77,13 @@ export const MosqueCard: React.FC<MosqueCardProps> = ({
         <View style={styles.verifiedBadge}>
           <Text style={styles.verifiedText}>Verified Timetable</Text>
         </View>
+        {mosque.attendanceSummary && (
+          <View style={styles.attendanceBadge}>
+            <Text style={styles.attendanceBadgeText}>
+              👥 {mosque.attendanceSummary.regularCount} reg • {mosque.attendanceSummary.occasionalCount} occ
+            </Text>
+          </View>
+        )}
         {mosque.hasAirConditioning && (
           <View style={styles.amenityBadge}>
             <Text style={styles.amenityText}>AC</Text>
@@ -183,6 +190,19 @@ const styles = StyleSheet.create({
     color: ferioColors.accent,
     fontSize: 10,
     fontWeight: '600',
+  },
+  attendanceBadge: {
+    backgroundColor: '#f4f4f5',
+    paddingHorizontal: ferioSpacing.sm,
+    paddingVertical: 2,
+    borderRadius: ferioRadius.full,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+  },
+  attendanceBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: ferioColors.primary,
   },
   amenityBadge: {
     backgroundColor: ferioColors.canvas,

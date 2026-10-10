@@ -3,7 +3,7 @@
  * - Hardware Secure Token Storage (Zero plaintext leakage)
  * - Synchronous In-Memory Key-Value Storage for UI micro-state (< 1ms access)
  */
-import { PrayerAutoSilentSettings } from '../types/mosque';
+import { AttendanceStatus, PrayerAutoSilentSettings } from '../types/mosque';
 
 // In-Memory synchronous KV cache (mimicking MMKV fast key-value map)
 const syncKvCache = new Map<string, string>();
@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
   REFRESH_TOKEN: 'bd_masjid_refresh_token_secure',
   FOLLOWED_MOSQUES: 'bd_masjid_followed_mosque_ids',
   AUTO_SILENT: 'bd_masjid_auto_silent_settings',
+  ATTENDANCE_PREFIX: 'bd_masjid_attendance_',
 } as const;
 
 /**
@@ -72,5 +73,21 @@ export const PreferencesStorage = {
 
   setAutoSilentSettings(settings: PrayerAutoSilentSettings): void {
     syncKvCache.set(STORAGE_KEYS.AUTO_SILENT, JSON.stringify(settings));
+  },
+
+  getUserAttendance(mosqueId: string): AttendanceStatus {
+    const raw = syncKvCache.get(`${STORAGE_KEYS.ATTENDANCE_PREFIX}${mosqueId}`);
+    if (raw === 'REGULAR' || raw === 'OCCASIONAL') {
+      return raw;
+    }
+    return 'NONE';
+  },
+
+  setUserAttendance(mosqueId: string, status: AttendanceStatus): void {
+    if (status === 'NONE') {
+      syncKvCache.delete(`${STORAGE_KEYS.ATTENDANCE_PREFIX}${mosqueId}`);
+    } else {
+      syncKvCache.set(`${STORAGE_KEYS.ATTENDANCE_PREFIX}${mosqueId}`, status);
+    }
   },
 };
