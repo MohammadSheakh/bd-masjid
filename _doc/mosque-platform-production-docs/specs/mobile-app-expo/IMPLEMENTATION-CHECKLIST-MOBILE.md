@@ -547,3 +547,17 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Add `🕒 History / ইতিহাস` trigger button to timetable section in `MosqueDetailSheet.tsx`.
   - [x] Run benchmark gate and TypeScript compilation.
 
+---
+
+## Phase 35: Mosque Committee Official Verification & Proof Document Submission Sheet (ADR-069)
+
+- [ ] **35.1. Verification Domain Contracts & ApiClient Document Transport**
+  - [ ] Define `VerificationDocumentType`, `VerificationClaimStatus`, and `SubmitVerificationPayload` in `types/verification.ts`.
+  - [ ] Add `uploadVerificationProof`, `submitCommitteeVerification`, and `getMosqueVerificationClaims` to `ApiClient`.
+- [ ] **35.2. Ferio CommitteeVerificationModal Sheet**
+  - [ ] Create `CommitteeVerificationModal.tsx` with document type selector, document attachment preview card, live claim status tracker, and submission loader.
+- [ ] **35.3. Wire Verification Sheet into LeadershipRosterCard & MosqueDetailSheet**
+  - [ ] Add verification trigger to `LeadershipRosterCard.tsx` and wire modal into `MosqueDetailSheet.tsx`.
+  - [ ] Run benchmark gate and TypeScript compilation.
+
+
