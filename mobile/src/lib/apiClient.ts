@@ -141,9 +141,56 @@ export const ApiClient = {
     );
   },
 
+  async getFollowedMosques(): Promise<Mosque[]> {
+    const followedMap = new Map<string, Mosque>();
+
+    // 1. If authenticated, fetch from server /users/me/bookmarks
+    try {
+      const token = await SecureTokenStorage.getAccessToken();
+      if (token) {
+        const res = await fetch(`${getApiBaseUrl()}/users/me/bookmarks`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const items = json.data ?? json ?? [];
+          if (Array.isArray(items)) {
+            for (const item of items) {
+              const m = item.mosque || item;
+              if (m && m.id) followedMap.set(m.id, m);
+            }
+          }
+        }
+      }
+    } catch {
+      // Continue to local hydration
+    }
+
+    // 2. Hydrate local bookmarks/followed IDs from PreferencesStorage
+    const localIds = PreferencesStorage.getFollowedMosqueIds();
+    const missingIds = localIds.filter((id) => !followedMap.has(id));
+
+    if (missingIds.length > 0) {
+      const results = await Promise.allSettled(
+        missingIds.map((id) => ApiClient.getMosqueById(id))
+      );
+      for (const r of results) {
+        if (r.status === 'fulfilled' && r.value) {
+          followedMap.set(r.value.id, r.value);
+        }
+      }
+    }
+
+    return Array.from(followedMap.values());
+  },
+
   async toggleFollowMosque(id: string): Promise<{ success: boolean; isFollowed: boolean }> {
     return fetchWithFallback<{ success: boolean; isFollowed: boolean }>(
-      `/mosques/${id}/follow`,
+      `/mosques/${id}/bookmark`,
       { method: 'POST' },
       { success: true, isFollowed: true }
     );
