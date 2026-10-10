@@ -371,3 +371,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **22.4. Wire Attribution into ReportIssueModal & Performance Verification**
   - [x] Embed `ContributorAttributionBanner` in `ReportIssueModal.tsx` and prefill contact email.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 23: Offline Mutation Outbox & Auto-Sync Engine (ADR-057)
+
+- [ ] **23.1. Outbox Domain Models & Storage Contracts**
+  - [ ] Define `MutationType`, `OutboxItem`, and `OutboxStatus` in `types/outbox.ts`.
+- [ ] **23.2. Dedicated OfflineOutboxService with FIFO Drain & Exponential Backoff**
+  - [ ] Implement `offlineOutboxService.ts` with persistent storage, synchronous count mirroring, and event dispatcher.
+- [ ] **23.3. ApiClient Mutation Fallback Queuing**
+  - [ ] Automatically enqueue failed write requests (`PUT /attendance`, `PUT /prayer-schedule`, `POST /mosques`, `POST /suggestions`, `POST /reports`) into outbox when offline or network timeout occurs.
+- [ ] **23.4. Ferio OutboxSyncBadge, Reconnection Drain & Performance Verification**
+  - [ ] Create `OutboxSyncBadge.tsx` displaying pending mutation counter and manual sync action.
+  - [ ] Wire automatic drain on app boot and network reconnection in `App.tsx`.
+  - [ ] Run benchmark gate and TypeScript compilation.
