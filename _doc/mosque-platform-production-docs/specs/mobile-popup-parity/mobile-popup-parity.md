@@ -2,7 +2,7 @@
 id: F-072
 name: Mobile Popup Design & Interaction Parity
 phase: 2
-status: in-progress
+status: completed
 
 depends_on:
   - F-004
@@ -33,8 +33,8 @@ Translate the exact visual hierarchy, component layout, and interactive states o
 ## 3. Implementation Matrix
 | Popup Name | Web Component Reference | Mobile Target Component | Status |
 | :--- | :--- | :--- | :--- |
-| **Mosque Details** | `frontend/src/components/MosqueDetailModal.tsx` | `mobile/src/components/MosqueDetailSheet.tsx` | In Progress |
-| **Add Mosque** | `frontend/src/components/AddMosqueModal.tsx` | `mobile/src/components/AddMosqueSheet.tsx` | In Progress |
-| **Claim Role** | `frontend/src/components/RoleClaimModal.tsx` | `mobile/src/components/RoleClaimModal.tsx` | Pending |
-| **Donate** | `frontend/src/components/DonationModal.tsx` | `mobile/src/components/SuggestDonationMethodModal.tsx` | Pending |
-| **Suggest Facilities** | `frontend/src/components/SuggestFacilitiesModal.tsx` | `mobile/src/components/SuggestFacilitiesModal.tsx` | Pending |
+| **Mosque Details** | `frontend/src/components/MosqueDetailModal.tsx` | `mobile/src/components/MosqueDetailSheet.tsx` | Completed |
+| **Add Mosque** | `frontend/src/components/AddMosqueModal.tsx` | `mobile/src/components/AddMosqueSheet.tsx` | Completed |
+| **Claim Role** | `frontend/src/components/RoleClaimModal.tsx` | `mobile/src/components/RoleClaimModal.tsx` | Completed |
+| **Donate** | `frontend/src/components/DonationModal.tsx` | `mobile/src/components/SuggestDonationMethodModal.tsx` | Completed |
+| **Suggest Facilities** | `frontend/src/components/SuggestFacilitiesModal.tsx` | `mobile/src/components/SuggestFacilitiesModal.tsx` | Completed |
