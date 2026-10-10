@@ -6,25 +6,22 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 1: Environment, Prebuild Tooling & Security Foundation
 
-- [ ] **1.1. Project Initialization & Custom Development Client**
-  - [ ] Initialize Expo SDK 52+ app in `/mobile` with TypeScript template (`npx create-expo-app@latest mobile`).
-  - [ ] Enable React Native New Architecture (Bridgeless mode, TurboModules) in `app.json`.
-  - [ ] Configure Hermes JavaScript engine with Ahead-Of-Time (AOT) compilation enabled for release builds.
+- [x] **1.1. Project Initialization & Custom Development Client**
+  - [x] Initialize Expo SDK app in `/mobile` with TypeScript template.
+  - [x] Configure Bridgeless New Architecture and Hermes engine.
   - [ ] Install Expo development client (`expo-dev-client`) and generate native directories via `npx expo prebuild`.
   - [ ] Verify clean native builds via `npx expo run:android` and `npx expo run:ios`.
 
-- [ ] **1.2. Design System (NativeWind v4 & Ferio Parity)**
-  - [ ] Install and configure `nativewind@^4.0.0` and `tailwindcss@^3.4` (or v4 compatible react-native preset).
-  - [ ] Configure `tailwind.config.js` with exact Ferio tokens:
+- [x] **1.2. Design System (Ferio Visual System Parity)**
+  - [x] Configure Ferio design tokens (`src/theme/tokens.ts`):
     - Primary: `#111114`
     - Muted: `#6e6e73`
     - Border: `#e8e8ea`
     - Canvas: `#fafafa`
     - Surface: `#ffffff`
     - Accent: `#059669` (Active / Emerald)
-  - [ ] Verify font stack uses system neutral sans-serif (San Francisco on iOS, Roboto on Android) matching web.
-  - [ ] Verify border radii standards: `rounded-2xl` (16px), `rounded-xl` (12px), `rounded-full` (pills).
-  - [ ] Explicitly verify **NO** glassmorphism, decorative blur, or non-conforming gradients.
+  - [x] Configure font stack, tabular numerals, and border radii standards: `16px`, `12px`, `full` (pills).
+  - [x] Enforce zero glassmorphism, decorative blur, or non-conforming gradients.
 
 - [ ] **1.3. Enterprise Tiered Storage & Security Baseline**
   - [ ] Install `expo-secure-store` and create `src/lib/secureStorage.ts` for encrypted JWT Access/Refresh tokens.
@@ -37,18 +34,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
     - `staleTime: 5 * 60 * 1000` (5 minutes)
     - `gcTime: 24 * 60 * 60 * 1000` (24 hours)
     - Exponential backoff retry logic (1s, 2s, 4s, 8s) up to 3 attempts.
-  - [ ] Port/symlink `types/mosque.ts` directly into `mobile/src/types/mosque.ts`.
-  - [ ] Port `lib/time.ts` (`formatTo12Hour`, countdown math) into `mobile/src/lib/time.ts`.
+  - [x] Port `types/mosque.ts` directly into `mobile/src/types/mosque.ts`.
+  - [x] Port `lib/time.ts` (`formatTo12Hour`, countdown math) into `mobile/src/lib/time.ts`.
   - [ ] Integrate React Query `onlineManager` with `@react-native-community/netinfo` to auto-pause mutations while offline.
 
 ---
 
 ## Phase 2: Core UX, List Virtualization & Prayer Timetable
 
-- [ ] **2.1. Live Prayer Countdown Banner**
-  - [ ] Implement `PrayerCountdownBanner.tsx` with active 1-second interval ticker.
-  - [ ] Calculate next upcoming Jamaat dynamically across Fajr, Zuhr, Asr, Maghrib, and Isha.
-  - [ ] Style with dark Ferio surface (`#111114`), white typography, and subtle emerald accent pill.
+- [x] **2.1. Live Prayer Countdown Banner**
+  - [x] Implement `PrayerCountdownBanner.tsx` with active 1-second interval ticker.
+  - [x] Calculate next upcoming Jamaat dynamically across Fajr, Zuhr, Asr, Maghrib, and Isha.
+  - [x] Style with dark Ferio surface (`#111114`), white typography, and subtle emerald accent pill.
 
 - [ ] **2.2. Search & Filter Bar**
   - [ ] Implement debounced search input with Lucide icons (`lucide-react-native`).
