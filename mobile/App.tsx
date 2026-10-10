@@ -23,6 +23,7 @@ import { PreferencesStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
 import { PrayerNotificationService } from './src/services/prayerNotificationService';
+import { TelemetryService } from './src/services/telemetryService';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -109,6 +110,9 @@ export default function App() {
   }, [followedIds]);
 
   useEffect(() => {
+    TelemetryService.initTelemetry();
+    TelemetryService.addBreadcrumb('lifecycle', 'BD Masjid application initialized');
+
     AutoSilentService.checkDndPermission().then((granted) => {
       setAutoSilentSettings((prev) => ({ ...prev, hasDndPermission: granted }));
     });
