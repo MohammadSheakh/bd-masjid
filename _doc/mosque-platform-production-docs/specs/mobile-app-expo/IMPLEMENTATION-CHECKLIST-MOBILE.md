@@ -310,3 +310,21 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **18.4. Top Navbar Bell Trigger & Verification**
   - [x] Add bell icon with unread count badge in `App.tsx` top navbar.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 19: User Authentication, Contributor Identity & Secure Session Management (ADR-054)
+
+- [ ] **19.1. Auth Domain Models & ApiClient Transport**
+  - [ ] Add `UserProfile`, `AuthSession`, `LoginPayload`, and `RegisterPayload` to `types/auth.ts`.
+  - [ ] Add `loginUser`, `registerUser`, `fetchCurrentUserSession`, and `logoutUser` in `ApiClient` with fallback mock identities.
+- [ ] **19.2. Fast Synchronous AuthService with Token Encryption**
+  - [ ] Implement `authService.ts` with synchronous profile cache, session hydration on boot, and pub/sub listener dispatch.
+  - [ ] Wire hardware token encryption via `SecureTokenStorage`.
+- [ ] **19.3. Ferio AuthSessionModal Sheet**
+  - [ ] Create `AuthSessionModal.tsx` with Sign In / Register tabs, authenticated user profile card, verified badge, and sign-out action.
+- [ ] **19.4. Top Navbar Profile Pill & App Integration**
+  - [ ] Add responsive profile avatar/name pill in `App.tsx` top navbar.
+  - [ ] Wire `AuthSessionModal` state and trigger.
+  - [ ] Run benchmark gate and TypeScript compilation.
+
