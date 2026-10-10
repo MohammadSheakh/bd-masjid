@@ -132,9 +132,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [ ] Schedule trigger notifications 10 minutes prior to Jamaat start.
   - [ ] Include native notification action buttons: "View Timetable", "Dismiss".
 
-- [ ] **6.2. OEM Battery Optimization Wizard**
-  - [ ] Implement detection for aggressive OEM background battery killers (Xiaomi HyperOS, Realme ColorOS, Samsung OneUI).
-  - [ ] Provide user-friendly modal educating users on allowing background activity for reliable Azan reminders.
+- [x] **6.2. OEM Battery Optimization Wizard (ADR-037)**
+  - [x] Implement detection for aggressive OEM background battery killers (Xiaomi HyperOS, Realme ColorOS, Samsung OneUI).
+  - [x] Provide user-friendly modal educating users on allowing background activity for reliable Azan reminders and 1-tap settings intent.
 
 - [ ] **6.3. Enterprise Telemetry & Crash Reporting**
   - [ ] Install and configure `@sentry/react-native`.
