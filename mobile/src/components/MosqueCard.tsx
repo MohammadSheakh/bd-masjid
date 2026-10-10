@@ -35,7 +35,6 @@ export const MosqueCard: React.FC<MosqueCardProps> = ({
     <Pressable
       onPress={() => onPress?.(mosque)}
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-      accessibilityRole="button"
       accessibilityLabel={`Mosque ${mosque.name}`}
     >
       {/* Top Header: Name, Distance, Follow Button */}
