@@ -460,3 +460,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **28.4. Map View Trigger Integration & Performance Verification**
   - [x] Wire offline map cache management trigger into `MosqueMapView.tsx` or `App.tsx`.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 29: Live GPS Proximity Radar & Nearest Mosque Sorting Engine (ADR-063)
+
+- [ ] **29.1. Proximity Domain Contracts & Geodesic Haversine Math**
+  - [ ] Define `ProximityDistanceInfo`, `GeoCoordinates`, and `ProximitySortMode` in `types/proximity.ts`.
+  - [ ] Implement pure Haversine distance calculator with localized meters/km string formatters.
+- [ ] **29.2. Dedicated LocationRadarService with Distance Caching**
+  - [ ] Implement `locationRadarService.ts` maintaining memoized distance cache, coordinate threshold gating, and fast array comparator.
+- [ ] **29.3. Ferio MosqueCard Proximity Distance Badge**
+  - [ ] Add emerald walking distance pill (`📍 350m` / `📍 ৩৫০ মি.`) to `MosqueCard.tsx` metadata row.
+- [ ] **29.4. Filter Bar "Nearest" Sorting Toggle & Performance Benchmark Gate**
+  - [ ] Add `📍 Nearest / নিকটবর্তী` toggle filter chip in `App.tsx` sorting mosques by proximity.
+  - [ ] Run benchmark gate and TypeScript compilation.
