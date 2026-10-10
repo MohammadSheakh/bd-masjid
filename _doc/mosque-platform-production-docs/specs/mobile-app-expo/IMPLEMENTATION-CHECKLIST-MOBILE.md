@@ -321,8 +321,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **19.2. Fast Synchronous AuthService with Token Encryption**
   - [x] Implement `authService.ts` with synchronous profile cache, session hydration on boot, and pub/sub listener dispatch.
   - [x] Wire hardware token encryption via `SecureTokenStorage`.
-- [ ] **19.3. Ferio AuthSessionModal Sheet**
-  - [ ] Create `AuthSessionModal.tsx` with Sign In / Register tabs, authenticated user profile card, verified badge, and sign-out action.
+- [x] **19.3. Ferio AuthSessionModal Sheet**
+  - [x] Create `AuthSessionModal.tsx` with Sign In / Register tabs, authenticated user profile card, verified badge, and sign-out action.
 - [ ] **19.4. Top Navbar Profile Pill & App Integration**
   - [ ] Add responsive profile avatar/name pill in `App.tsx` top navbar.
   - [ ] Wire `AuthSessionModal` state and trigger.
