@@ -135,10 +135,10 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Implement detection for aggressive OEM background battery killers (Xiaomi HyperOS, Realme ColorOS, Samsung OneUI).
   - [x] Provide user-friendly modal educating users on allowing background activity for reliable Azan reminders and 1-tap settings intent.
 
-- [ ] **6.3. Enterprise Telemetry & Crash Reporting**
-  - [ ] Install and configure `@sentry/react-native`.
-  - [ ] Configure automatic breadcrumb sanitization (stripping `Authorization` headers, passwords, and phone numbers).
-  - [ ] Track slow frame renders and memory pressure events.
+- [x] **6.3. Enterprise Telemetry & Crash Reporting (ADR-040)**
+  - [x] Configure privacy-sanitized telemetry client with mock/Sentry engine.
+  - [x] Configure automatic breadcrumb sanitization (stripping `Authorization` Bearer tokens, passwords, and phone numbers).
+  - [x] Track slow frame renders and memory pressure events.
 
 - [x] **6.4. Native Auto-Silent & DND Prayer Automation Engine**
   - [x] Implement Expo Config Plugin (`plugins/withAndroidAutoSilent.js`) registering:
