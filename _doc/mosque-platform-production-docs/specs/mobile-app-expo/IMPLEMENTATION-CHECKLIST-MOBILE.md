@@ -423,8 +423,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **26.1. Contributor Reputation Domain Contracts & ApiClient Transport**
   - [x] Add `ScoutTier`, `ContributorReputationSummary`, and `ContributorActivityItem` to `types/contributor.ts`.
   - [x] Add `fetchContributorReputation` and `fetchContributorHistory` to `ApiClient`.
-- [ ] **26.2. Dedicated ContributorService with Synchronous Cache**
-  - [ ] Implement `contributorService.ts` providing synchronous reputation state and optimistic scout point bonuses.
+- [x] **26.2. Dedicated ContributorService with Synchronous Cache**
+  - [x] Implement `contributorService.ts` providing synchronous reputation state and optimistic scout point bonuses.
 - [ ] **26.3. Ferio ContributorActivityModal Sheet**
   - [ ] Create `ContributorActivityModal.tsx` with gold scout tier badge, stat breakdown cards, activity timeline, and status pills.
 - [ ] **26.4. Profile Integration & Performance Verification**
