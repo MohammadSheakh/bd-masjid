@@ -134,6 +134,15 @@ export const PreferencesStorage = {
   setHadithCardCollapsed(collapsed: boolean): void {
     syncKvCache.set('bd_masjid_hadith_collapsed', String(collapsed));
   },
+
+  getRamadanDivision(): any {
+    const raw = syncKvCache.get('bd_masjid_ramadan_division');
+    return raw || 'DHAKA';
+  },
+
+  setRamadanDivision(div: string): void {
+    syncKvCache.set('bd_masjid_ramadan_division', div);
+  },
 };
 
 export const CollectionStorage = {
