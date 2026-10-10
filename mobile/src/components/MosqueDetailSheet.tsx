@@ -12,6 +12,7 @@ import { formatTo12Hour } from '../lib/time';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 import { AttendanceAffiliationCard } from './AttendanceAffiliationCard';
 import { TimetableUpdateModal } from './TimetableUpdateModal';
+import { NoticeBoardModal } from './NoticeBoardModal';
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -30,6 +31,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [noticeModalVisible, setNoticeModalVisible] = useState(false);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
 
   useEffect(() => {
@@ -91,6 +93,40 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
+            {/* Mosque Notice Board Strip (ADR-011, ADR-044) */}
+            {mosque.announcements && mosque.announcements.length > 0 && (
+              <Pressable
+                onPress={() => setNoticeModalVisible(true)}
+                style={[
+                  styles.noticeStrip,
+                  mosque.announcements.some((a) => a.priority === 'URGENT') && styles.noticeStripUrgent,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="View Mosque Notice Board"
+              >
+                <View style={styles.noticeStripLeft}>
+                  <Text style={styles.noticeStripIcon}>
+                    {mosque.announcements.some((a) => a.priority === 'URGENT') ? '🚨' : '📢'}
+                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={[
+                        styles.noticeStripTitle,
+                        mosque.announcements.some((a) => a.priority === 'URGENT') && styles.noticeStripTitleUrgent,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {mosque.announcements[0].title}
+                    </Text>
+                    <Text style={styles.noticeStripSub}>
+                      {mosque.announcements.length} active notice{mosque.announcements.length > 1 ? 's' : ''} • Tap to view notice board
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.noticeStripArrow}>→</Text>
+              </Pressable>
+            )}
+
             {/* Community Attendance Affiliation & Dual-Count (ADR-024, ADR-035) */}
             <AttendanceAffiliationCard
               mosqueId={mosque.id}
@@ -229,6 +265,13 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           onScheduleUpdated={(partial) => {
             setActiveSchedule((prev) => ({ ...(prev ?? {}), ...partial }));
           }}
+        />
+
+        <NoticeBoardModal
+          visible={noticeModalVisible}
+          mosqueName={mosque.name}
+          announcements={mosque.announcements || []}
+          onClose={() => setNoticeModalVisible(false)}
         />
       </View>
     </Modal>
@@ -531,5 +574,47 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: ferioColors.primary,
     fontWeight: '500',
+  },
+  noticeStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: ferioRadius.md,
+    padding: ferioSpacing.md,
+    marginBottom: ferioSpacing.md,
+  },
+  noticeStripUrgent: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fca5a5',
+  },
+  noticeStripLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  noticeStripIcon: {
+    fontSize: 20,
+    marginRight: ferioSpacing.sm,
+  },
+  noticeStripTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1e40af',
+  },
+  noticeStripTitleUrgent: {
+    color: '#991b1b',
+  },
+  noticeStripSub: {
+    fontSize: 11,
+    color: ferioColors.muted,
+    marginTop: 2,
+  },
+  noticeStripArrow: {
+    fontSize: 16,
+    color: ferioColors.muted,
+    marginLeft: ferioSpacing.sm,
   },
 });
