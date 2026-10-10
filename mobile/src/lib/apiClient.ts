@@ -5,7 +5,7 @@
  * - Resilient offline fallback to structured Bangladeshi fixtures
  */
 import { Platform } from 'react-native';
-import { AttendanceStatus, AttendanceSummary, AttendedMosqueItem, Mosque, MosqueAnnouncement, MosqueReportPayload, MosqueStaffMember, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
+import { AttendanceStatus, AttendanceSummary, AttendedMosqueItem, Mosque, MosqueAnnouncement, MosqueDonationMethod, MosqueReportPayload, MosqueStaffMember, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
 import { AuthResponse, LoginPayload, RegisterPayload, UserProfile } from '../types/auth';
 import { RegisterDevicePayload, UserDevice } from '../types/device';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
@@ -873,6 +873,50 @@ export const ApiClient = {
       },
       fallbackResponse
     );
+  },
+
+  async fetchMosqueDonations(mosqueId: string): Promise<MosqueDonationMethod[]> {
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/mosques/${mosqueId}/donations`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || json || [];
+    } catch {
+      return [];
+    }
+  },
+
+  async createMosqueDonation(
+    mosqueId: string,
+    data: {
+      methodType: string;
+      accountType?: string;
+      accountNumber: string;
+      accountTitle?: string;
+      bankName?: string;
+      branchName?: string;
+      routingNumber?: string;
+      instructions?: string;
+    }
+  ): Promise<{ success: boolean; data?: MosqueDonationMethod; error?: string }> {
+    try {
+      const token = await SecureTokenStorage.getAccessToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${getApiBaseUrl()}/mosques/${mosqueId}/donations`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        return { success: false, error: json.message || 'Failed to submit donation method' };
+      }
+      return { success: true, data: json.data || json };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error' };
+    }
   },
 
   async getPrayerScheduleHistory(
