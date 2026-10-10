@@ -465,9 +465,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 29: Live GPS Proximity Radar & Nearest Mosque Sorting Engine (ADR-063)
 
-- [ ] **29.1. Proximity Domain Contracts & Geodesic Haversine Math**
-  - [ ] Define `ProximityDistanceInfo`, `GeoCoordinates`, and `ProximitySortMode` in `types/proximity.ts`.
-  - [ ] Implement pure Haversine distance calculator with localized meters/km string formatters.
+- [x] **29.1. Proximity Domain Contracts & Geodesic Haversine Math**
+  - [x] Define `ProximityDistanceInfo`, `GeoCoordinates`, and `ProximitySortMode` in `types/proximity.ts`.
+  - [x] Implement pure Haversine distance calculator with localized meters/km string formatters.
 - [ ] **29.2. Dedicated LocationRadarService with Distance Caching**
   - [ ] Implement `locationRadarService.ts` maintaining memoized distance cache, coordinate threshold gating, and fast array comparator.
 - [ ] **29.3. Ferio MosqueCard Proximity Distance Badge**
