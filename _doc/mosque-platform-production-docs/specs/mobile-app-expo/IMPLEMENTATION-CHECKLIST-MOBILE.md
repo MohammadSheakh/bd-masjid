@@ -468,8 +468,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **29.1. Proximity Domain Contracts & Geodesic Haversine Math**
   - [x] Define `ProximityDistanceInfo`, `GeoCoordinates`, and `ProximitySortMode` in `types/proximity.ts`.
   - [x] Implement pure Haversine distance calculator with localized meters/km string formatters.
-- [ ] **29.2. Dedicated LocationRadarService with Distance Caching**
-  - [ ] Implement `locationRadarService.ts` maintaining memoized distance cache, coordinate threshold gating, and fast array comparator.
+- [x] **29.2. Dedicated LocationRadarService with Distance Caching**
+  - [x] Implement `locationRadarService.ts` maintaining memoized distance cache, coordinate threshold gating, and fast array comparator.
 - [ ] **29.3. Ferio MosqueCard Proximity Distance Badge**
   - [ ] Add emerald walking distance pill (`📍 350m` / `📍 ৩৫০ মি.`) to `MosqueCard.tsx` metadata row.
 - [ ] **29.4. Filter Bar "Nearest" Sorting Toggle & Performance Benchmark Gate**
