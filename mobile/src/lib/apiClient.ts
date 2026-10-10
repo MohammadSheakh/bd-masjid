@@ -20,6 +20,20 @@ export function getApiBaseUrl(): string {
   return 'http://localhost:4000/api/v1';
 }
 
+let isCurrentlyOffline = false;
+const offlineListeners = new Set<(isOffline: boolean) => void>();
+
+function notifyOfflineStatus(isOffline: boolean) {
+  if (isCurrentlyOffline !== isOffline) {
+    isCurrentlyOffline = isOffline;
+    offlineListeners.forEach((fn) => {
+      try {
+        fn(isOffline);
+      } catch {}
+    });
+  }
+}
+
 async function fetchWithFallback<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -40,9 +54,11 @@ async function fetchWithFallback<T>(
       throw new Error(`API error ${res.status}: ${res.statusText}`);
     }
     const data = await res.json();
+    notifyOfflineStatus(false);
     return (data.data ?? data) as T;
   } catch (error) {
-    // Graceful offline fallback: log diagnostic breadcrumb and return fixture
+    // Graceful offline fallback: flag offline status and return fixture
+    notifyOfflineStatus(true);
     return fallbackData;
   }
 }
@@ -147,5 +163,16 @@ export const ApiClient = {
       },
       { success: true }
     );
+  },
+
+  getIsOffline(): boolean {
+    return isCurrentlyOffline;
+  },
+
+  onOfflineStatusChange(listener: (isOffline: boolean) => void): () => void {
+    offlineListeners.add(listener);
+    return () => {
+      offlineListeners.delete(listener);
+    };
   },
 };

@@ -18,6 +18,7 @@ import { ViewTogglePill, ViewportMode } from './src/components/ViewTogglePill';
 import { AutoSilentModal } from './src/components/AutoSilentModal';
 import { MosqueDetailSheet } from './src/components/MosqueDetailSheet';
 import { MosqueMapView } from './src/components/MosqueMapView';
+import { OfflineBanner } from './src/components/OfflineBanner';
 import { PreferencesStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
@@ -55,6 +56,25 @@ export default function App() {
       }
     );
   });
+
+  const [isOffline, setIsOffline] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = ApiClient.onOfflineStatusChange((status) => {
+      setIsOffline(status);
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleRetrySync = async () => {
+    setIsRetrying(true);
+    try {
+      await ApiClient.getNearbyMosques(23.8103, 90.4125);
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
   const toggleFollow = (id: string) => {
     setFollowedIds((prev) => {
@@ -158,6 +178,13 @@ export default function App() {
           })}
         </ScrollView>
       </View>
+
+      {/* Offline Status Warning Banner (ADR-038) */}
+      <OfflineBanner
+        visible={isOffline}
+        onRetry={handleRetrySync}
+        isRetrying={isRetrying}
+      />
 
       {/* Viewport: List or Map */}
       {viewportMode === 'list' ? (
