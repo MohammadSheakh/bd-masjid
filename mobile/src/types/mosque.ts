@@ -51,6 +51,14 @@ export interface AttendanceSummary {
   userStatus: AttendanceStatus;
 }
 
+export interface AttendedMosqueItem {
+  mosqueId: string;
+  mosqueName: string;
+  city?: string;
+  status: AttendanceStatus;
+  updatedAt: string;
+}
+
 export interface MosqueStaffMember {
   id: string;
   mosqueId?: string;

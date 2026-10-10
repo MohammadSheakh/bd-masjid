@@ -510,8 +510,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 32: Musalli Attendance Status & Regular Congregation Hub (ADR-066)
 
-- [ ] **32.1. Attendance Summary & My-Mosques ApiClient Transport**
-  - [ ] Define `AttendedMosqueItem` contract and add `getAttendanceSummary` and `getMyAttendedMosques` to `ApiClient`.
+- [x] **32.1. Attendance Summary & My-Mosques ApiClient Transport**
+  - [x] Define `AttendedMosqueItem` contract and add `getAttendanceSummary` and `getMyAttendedMosques` to `ApiClient`.
 - [ ] **32.2. Enhance AttendanceAffiliationCard with Bilingual Tokens & Live Headcount**
   - [ ] Add bilingual label support (`আমার নিয়মিত মসজিদ` / `Regular Attendee`), headcount pill, and live sync on mount.
 - [ ] **32.3. Ferio MyAttendedMosquesModal Sheet**

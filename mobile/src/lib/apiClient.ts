@@ -5,7 +5,7 @@
  * - Resilient offline fallback to structured Bangladeshi fixtures
  */
 import { Platform } from 'react-native';
-import { AttendanceStatus, AttendanceSummary, Mosque, MosqueAnnouncement, MosqueReportPayload, MosqueStaffMember, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
+import { AttendanceStatus, AttendanceSummary, AttendedMosqueItem, Mosque, MosqueAnnouncement, MosqueReportPayload, MosqueStaffMember, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
 import { AuthResponse, LoginPayload, RegisterPayload, UserProfile } from '../types/auth';
 import { RegisterDevicePayload, UserDevice } from '../types/device';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
@@ -162,6 +162,38 @@ export const ApiClient = {
     };
 
     return fetchWithFallback<AttendanceSummary>(endpoint, options, fallback);
+  },
+
+  async getAttendanceSummary(mosqueId: string): Promise<AttendanceSummary> {
+    const userStatus = PreferencesStorage.getUserAttendance(mosqueId);
+    const fallback: AttendanceSummary = {
+      regularCount: userStatus === 'REGULAR' ? 42 : 41,
+      occasionalCount: userStatus === 'OCCASIONAL' ? 19 : 18,
+      userStatus,
+    };
+    return fetchWithFallback<AttendanceSummary>(
+      `/mosques/${mosqueId}/attendance-summary`,
+      { method: 'GET' },
+      fallback
+    );
+  },
+
+  async getMyAttendedMosques(): Promise<AttendedMosqueItem[]> {
+    const fallbackItems: AttendedMosqueItem[] = BANGLADESH_MOSQUES_FIXTURES
+      .filter((m) => PreferencesStorage.getUserAttendance(m.id) !== 'NONE')
+      .map((m) => ({
+        mosqueId: m.id,
+        mosqueName: m.name,
+        city: m.city || 'Dhaka',
+        status: PreferencesStorage.getUserAttendance(m.id),
+        updatedAt: new Date().toISOString(),
+      }));
+
+    return fetchWithFallback<AttendedMosqueItem[]>(
+      '/attendance/my-mosques',
+      { method: 'GET' },
+      fallbackItems
+    );
   },
 
   async updatePrayerSchedule(
