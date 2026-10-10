@@ -53,6 +53,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-045](ADR-045-mobile-crowdsourced-issue-reporting-and-delisting-protection.md) | Mobile Crowdsourced Issue Reporting and Delisting Protection | Accepted | 2026-10-10 | ADR-020, MosqueReport, Delisting Safeguards & Ferio Report Modal |
 | [ADR-046](ADR-046-mobile-sensor-fused-qibla-compass.md) | Mobile Real-Time Sensor-Fused Qibla Compass | Accepted | 2026-10-10 | Qibla Compass, Great-Circle Kaaba Bearing, Ferio Dial & Alignment Feedback |
 | [ADR-047](ADR-047-mobile-mosque-leadership-and-staff-directory.md) | Mobile Mosque Leadership & Staff Directory | Accepted | 2026-10-10 | MosqueStaff, Khatib/Imam/Mutawalli Roles, Verified Badges & Direct Dialing |
+| [ADR-048](ADR-048-mobile-bilingual-localization-and-musalli-terminology.md) | Mobile Bilingual Localization & Musalli Terminology | Accepted | 2026-10-10 | Bangla/English i18n, Musalli Terminology, 1-Tap Toggle Pill & Fast Synchronous Engine |
 
 
 ---
