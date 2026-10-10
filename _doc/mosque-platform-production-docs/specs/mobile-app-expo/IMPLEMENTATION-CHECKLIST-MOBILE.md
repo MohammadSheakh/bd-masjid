@@ -342,4 +342,20 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Respect `PreferencesStorage.isOemWizardDismissed()`.
   - [x] Run benchmark gate and TypeScript compilation.
 
+---
+
+## Phase 21: Remote Push Notification Device Token Sync (ADR-055 & Backend Parity)
+
+- [ ] **21.1. Device Registration Contract & ApiClient Integration**
+  - [ ] Add `DeviceType`, `RegisterDevicePayload`, and `UserDevice` to `types/device.ts`.
+  - [ ] Add `registerUserDevice` and `fetchUserDevices` in `ApiClient` (`POST /users/devices/register`, `GET /users/devices`).
+- [ ] **21.2. Dedicated PushDeviceService with Automatic Sync**
+  - [ ] Implement `pushDeviceService.ts` managing hardware token generation, device fingerprinting, and automatic session synchronization on boot / login.
+- [ ] **21.3. Ferio PushSettingsModal Sheet**
+  - [ ] Create `PushSettingsModal.tsx` with master toggle, active device card, live sync badge, and event category checkboxes.
+- [ ] **21.4. App Integration & Performance Verification**
+  - [ ] Wire `PushSettingsModal` into `App.tsx` top navbar action or settings sheet.
+  - [ ] Run benchmark gate and TypeScript compilation.
+
+
 
