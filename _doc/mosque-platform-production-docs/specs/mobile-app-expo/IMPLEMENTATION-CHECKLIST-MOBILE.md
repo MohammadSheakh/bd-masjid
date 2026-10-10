@@ -394,8 +394,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **24.1. Moderation Domain Models & ApiClient Transport**
   - [x] Add `ModerationType`, `ModerationAction`, and `ModerationQueueItem` to `types/moderation.ts`.
   - [x] Add `fetchModerationQueue` and `resolveModerationItem` to `ApiClient`.
-- [ ] **24.2. Dedicated ModeratorService with RBAC Role Gating**
-  - [ ] Implement `moderatorService.ts` checking `MODERATOR` / `ADMIN` role, pending review count, and optimistic triage dispatch.
+- [x] **24.2. Dedicated ModeratorService with RBAC Role Gating**
+  - [x] Implement `moderatorService.ts` checking `MODERATOR` / `ADMIN` role, pending review count, and optimistic triage dispatch.
 - [ ] **24.3. Ferio ModeratorReviewModal Sheet**
   - [ ] Create `ModeratorReviewModal.tsx` with filter pills, pending mosque cards, coordinate preview, duplicate distance indicator, and Approve / Reject buttons.
 - [ ] **24.4. Top Navbar Mod Pill Integration & Performance Gate**
