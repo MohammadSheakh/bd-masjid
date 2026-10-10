@@ -514,8 +514,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Define `AttendedMosqueItem` contract and add `getAttendanceSummary` and `getMyAttendedMosques` to `ApiClient`.
 - [x] **32.2. Enhance AttendanceAffiliationCard with Bilingual Tokens & Live Headcount**
   - [x] Add bilingual label support (`আমার নিয়মিত মসজিদ` / `Regular Attendee`), headcount pill, and live sync on mount.
-- [ ] **32.3. Ferio MyAttendedMosquesModal Sheet**
-  - [ ] Create `MyAttendedMosquesModal.tsx` listing all user-affiliated congregations with regular/occasional tags, direct sheet jump, and 1-tap unregister.
+- [x] **32.3. Ferio MyAttendedMosquesModal Sheet**
+  - [x] Create `MyAttendedMosquesModal.tsx` listing all user-affiliated congregations with regular/occasional tags, direct sheet jump, and 1-tap unregister.
 - [ ] **32.4. Wire My Attended Mosques Hub into App & Performance Gate**
   - [ ] Add trigger to App profile/header and MosqueDetailSheet.
   - [ ] Run benchmark gate and TypeScript compilation.
