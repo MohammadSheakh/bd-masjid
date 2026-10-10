@@ -63,6 +63,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-055](ADR-055-mobile-remote-push-notification-device-token-sync.md) | Mobile Remote Push Notification Device Token Sync & Background Delivery Pipeline | Accepted | 2026-10-10 | Device Token Sync, POST /users/devices, FCM/APNs & Push Settings Modal |
 | [ADR-056](ADR-056-mobile-contributor-attribution-and-submission-provenance.md) | Mobile Contributor Attribution and Submission Provenance Across Crowdsourced Sheets | Accepted | 2026-10-10 | Contributor Provenance, Scout Rep, Anonymous Attribution Banner & Sheet Integrations |
 | [ADR-057](ADR-057-mobile-offline-mutation-outbox-and-auto-sync-engine.md) | Mobile Offline Mutation Outbox and Automatic Background Sync Engine | Accepted | 2026-10-10 | Offline Outbox, FIFO Mutation Queue, Exponential Backoff, Auto-Sync & Reconnect Drain |
+| [ADR-058](ADR-058-mobile-community-moderator-and-scout-review-sheet.md) | Mobile Community Moderator and Scout Review Sheet Architecture | Accepted | 2026-10-10 | Moderation Queue, RBAC Role Gate, Pending Mosques, Duplicate Triage & Review Sheet |
 
 
 ---
