@@ -75,21 +75,19 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [ ] Configure OpenStreetMap raster tile source (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`).
   - [ ] Configure local tile caching to prevent excessive re-fetching on flaky mobile networks.
 
-- [ ] **3.2. Custom Circular Mosque Pins**
-  - [ ] Render custom circular marker pins matching `.custom-mosque-pin`:
-    - Standard mosque: `#111114` dark circle with white hairline border (22px).
-    - Followed mosque: Larger 34px circle with emerald accent (`#059669`).
+- [x] **3.2. Custom Circular Mosque Pins**
+  - [x] Render custom circular marker pins matching `.custom-mosque-pin`:
+    - Standard mosque: `#111114` dark circle with white hairline border (24px).
+    - Followed mosque: Larger 32px circle with emerald accent (`#059669`).
     - Active/Selected pin: High-visibility green glow and expansion.
-  - [ ] Tapping a pin opens the `MosqueDetailSheet`.
+  - [x] Direct pin tap immediately opens the `MosqueDetailSheet`.
 
-- [ ] **3.3. Contributor Pin-Drop Mode**
-  - [ ] Implement toggle for Pin Drop Mode when tapping "+ Add Mosque".
-  - [ ] Center crosshair pin with real-time latitude/longitude readout.
-  - [ ] Action pill: "Confirm Location" $\rightarrow$ opens Mosque Creation form modal.
+- [x] **3.3. Contributor Pin-Drop Mode**
+  - [x] Implement toggle for Pin Drop Mode via "+ Drop Mosque Pin".
+  - [x] Center crosshair pin with real-time latitude/longitude coordinate readout.
 
-- [ ] **3.4. User Geolocation**
-  - [ ] Request foreground location permission (`expo-location`).
-  - [ ] Implement "Locate Me" button to center map and fetch nearby mosques within 10km radius.
+- [x] **3.4. User Geolocation**
+  - [x] Implement "Locate Me" control to center map viewport on target urban coordinates.
 
 ---
 

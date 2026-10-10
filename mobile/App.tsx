@@ -17,6 +17,7 @@ import { MosqueCard } from './src/components/MosqueCard';
 import { ViewTogglePill, ViewportMode } from './src/components/ViewTogglePill';
 import { AutoSilentModal } from './src/components/AutoSilentModal';
 import { MosqueDetailSheet } from './src/components/MosqueDetailSheet';
+import { MosqueMapView } from './src/components/MosqueMapView';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -160,12 +161,16 @@ export default function App() {
           }
         />
       ) : (
-        <View style={styles.mapPlaceholder}>
-          <Text style={styles.mapTitle}>OpenStreetMap Viewport</Text>
-          <Text style={styles.mapSubtitle}>
-            Showing {filteredMosques.length} mosques across Bangladesh
-          </Text>
-        </View>
+        <MosqueMapView
+          mosques={filteredMosques}
+          followedIds={followedIds}
+          selectedMosqueId={selectedMosque?.id}
+          onSelectMosque={(m) => setSelectedMosque(m)}
+          onLocateMe={() => {
+            setSelectedTag('All');
+            setSearchQuery('');
+          }}
+        />
       )}
 
       {/* Floating Centered Viewport Toggle Pill */}
