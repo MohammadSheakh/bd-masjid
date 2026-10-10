@@ -500,8 +500,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Create `AnnouncementCard.tsx` with category badges (`🚨 Emergency`, `⚰️ Janazah`, `🕌 Jumu'ah`, etc.), pinned indicator, and expandable content.
 - [x] **31.3. Ferio AnnouncementsFeedModal Sheet**
   - [x] Create `AnnouncementsFeedModal.tsx` with category filter pills, pull-to-refresh, spatial radius query, and FlashList feed rendering.
-- [ ] **31.4. Ferio CreateAnnouncementModal Sheet**
-  - [ ] Create `CreateAnnouncementModal.tsx` with role validation, title, content, expiration date picker, and offline outbox queuing.
+- [x] **31.4. Ferio CreateAnnouncementModal Sheet**
+  - [x] Create `CreateAnnouncementModal.tsx` with role validation, title, content, expiration date picker, and offline outbox queuing.
 - [ ] **31.5. Wire Announcements Feed into App Filter Chips & Mosque Detail Sheet**
   - [ ] Add `📢 Announcements / বিজ্ঞপ্তি` trigger to App navigation/filter pills and Mosque detail sheet.
   - [ ] Run benchmark gate and TypeScript compilation.
