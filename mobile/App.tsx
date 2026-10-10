@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -11,6 +10,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Mosque, PrayerAutoSilentSettings } from './src/types/mosque';
 import { BANGLADESH_MOSQUES_FIXTURES } from './src/data/mosqueFixtures';
 import { PrayerCountdownBanner } from './src/components/PrayerCountdownBanner';
@@ -315,8 +315,9 @@ export default function App() {
   }, [topFollowedMosque, autoSilentSettings]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="dark" />
+    <SafeAreaProvider style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style="dark" />
 
       {/* Top Navbar */}
       <View style={styles.topNavbar}>
@@ -705,7 +706,8 @@ export default function App() {
         }}
         isBangla={lang === 'bn'}
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
