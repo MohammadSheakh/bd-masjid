@@ -134,6 +134,64 @@ The mobile client maintains **100% visual parity with the Ferio Visual System** 
 - **Android DND Permission Onboarding**: One-tap trigger opening system `ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS` with clear Ferio guidance screen.
 - **iOS Informational Card**: Clear platform note explaining iOS hardware switch restrictions and offering 1-tap Shortcuts setup.
 
+### Screen 5: Mosque Notice Board & Announcements Hub Modal (`NoticeBoardModal.tsx`)
+- **Urgent Broadcast Banners**: Highlights urgent alerts (`URGENT`) with red/amber badges at the top of the feed and sheet (`ADR-044`).
+- **Category Taxonomy**: Displays notices across `JANAZAH`, `EID_PRAYER`, `RAMADAN`, `FRIDAY_KHUTBAH`, and `GENERAL_NOTICE`.
+- **Event Schedule Tags**: Displays event date/time metadata alongside the author/committee attribution.
+- **Offline Cache**: Preserves notices in synchronous storage so worshippers can review funeral or prayer notices without active connectivity.
+
+### Screen 6: Crowdsourced Issue Reporting & Delisting Safeguards Modal (`ReportIssueModal.tsx`)
+- **ADR-020 & ADR-045 Parity**: Eliminates rigid admin verification gates; mosques are listed by default with community monitoring.
+- **5 Report Categories**: `PRAYER_TIME`, `LOCATION`, `CLOSED_MOSQUE`, `DUPLICATE`, and `OTHER`.
+- **Anti-Vandalism Protections**: Disallows single-report automated delisting; requires verified moderator confirmation for status transitions.
+- **Optimistic Confirmation**: Submits to `POST /api/v1/mosques/:id/reports` with graceful feedback.
+
+### Screen 7: Real-Time Sensor-Fused Great-Circle Qibla Compass (`QiblaCompassModal.tsx`)
+- **Great-Circle Geodesic Calculation**: Computes exact Kaaba bearing ($\approx 277.8^\circ$ WNW from Dhaka, $\approx 5,142$ km) using true spherical trigonometry.
+- **Sensor Fusion**: Integrates device magnetometer with smoothing filter for flutter-free needle movement (`ADR-046`).
+- **Ferio Compass Dial**: High-contrast dark dial (`#111114`) with emerald heading needle and green alignment pulse when facing within $\pm 3^\circ$ of Kaaba.
+
+### Screen 8: Mosque Leadership & Verified Staff Directory (`LeadershipRosterCard.tsx`)
+- **Role Taxonomy**: Displays official titles: Khatib, Senior Pesh Imam, Assistant Imam, Muazzin, Khadem, President, Mutawalli (`ADR-047`).
+- **Verification Green Ticks**: Visual checkmark badge (`✓ Verified Staff`) confirming committee-endorsed personnel.
+- **Direct Telephone Dialer**: 1-tap phone trigger linking to native device dialer with sanitized tel: protocol.
+
+### Screen 9: Bilingual Localization & Musalli Terminology (`LocalizationService.ts`)
+- **Native Musalli Lexicon**: Pure Islamic/Bangla terminology: ওয়াক্ত, জামাত, আজান, খতিব, কিবলা, অনুদান (`ADR-048`).
+- **1-Tap Navbar Switcher**: Compact pill in top navbar (`বাং | EN`) instantly flipping language synchronously across all components without app reload.
+- **Eastern Arabic / Bangla Numerals**: Utility converting timestamps and counts into Bangla numerals (`১২:৪৫`, `১,৫০০`).
+
+### Screen 10: Daily Authentic Hadith & Reflection Digest (`DailyHadithCard.tsx`)
+- **Verified Hadith Pool**: Canonical reflections with Arabic, Bangla, and English translations from Sahih Bukhari, Sahih Muslim, and Sunan an-Nasa'i (`ADR-049`).
+- **Deterministic Day-of-Year Rotation**: Uniform national reflection across all Bangladeshi users on any given calendar day.
+- **Collapsible UI**: Positioned in feed header beneath countdown banner with local collapse memory and native share sheet trigger.
+
+### Screen 11: Extensible Facilities Taxonomy & Suggest Facilities Sheet (`FacilitiesCard.tsx`, `SuggestFacilitiesModal.tsx`)
+- **ADR-025 Parity**: Full architectural parity with web facilities catalog and dedicated suggestion flow.
+- **Canonical Metrics**: Capacity counter, separate wudu spots, female prayer area, AC, wheelchair access, janaza staging, parking.
+- **Extensible Amenities Tags**: Renders custom chips (Solar Power, Elevator, CCTV, Chilled RO Water, IPS/Generator, Musafir Khana).
+- **Dedicated Community Suggestion Modal**: Dedicated sheet with switches, catalog chips, and custom tag input transmitting to `POST /mosques/:id/suggestions`.
+
+### Screen 12: Verified Multi-Signatory Donation Channels Hub (`DonationChannelsCard.tsx`)
+- **ADR-028 Parity**: Worshippers see official committee accounts with verified multi-signatory endorsement consensus.
+- **Financial Brand Tokens**: Branded badges for bKash (`#e2136e`), Nagad (`#ea580c`), Rocket (`#7c3aed`), and Bank Transfer (`#0f766e`).
+- **Multi-Signatory Attestation Badges**: Distinct visual ticks (`✓ President`, `✓ Gen. Secretary`, `○ Mutawalli`).
+- **Fraud Safety Disclosures**: Personal accounts trigger explicit warning banners advising donors to verify with the committee before large transfers.
+- **1-Tap Clipboard Copier**: Instant copy with visual state confirmation and USSD code prompts (`*247#`, `*167#`).
+
+### Screen 13: Categorized Collections & Routine Bookmarks (`CollectionFilterBar.tsx`, `CollectionTagModal.tsx`)
+- **ADR-052 & ADR-013 Parity**: Multi-tag categorization matching worshipper commuting routines (🏠 Home, 🏢 Work, 🕌 Jumu'ah, ⭐ Saved).
+- **Contextual Feed Filter Bar**: Instant horizontal pill switcher filtering feed with zero network latency.
+- **Interactive Tagging Sheet**: Multi-select assignment sheet with instant local storage synchronization.
+
+### Screen 14: Contributor Pin-Drop & Proximity Duplicate Detection (`AddMosqueSheet.tsx`)
+- **ADR-005 & ADR-043 Parity**: Crosshair pin-drop mode allowing community scouts to establish new mosques.
+- **$\le 150$m Proximity Duplicate Check**: Warns contributors before creating duplicates, displaying existing nearby candidates.
+- **Multi-Step Sheet**: Guided flow collecting name, address, initial Jamaat timings, and optional facilities.
+
+### Screen 15: OEM Battery Optimization Mitigation Wizard (`OemOptimizationModal.tsx`)
+- **ADR-037 Parity**: Detects aggressive battery killers (Xiaomi HyperOS, Realme ColorOS, Samsung OneUI) and guides users to whitelist the app for reliable prayer alarms.
+
 ---
 
 ## 5. Non-Functional & Enterprise Platform Requirements
@@ -171,3 +229,28 @@ The mobile client maintains **100% visual parity with the Ferio Visual System** 
 - **Exact Execution**: Scheduled via `AlarmManager.setExactAndAllowWhileIdle()` to guarantee wakeups during Android Doze mode.
 - **State Resilience**: Stores `previousRingerMode` synchronously in `MMKV` / encrypted `SharedPreferences` so process restarts or low-memory kills never lose the initial state.
 - **Device Reboot Listener**: `BOOT_COMPLETED` BroadcastReceiver automatically reschedules the day's silent and restore alarms after phone restart.
+
+---
+
+## 6. Complete Feature & Backend API Traceability Matrix
+
+| Web Feature Spec | Platform ADR | Mobile Screen / Component | Backend API Endpoint | HTTP Method | Data Payload / DTO | Invariant & Security Verification |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **F-001**: Nearby Mosques | ADR-002, ADR-030 | `App.tsx`, `MosqueCard.tsx` | `/mosques/nearby` | `GET` | `?lat=&lng=&radiusMeters=` | PostGIS spatial index, bounded $\le 50$ results |
+| **F-002**: Mosque Registry | ADR-001, ADR-031 | `MosqueDetailSheet.tsx` | `/mosques/:id` | `GET` | None | Sovereign PostgreSQL record, non-blocking |
+| **F-005**: Add Mosque Pin | ADR-005, ADR-043 | `AddMosqueSheet.tsx` | `/mosques` | `POST` | `CreateMosqueDto` | $\le 150$m duplicate check, contributor provenance |
+| **F-007**: Prayer Timetable | ADR-007, ADR-036 | `TimetableUpdateModal.tsx` | `/mosques/:id/prayer-schedule` | `PUT` | `UpdatePrayerScheduleDto` | Immediate update, 5 waqts + Jumu'ah validated |
+| **F-008**: Freshness History | ADR-007, ADR-030 | `FreshnessBadge.tsx` | `/mosques/:id/freshness` | `GET` | `FreshnessMetadata` | Stored timestamp derived, 90d/180d freshness |
+| **F-009**: User Attendance | ADR-024, ADR-035 | `AttendanceAffiliationCard.tsx`| `/mosques/:id/attendance` | `PUT` / `DELETE`| `{ status: 'REGULAR'/'OCCASIONAL' }` | `@@unique([userId, mosqueId])`, dual count |
+| **F-010**: Staff Directory | ADR-024, ADR-047 | `LeadershipRosterCard.tsx` | `/mosques/:id/staff` | `GET` | `MosqueStaffMember[]` | Verified checkmark badge, direct tel: dialer |
+| **F-013**: Mosque Reports | ADR-020, ADR-045 | `ReportIssueModal.tsx` | `/mosques/:id/reports` | `POST` | `CreateReportDto` | 5 report types, delisting protection |
+| **F-021**: Mosque Facilities | ADR-010, ADR-050 | `FacilitiesCard.tsx` | `/mosques/:id/facilities` | `GET` | `MosqueFacility` | Total capacity, wudu, AC, wheelchair access |
+| **F-022**: Announcements | ADR-011, ADR-044 | `NoticeBoardModal.tsx` | `/mosques/:id/announcements`| `GET` | `MosqueAnnouncement[]` | Priority badges (`URGENT`), event date/time |
+| **F-025**: Extensible Facilities| ADR-025, ADR-050 | `SuggestFacilitiesModal.tsx`| `/mosques/:id/suggestions` | `POST` | `suggestedFacilities` | Catalog chips + custom tags ($\le 20$ tags) |
+| **F-028**: Verified Donations | ADR-028, ADR-051 | `DonationChannelsCard.tsx` | `/mosques/:id/donations` | `GET` | `MosqueDonationMethod[]` | Multi-signatory badges, personal account alert |
+| **F-030**: Mosque Follows | ADR-013, ADR-052 | `CollectionFilterBar.tsx` | `/mosques/:id/follow` | `POST` | None | Synchronous MMKV routine tags (Home, Work) |
+| **Mobile Extra**: Auto-Silent | ADR-034 | `AutoSilentSettingsModal.tsx`| Native TurboModule | Native | System DND / Audio Manager | Prior-state preservation, reboot receiver |
+| **Mobile Extra**: Qibla Compass| ADR-046 | `QiblaCompassModal.tsx` | Sensor Fusion Engine | Client | Magnetometer / Accelerometer | Great-Circle Kaaba azimuth ($277.8^\circ$ WNW) |
+| **Mobile Extra**: Localization | ADR-048 | Top Navbar Switcher | `LocalizationService.ts` | Client | Synchronous Dictionary Map | Bilingual Musalli terminology (`বাং | EN`) |
+| **Mobile Extra**: Daily Hadith | ADR-049 | `DailyHadithCard.tsx` | `HadithService.ts` | Client | Deterministic Day Rotation | Authenticated Sahih citations, native share |
+
