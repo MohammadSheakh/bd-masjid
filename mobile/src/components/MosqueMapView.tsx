@@ -28,6 +28,7 @@ const CENTER_LAT = 23.7314;
 const CENTER_LNG = 90.4126;
 const LAT_DELTA = 0.05;
 const LNG_DELTA = 0.05;
+const OSM_HEADERS = { 'User-Agent': 'BDMasjidMobile/1.0' };
 
 export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
   mosques,
@@ -64,24 +65,24 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
         <View style={styles.tileGrid} pointerEvents="none">
           <View style={styles.tileRow}>
             <Image
-              source={{ uri: 'https://a.tile.openstreetmap.org/13/6152/3567.png' }}
+              source={{ uri: 'https://a.tile.openstreetmap.org/13/6152/3567.png', headers: OSM_HEADERS }}
               style={styles.mapTile}
               resizeMode="cover"
             />
             <Image
-              source={{ uri: 'https://b.tile.openstreetmap.org/13/6153/3567.png' }}
+              source={{ uri: 'https://b.tile.openstreetmap.org/13/6153/3567.png', headers: OSM_HEADERS }}
               style={styles.mapTile}
               resizeMode="cover"
             />
           </View>
           <View style={styles.tileRow}>
             <Image
-              source={{ uri: 'https://c.tile.openstreetmap.org/13/6152/3568.png' }}
+              source={{ uri: 'https://c.tile.openstreetmap.org/13/6152/3568.png', headers: OSM_HEADERS }}
               style={styles.mapTile}
               resizeMode="cover"
             />
             <Image
-              source={{ uri: 'https://a.tile.openstreetmap.org/13/6153/3568.png' }}
+              source={{ uri: 'https://a.tile.openstreetmap.org/13/6153/3568.png', headers: OSM_HEADERS }}
               style={styles.mapTile}
               resizeMode="cover"
             />
