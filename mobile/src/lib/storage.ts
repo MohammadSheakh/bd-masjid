@@ -115,4 +115,14 @@ export const PreferencesStorage = {
   setCachedAnnouncements(mosqueId: string, announcements: any[]): void {
     syncKvCache.set(`bd_masjid_announcements_${mosqueId}`, JSON.stringify(announcements));
   },
+
+  getLanguagePreference(): 'bn' | 'en' {
+    const raw = syncKvCache.get('bd_masjid_language_pref');
+    if (raw === 'en') return 'en';
+    return 'bn'; // Default to Bangla
+  },
+
+  setLanguagePreference(lang: 'bn' | 'en'): void {
+    syncKvCache.set('bd_masjid_language_pref', lang);
+  },
 };
