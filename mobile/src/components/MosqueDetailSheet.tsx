@@ -6,6 +6,7 @@ import {
   View,
   ScrollView,
   Pressable,
+  Linking,
 } from 'react-native';
 import { Mosque, MosqueStaffMember, PrayerSchedule } from '../types/mosque';
 import { formatTo12Hour } from '../lib/time';
@@ -57,6 +58,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
   const [activeFacility, setActiveFacility] = useState(mosque?.facility);
+  const [copiedShare, setCopiedShare] = useState(false);
 
   useEffect(() => {
     setActiveSchedule(mosque?.prayerSchedule);
@@ -197,13 +199,47 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               </View>
 
               <View style={styles.timetableTable}>
-                {prayerRows.map((row) => (
-                  <View key={row.name} style={styles.tableRow}>
-                    <Text style={styles.waqtCol}>{row.name}</Text>
-                    <Text style={styles.timeCol}>{formatTo12Hour(row.jammat, '—')}</Text>
-                  </View>
-                ))}
+                <View style={styles.tableHeaderRow}>
+                  <Text style={styles.tableHeaderCol}>Prayer</Text>
+                  <Text style={[styles.tableHeaderCol, { textAlign: 'center' }]}>Start Time</Text>
+                  <Text style={[styles.tableHeaderCol, { textAlign: 'right' }]}>Jamaat Time</Text>
+                </View>
+                {prayerRows.map((row) => {
+                  const isFriday = row.name === "Jumu'ah";
+                  return (
+                    <View key={row.name} style={[styles.tableRow, isFriday && styles.tableRowFriday]}>
+                      <Text style={[styles.waqtCol, isFriday && styles.waqtColFriday]}>{row.name}</Text>
+                      <Text style={styles.startCol}>{formatTo12Hour(row.start, '—')}</Text>
+                      <Text style={[styles.timeCol, isFriday && styles.timeColFriday]}>
+                        {formatTo12Hour(row.jammat, '—')}
+                      </Text>
+                    </View>
+                  );
+                })}
               </View>
+
+              {/* Holy Month of Ramadan Timings */}
+              {(schedule?.taraweehJamaat || schedule?.sahriEnd || schedule?.iftarStart) && (
+                <View style={styles.ramadanBox}>
+                  <Text style={styles.ramadanTitle}>🌙 Holy Month of Ramadan Timings</Text>
+                  <View style={styles.ramadanGrid}>
+                    <View style={styles.ramadanCell}>
+                      <Text style={styles.ramadanLabel}>Sahri End</Text>
+                      <Text style={styles.ramadanVal}>{formatTo12Hour(schedule.sahriEnd, '—')}</Text>
+                    </View>
+                    <View style={styles.ramadanCell}>
+                      <Text style={styles.ramadanLabel}>Iftar Start</Text>
+                      <Text style={styles.ramadanVal}>{formatTo12Hour(schedule.iftarStart, '—')}</Text>
+                    </View>
+                    <View style={styles.ramadanCell}>
+                      <Text style={styles.ramadanLabel}>Taraweeh</Text>
+                      <Text style={[styles.ramadanVal, { color: ferioColors.accent }]}>
+                        {formatTo12Hour(schedule.taraweehJamaat, '—')}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
             </View>
 
             {/* Card 2: Verified Donation Channels (ADR-028, ADR-051, ADR-067) */}
@@ -228,15 +264,67 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               onPressSuggest={() => setSuggestFacilitiesModalVisible(true)}
             />
 
-            {/* Community Issue Reporting Trigger (ADR-020, ADR-045) */}
-            <Pressable
-              style={styles.reportIssueTrigger}
-              onPress={() => setReportModalVisible(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Report an issue with this mosque"
-            >
-              <Text style={styles.reportIssueText}>🚩 Report an issue / incorrect information</Text>
-            </Pressable>
+            {/* Quick Actions 4-Card Toolbar (Directions, Donate, Suggest, Report) */}
+            <View style={styles.quickActionsGrid}>
+              <Pressable
+                onPress={() => {
+                  const url = `https://www.google.com/maps/dir/?api=1&destination=${mosque.latitude},${mosque.longitude}`;
+                  Linking.openURL(url).catch(() => {});
+                }}
+                style={styles.quickActionBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Get directions in Maps"
+              >
+                <Text style={styles.quickActionIcon}>🧭</Text>
+                <Text style={styles.quickActionText}>Directions</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setSuggestDonationModalVisible(true)}
+                style={styles.quickActionBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Open donation channels"
+              >
+                <Text style={styles.quickActionIcon}>💳</Text>
+                <Text style={styles.quickActionText}>Donate</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setSuggestFacilitiesModalVisible(true)}
+                style={styles.quickActionBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Suggest facility updates"
+              >
+                <Text style={styles.quickActionIcon}>✏️</Text>
+                <Text style={styles.quickActionText}>Suggest</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setReportModalVisible(true)}
+                style={styles.quickActionBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Report issue"
+              >
+                <Text style={styles.quickActionIcon}>🚩</Text>
+                <Text style={styles.quickActionText}>Report</Text>
+              </Pressable>
+            </View>
+
+            {/* Sheet Footer: ID & Share */}
+            <View style={styles.footerRow}>
+              <Text style={styles.footerId}>ID: {mosque.id.slice(0, 10)}...</Text>
+              <Pressable
+                onPress={() => {
+                  setCopiedShare(true);
+                  setTimeout(() => setCopiedShare(false), 2000);
+                }}
+                style={styles.shareBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Share mosque profile"
+              >
+                <Text style={styles.shareBtnText}>{copiedShare ? '✓ Copied!' : '🔗 Share'}</Text>
+              </Pressable>
+            </View>
           </ScrollView>
         </View>
 
@@ -603,5 +691,123 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: ferioColors.muted,
     textDecorationLine: 'underline',
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#fafafa',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: ferioColors.border,
+  },
+  tableHeaderCol: {
+    flex: 1,
+    fontSize: 11,
+    fontWeight: '600',
+    color: ferioColors.muted,
+  },
+  tableRowFriday: {
+    backgroundColor: '#ecfdf5',
+    paddingHorizontal: 8,
+    borderRadius: ferioRadius.sm,
+  },
+  waqtColFriday: {
+    color: ferioColors.accent,
+    fontWeight: '700',
+  },
+  startCol: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 12,
+    color: ferioColors.muted,
+    fontVariant: ['tabular-nums'],
+  },
+  timeColFriday: {
+    color: ferioColors.accent,
+  },
+  ramadanBox: {
+    marginTop: ferioSpacing.sm,
+    padding: ferioSpacing.sm + 2,
+    borderRadius: ferioRadius.md,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+  },
+  ramadanTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#065f46',
+    marginBottom: 6,
+  },
+  ramadanGrid: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  ramadanCell: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    padding: 6,
+    borderRadius: ferioRadius.sm,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#d1fae5',
+  },
+  ramadanLabel: {
+    fontSize: 9,
+    color: ferioColors.muted,
+    marginBottom: 2,
+  },
+  ramadanVal: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: ferioColors.primary,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: ferioSpacing.xs,
+  },
+  quickActionBtn: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+    borderRadius: ferioRadius.lg,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickActionIcon: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  quickActionText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: ferioColors.primary,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: ferioSpacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: ferioColors.border,
+    marginTop: ferioSpacing.xs,
+    marginBottom: ferioSpacing.lg,
+  },
+  footerId: {
+    fontSize: 11,
+    color: ferioColors.muted,
+  },
+  shareBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  shareBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: ferioColors.primary,
   },
 });
