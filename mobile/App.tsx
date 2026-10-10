@@ -41,6 +41,7 @@ import { OutboxSyncBadge } from './src/components/OutboxSyncBadge';
 import { OfflineOutboxService } from './src/services/offlineOutboxService';
 import { ModeratorReviewModal } from './src/components/ModeratorReviewModal';
 import { ModeratorService } from './src/services/moderatorService';
+import { DiagnosticsTelemetryModal } from './src/components/DiagnosticsTelemetryModal';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -64,6 +65,7 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isOemWizardOpen, setIsOemWizardOpen] = useState(false);
   const [isModModalOpen, setIsModModalOpen] = useState(false);
+  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
   const [pendingModCount, setPendingModCount] = useState<number>(() =>
     ModeratorService.getPendingCountSync()
   );
@@ -215,10 +217,14 @@ export default function App() {
 
       {/* Top Navbar */}
       <View style={styles.topNavbar}>
-        <View>
+        <Pressable
+          onLongPress={() => setIsDiagnosticsOpen(true)}
+          delayLongPress={700}
+          accessibilityLabel="BD Masjid Brand Title (Long press for diagnostics)"
+        >
           <Text style={styles.brandTitle}>{LocalizationService.t('brandTitle')}</Text>
           <Text style={styles.brandSubtitle}>{LocalizationService.t('brandSubtitle')}</Text>
-        </View>
+        </Pressable>
 
         <View style={styles.topNavbarActions}>
           {/* 1-Tap Language Toggle Pill (ADR-048) */}
@@ -489,6 +495,12 @@ export default function App() {
       <ModeratorReviewModal
         visible={isModModalOpen}
         onClose={() => setIsModModalOpen(false)}
+      />
+
+      {/* Low-End Hardware Diagnostics & Field Ops Telemetry Modal (ADR-059) */}
+      <DiagnosticsTelemetryModal
+        visible={isDiagnosticsOpen}
+        onClose={() => setIsDiagnosticsOpen(false)}
       />
     </SafeAreaView>
   );
