@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/root/.npm \
     npm ci --include=dev
 
 # ==============================================================================
-# Stage 2: Development / Metro Bundler Target (Port 8081)
+# Stage 2: Development / Metro Bundler Target (Port 8081 with QR Code)
 # ==============================================================================
 FROM base AS dev
 
@@ -28,10 +28,10 @@ COPY . .
 
 EXPOSE 8081
 
+ENV CI=0
 ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
-ENV REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
 
-CMD ["npx", "expo", "start", "--host", "0.0.0.0", "--port", "8081"]
+CMD ["npx", "expo", "start", "--go", "--host", "lan", "--port", "8081"]
 
 # ==============================================================================
 # Stage 3: Builder - Compile static web distribution bundle

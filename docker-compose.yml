@@ -113,39 +113,28 @@ services:
     build:
       context: ./mobile
       dockerfile: Dockerfile
-      target: production
+      target: dev
       args:
-        EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:6733/api/v1}
+        EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-https://apiferio.sheakh.qzz.io/api/v1}
     container_name: bd-masjid-mobile
     restart: unless-stopped
+    stdin_open: true
+    tty: true
     env_file:
       - path: .env
         required: false
     ports:
-      - "${MOBILE_BIND_IP:-127.0.0.1}:${MOBILE_PORT:-8082}:80"
+      - "${METRO_PORT:-8081}:8081"
     environment:
-      NODE_ENV: production
-      PORT: 80
+      NODE_ENV: development
+      CI: "0"
+      REACT_NATIVE_PACKAGER_HOSTNAME: ${REACT_NATIVE_PACKAGER_HOSTNAME:-192.168.0.110}
       INTERNAL_API_URL: http://backend:6733
-      EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:6733/api/v1}
+      EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-https://apiferio.sheakh.qzz.io/api/v1}
       TZ: ${TZ:-Asia/Dhaka}
     depends_on:
       backend:
         condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--tries=1",
-          "--spider",
-          "http://127.0.0.1:80/health",
-        ]
-      interval: 15s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
     networks:
       - bd-masjid-network
 
@@ -164,7 +153,7 @@ services:
       backend:
         condition: service_healthy
       mobile:
-        condition: service_healthy
+        condition: service_started
 
 volumes:
   bd_masjid_redisdata:
