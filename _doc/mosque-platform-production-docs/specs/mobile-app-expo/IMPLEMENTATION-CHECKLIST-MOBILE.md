@@ -349,8 +349,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **21.1. Device Registration Contract & ApiClient Integration**
   - [x] Add `DeviceType`, `RegisterDevicePayload`, and `UserDevice` to `types/device.ts`.
   - [x] Add `registerUserDevice` and `fetchUserDevices` in `ApiClient` (`POST /users/devices/register`, `GET /users/devices`).
-- [ ] **21.2. Dedicated PushDeviceService with Automatic Sync**
-  - [ ] Implement `pushDeviceService.ts` managing hardware token generation, device fingerprinting, and automatic session synchronization on boot / login.
+- [x] **21.2. Dedicated PushDeviceService with Automatic Sync**
+  - [x] Implement `pushDeviceService.ts` managing hardware token generation, device fingerprinting, and automatic session synchronization on boot / login.
 - [ ] **21.3. Ferio PushSettingsModal Sheet**
   - [ ] Create `PushSettingsModal.tsx` with master toggle, active device card, live sync badge, and event category checkboxes.
 - [ ] **21.4. App Integration & Performance Verification**
