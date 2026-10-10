@@ -35,6 +35,7 @@ import { LocalizationService, Language } from './src/services/localizationServic
 import { NotificationInboxService } from './src/services/notificationInboxService';
 import { AuthService } from './src/services/authService';
 import { OemBatteryService } from './src/services/oemBatteryService';
+import { PushDeviceService } from './src/services/pushDeviceService';
 import { UserProfile } from './src/types/auth';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
@@ -170,6 +171,8 @@ export default function App() {
       setCurrentUser(session.user);
     });
     AuthService.hydrateSession();
+
+    PushDeviceService.syncDeviceRegistration();
 
     return () => {
       unsubNotif();
