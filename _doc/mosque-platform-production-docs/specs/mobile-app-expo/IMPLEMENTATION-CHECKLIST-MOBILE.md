@@ -285,9 +285,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 17: Categorized Mosque Collections & Custom Bookmarks (ADR-052)
 
-- [ ] **17.1. Collection Tag Model & Fast Synchronous Storage**
-  - [ ] Implement `collectionService.ts` with tags (`HOME`, `WORK`, `JUMUAH`, `FAVORITE`), icons, and bilingual labels.
-  - [ ] Add `CollectionStorage` in `storage.ts` with synchronous MMKV caching and backfill migration.
+- [x] **17.1. Collection Tag Model & Fast Synchronous Storage**
+  - [x] Implement `collectionService.ts` with tags (`HOME`, `WORK`, `JUMUAH`, `FAVORITE`), icons, and bilingual labels.
+  - [x] Add `CollectionStorage` in `storage.ts` with synchronous MMKV caching and backfill migration.
 - [ ] **17.2. Ferio CollectionTagModal Sheet**
   - [ ] Create `CollectionTagModal.tsx` with multi-select tag chips, instant saving, and haptic feedback.
 - [ ] **17.3. Contextual Feed Filter Bar**

@@ -4,6 +4,7 @@
  * - Synchronous In-Memory Key-Value Storage for UI micro-state (< 1ms access)
  */
 import { AttendanceStatus, PrayerAutoSilentSettings } from '../types/mosque';
+import { MosqueCollectionTag } from '../services/collectionService';
 
 // In-Memory synchronous KV cache (mimicking MMKV fast key-value map)
 const syncKvCache = new Map<string, string>();
@@ -132,5 +133,62 @@ export const PreferencesStorage = {
 
   setHadithCardCollapsed(collapsed: boolean): void {
     syncKvCache.set('bd_masjid_hadith_collapsed', String(collapsed));
+  },
+};
+
+export const CollectionStorage = {
+  getCollections(): Record<string, MosqueCollectionTag[]> {
+    const raw = syncKvCache.get('bd_masjid_collections_v1');
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // fallback
+      }
+    }
+    // Backfill from followed mosques
+    const followed = PreferencesStorage.getFollowedMosqueIds([]);
+    const initial: Record<string, MosqueCollectionTag[]> = {};
+    followed.forEach((id) => {
+      initial[id] = ['FAVORITE'];
+    });
+    return initial;
+  },
+
+  getMosqueTags(mosqueId: string): MosqueCollectionTag[] {
+    const all = this.getCollections();
+    return all[mosqueId] || [];
+  },
+
+  setMosqueTags(mosqueId: string, tags: MosqueCollectionTag[]): void {
+    const all = this.getCollections();
+    if (tags.length === 0) {
+      delete all[mosqueId];
+    } else {
+      all[mosqueId] = Array.from(new Set(tags));
+    }
+    syncKvCache.set('bd_masjid_collections_v1', JSON.stringify(all));
+
+    // Keep followed list in sync
+    const currentFollowed = PreferencesStorage.getFollowedMosqueIds([]);
+    if (tags.length > 0 && !currentFollowed.includes(mosqueId)) {
+      PreferencesStorage.setFollowedMosqueIds([...currentFollowed, mosqueId]);
+    } else if (tags.length === 0 && currentFollowed.includes(mosqueId)) {
+      PreferencesStorage.setFollowedMosqueIds(currentFollowed.filter((id) => id !== mosqueId));
+    }
+  },
+
+  toggleTag(mosqueId: string, tag: MosqueCollectionTag): MosqueCollectionTag[] {
+    const current = this.getMosqueTags(mosqueId);
+    const updated = current.includes(tag)
+      ? current.filter((t) => t !== tag)
+      : [...current, tag];
+    this.setMosqueTags(mosqueId, updated);
+    return updated;
+  },
+
+  getMosquesByTag(tag: MosqueCollectionTag): string[] {
+    const all = this.getCollections();
+    return Object.keys(all).filter((id) => all[id]?.includes(tag));
   },
 };
