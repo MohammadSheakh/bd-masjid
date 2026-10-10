@@ -318,9 +318,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **19.1. Auth Domain Models & ApiClient Transport**
   - [x] Add `UserProfile`, `AuthSession`, `LoginPayload`, and `RegisterPayload` to `types/auth.ts`.
   - [x] Add `loginUser`, `registerUser`, `fetchCurrentUserSession`, and `logoutUser` in `ApiClient` with fallback mock identities.
-- [ ] **19.2. Fast Synchronous AuthService with Token Encryption**
-  - [ ] Implement `authService.ts` with synchronous profile cache, session hydration on boot, and pub/sub listener dispatch.
-  - [ ] Wire hardware token encryption via `SecureTokenStorage`.
+- [x] **19.2. Fast Synchronous AuthService with Token Encryption**
+  - [x] Implement `authService.ts` with synchronous profile cache, session hydration on boot, and pub/sub listener dispatch.
+  - [x] Wire hardware token encryption via `SecureTokenStorage`.
 - [ ] **19.3. Ferio AuthSessionModal Sheet**
   - [ ] Create `AuthSessionModal.tsx` with Sign In / Register tabs, authenticated user profile card, verified badge, and sign-out action.
 - [ ] **19.4. Top Navbar Profile Pill & App Integration**
