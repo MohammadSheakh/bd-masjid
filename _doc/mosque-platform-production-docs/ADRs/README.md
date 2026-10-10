@@ -75,6 +75,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-067](ADR-067-mobile-crowdsourced-donation-channel-submission-sheet.md) | Mobile Crowdsourced Donation Channel Submission Sheet | Accepted | 2026-10-10 | Donation Channels, bKash/Nagad/Bank, Two-Person Verification & Suggest Modal |
 | [ADR-068](ADR-068-mobile-prayer-schedule-revision-history-and-audit-timeline-sheet.md) | Mobile Prayer Schedule Revision History and Audit Timeline Sheet | Accepted | 2026-10-10 | Schedule Audit, Visual Diff Badges, Timeline Sheet, GET /mosques/:id/prayer-schedule/history |
 | [ADR-069](ADR-069-mobile-mosque-committee-verification-and-proof-document-submission-sheet.md) | Mobile Mosque Committee Official Verification and Proof Document Submission Sheet | Accepted | 2026-10-10 | Committee Verification, Proof Documents, NID/Resolution, Role Claims & Status Tracking |
+| [ADR-070](ADR-070-mobile-app-enterprise-containerization-and-unified-docker-compose.md) | Mobile App Enterprise Containerization & Unified Docker Compose Orchestration | Accepted | 2026-10-10 | Multi-Stage Dockerfile, Nginx Alpine Distribution, Metro Bundler, Port 8082/8081 & docker-compose |
 
 
 ---
