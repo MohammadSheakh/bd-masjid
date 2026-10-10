@@ -16,6 +16,7 @@ import { PrayerCountdownBanner } from './src/components/PrayerCountdownBanner';
 import { MosqueCard } from './src/components/MosqueCard';
 import { ViewTogglePill, ViewportMode } from './src/components/ViewTogglePill';
 import { AutoSilentModal } from './src/components/AutoSilentModal';
+import { MosqueDetailSheet } from './src/components/MosqueDetailSheet';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -25,6 +26,7 @@ export default function App() {
   const [selectedTag, setSelectedTag] = useState('All');
   const [viewportMode, setViewportMode] = useState<ViewportMode>('list');
   const [followedIds, setFollowedIds] = useState<string[]>(['mosque-dhaka-baitul-mukarram']);
+  const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [autoSilentSettings, setAutoSilentSettings] = useState<PrayerAutoSilentSettings>({
@@ -145,6 +147,7 @@ export default function App() {
               mosque={item}
               isFollowed={followedIds.includes(item.id)}
               onToggleFollow={toggleFollow}
+              onPress={(m) => setSelectedMosque(m)}
             />
           )}
           contentContainerStyle={styles.listContent}
@@ -180,6 +183,15 @@ export default function App() {
         onUpdateSettings={(updated) =>
           setAutoSilentSettings((prev) => ({ ...prev, ...updated }))
         }
+      />
+
+      {/* Mosque Detail Gesture Sheet */}
+      <MosqueDetailSheet
+        mosque={selectedMosque}
+        visible={!!selectedMosque}
+        isFollowed={selectedMosque ? followedIds.includes(selectedMosque.id) : false}
+        onToggleFollow={toggleFollow}
+        onClose={() => setSelectedMosque(null)}
       />
     </SafeAreaView>
   );

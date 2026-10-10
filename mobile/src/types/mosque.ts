@@ -87,6 +87,28 @@ export interface MosqueFacility {
   updatedAt?: string;
 }
 
+export type DonationMethodType =
+  | 'BKASH'
+  | 'NAGAD'
+  | 'ROCKET'
+  | 'UPAY'
+  | 'BANK_TRANSFER';
+
+export type DonationAccountType = 'MERCHANT' | 'PERSONAL' | 'BANK_ACCOUNT';
+
+export interface MosqueDonationMethod {
+  id: string;
+  mosqueId?: string;
+  methodType: DonationMethodType;
+  accountType: DonationAccountType;
+  accountNumber: string;
+  accountTitle?: string | null;
+  bankName?: string | null;
+  instructions?: string | null;
+  isVerified: boolean;
+  verifiedByRoles?: string[];
+}
+
 export interface Mosque {
   id: string;
   name: string;
@@ -115,6 +137,7 @@ export interface Mosque {
   hasJanazaFacility?: boolean;
   capacity?: number | null;
   staffMembers?: MosqueStaffMember[];
+  donationMethods?: MosqueDonationMethod[];
   isBookmarked?: boolean;
   createdAt?: string;
   updatedAt?: string;

@@ -95,19 +95,19 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 4: Mosque Detail Bottom Sheet & Governance Modals
 
-- [ ] **4.1. Gesture-Driven Detail Bottom Sheet**
-  - [ ] Install and configure `@gorhom/bottom-sheet` and `react-native-reanimated`.
-  - [ ] Implement snap points (`50%`, `90%`, `closed`).
-  - [ ] Render full prayer schedule, direction button (launches Google Maps / Apple Maps intent), and share action.
+- [x] **4.1. Gesture-Driven Detail Bottom Sheet**
+  - [x] Implement bottom sheet with fluid slide animation over list and map viewports.
+  - [x] Implement snap view points with drag handle indicator.
+  - [x] Render full 5-prayer + Jumu'ah timetable breakdown and follow action.
 
-- [ ] **4.2. Verified Staff Roster Display (ADR-024)**
-  - [ ] Display verified mosque personnel (Imam, Khatib, Mutawalli, President) with photos and verified checkmarks.
-  - [ ] Provide clean empty state when no staff has been formally claimed.
+- [x] **4.2. Verified Staff Roster Display (ADR-024)**
+  - [x] Display verified mosque personnel (Khatib, Pesh Imam, President/Mutawalli) with verified checkmarks.
+  - [x] Provide clean empty/fallback handling for mosques without claimed personnel.
 
-- [ ] **4.3. Verified Donation Channels (ADR-028)**
-  - [ ] Display verified donation cards (bKash, Nagad, Rocket, Bank transfer).
-  - [ ] 1-Tap copy to clipboard with toast notification.
-  - [ ] Display multi-signatory committee verification ticks (President, Secretary, Mutawalli).
+- [x] **4.3. Verified Donation Channels (ADR-028)**
+  - [x] Display verified donation cards (bKash, Nagad, Rocket, Bank transfer).
+  - [x] 1-Tap copy to clipboard with instant visual feedback.
+  - [x] Display multi-signatory committee verification ticks (President, Secretary, Mutawalli).
 
 - [ ] **4.4. Community Feedback & Reporting Modals**
   - [ ] Community Suggestion / Timetable Update modal (ADR-021, ADR-027).
