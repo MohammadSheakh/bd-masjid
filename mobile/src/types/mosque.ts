@@ -138,9 +138,33 @@ export interface Mosque {
   capacity?: number | null;
   staffMembers?: MosqueStaffMember[];
   donationMethods?: MosqueDonationMethod[];
+  announcements?: MosqueAnnouncement[];
   isBookmarked?: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export type MosqueAnnouncementCategory =
+  | 'JANAZAH'
+  | 'EID_PRAYER'
+  | 'RAMADAN'
+  | 'FRIDAY_KHUTBAH'
+  | 'GENERAL_NOTICE';
+
+export type MosqueAnnouncementPriority = 'URGENT' | 'NORMAL';
+
+export interface MosqueAnnouncement {
+  id: string;
+  mosqueId: string;
+  category: MosqueAnnouncementCategory;
+  priority: MosqueAnnouncementPriority;
+  title: string;
+  body: string;
+  authorName?: string;
+  eventDate?: string | null;
+  eventTime?: string | null;
+  expiresAt?: string | null;
+  createdAt: string;
 }
 
 export type PrayerName = 'fajr' | 'zuhr' | 'asr' | 'maghrib' | 'isha';

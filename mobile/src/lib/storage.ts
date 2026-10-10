@@ -99,4 +99,20 @@ export const PreferencesStorage = {
   setOemWizardDismissed(): void {
     syncKvCache.set(STORAGE_KEYS.OEM_WIZARD_DISMISSED, 'true');
   },
+
+  getCachedAnnouncements(mosqueId: string): any[] | null {
+    const raw = syncKvCache.get(`bd_masjid_announcements_${mosqueId}`);
+    if (!raw) return null;
+    try {
+      const list = JSON.parse(raw) as any[];
+      const now = new Date().toISOString();
+      return list.filter((a) => !a.expiresAt || a.expiresAt > now);
+    } catch {
+      return null;
+    }
+  },
+
+  setCachedAnnouncements(mosqueId: string, announcements: any[]): void {
+    syncKvCache.set(`bd_masjid_announcements_${mosqueId}`, JSON.stringify(announcements));
+  },
 };

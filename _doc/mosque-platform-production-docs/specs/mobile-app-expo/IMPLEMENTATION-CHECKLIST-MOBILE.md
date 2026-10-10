@@ -188,9 +188,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 9: Mosque Notice Board & Announcements Hub (ADR-044)
 
-- [ ] **9.1. Notice Board Data Model, Taxonomy & Mock Fixtures**
-  - [ ] Define announcement types (`JANAZAH`, `EID_PRAYER`, `RAMADAN`, `FRIDAY_KHUTBAH`, `GENERAL_NOTICE`).
-  - [ ] Cache announcements in synchronous storage for offline availability with expiration pruning.
+- [x] **9.1. Notice Board Data Model, Taxonomy & Mock Fixtures**
+  - [x] Define announcement types (`JANAZAH`, `EID_PRAYER`, `RAMADAN`, `FRIDAY_KHUTBAH`, `GENERAL_NOTICE`).
+  - [x] Cache announcements in synchronous storage for offline availability with expiration pruning.
 - [ ] **9.2. Ferio Notice Board Banner & Modal Sheet**
   - [ ] Sticky/prominent notice indicator on `MosqueDetailSheet.tsx` with active notice badge counter.
   - [ ] Progressive Notice Board sheet (`NoticeBoardModal.tsx`) with category-themed chips and share action.
