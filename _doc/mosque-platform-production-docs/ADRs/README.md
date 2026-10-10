@@ -70,6 +70,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-062](ADR-062-mobile-division-level-offline-vector-map-tile-pre-caching-engine.md) | Mobile Division-Level Offline Vector Map Tile Pre-Caching Engine | Accepted | 2026-10-10 | Offline Vector Map Tiles, Division Bounding Boxes, 150MB Storage Budget & Cache Hub |
 | [ADR-063](ADR-063-mobile-live-gps-proximity-radar-and-nearest-mosque-sorting-engine.md) | Mobile Live GPS Proximity Radar and Nearest Mosque Sorting Engine | Accepted | 2026-10-10 | Geodesic Haversine Math, Memoized Distance Badging, 60 FPS Gate & Sort by Nearest |
 | [ADR-064](ADR-064-mobile-mosque-leadership-role-claim-and-staff-verification-sheet.md) | Mobile Mosque Leadership Role Claim and Staff Verification Sheet | Accepted | 2026-10-10 | Role Claims, Imam/Muazzin Onboarding, POST /community/:id/claims & Verification Sheet |
+| [ADR-065](ADR-065-mobile-community-announcements-and-janazah-emergency-bulletin-feed.md) | Mobile Community Announcements and Janazah / Emergency Bulletin Feed | Accepted | 2026-10-10 | Announcements Feed, Janazah Notices, Spatial Query, Ferio Bulletin Sheet & ADR-065 |
 
 
 ---

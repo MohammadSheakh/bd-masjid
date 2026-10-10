@@ -488,3 +488,20 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **30.3. Wire Role Claim Trigger into Mosque Detail Sheet & Performance Gate**
   - [x] Add "Claim Leadership Role" trigger in `LeadershipRosterCard.tsx` / `MosqueDetailSheet.tsx`.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 31: Community Announcements & Janazah / Emergency Bulletin Feed (ADR-065)
+
+- [ ] **31.1. Announcement Domain Contracts & ApiClient Transport**
+  - [ ] Define `AnnouncementCategory`, `MosqueAnnouncement`, `FeedAnnouncementsParams`, and `CreateAnnouncementPayload` in `types/announcement.ts`.
+  - [ ] Add `getAnnouncementsFeed`, `getMosqueAnnouncements`, and `createAnnouncement` to `ApiClient`.
+- [ ] **31.2. Ferio AnnouncementCard Component**
+  - [ ] Create `AnnouncementCard.tsx` with category badges (`🚨 Emergency`, `⚰️ Janazah`, `🕌 Jumu'ah`, etc.), pinned indicator, and expandable content.
+- [ ] **31.3. Ferio AnnouncementsFeedModal Sheet**
+  - [ ] Create `AnnouncementsFeedModal.tsx` with category filter pills, pull-to-refresh, spatial radius query, and FlashList feed rendering.
+- [ ] **31.4. Ferio CreateAnnouncementModal Sheet**
+  - [ ] Create `CreateAnnouncementModal.tsx` with role validation, title, content, expiration date picker, and offline outbox queuing.
+- [ ] **31.5. Wire Announcements Feed into App Filter Chips & Mosque Detail Sheet**
+  - [ ] Add `📢 Announcements / বিজ্ঞপ্তি` trigger to App navigation/filter pills and Mosque detail sheet.
+  - [ ] Run benchmark gate and TypeScript compilation.
