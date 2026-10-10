@@ -178,6 +178,17 @@ export const ApiClient = {
     );
   },
 
+  async reverseGeocode(
+    lat: number,
+    lng: number
+  ): Promise<{ city?: string; road?: string; suburb?: string; formattedAddress?: string }> {
+    return fetchWithFallback(
+      `/mosques/reverse-geocode?latitude=${lat}&longitude=${lng}`,
+      { method: 'GET' },
+      {}
+    );
+  },
+
   async getFollowedMosques(): Promise<Mosque[]> {
     const followedMap = new Map<string, Mosque>();
 

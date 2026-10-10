@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,7 +13,6 @@ import {
 import { Mosque } from '../types/mosque';
 import { ApiClient } from '../lib/apiClient';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
-import { ContributorAttributionBanner } from './ContributorAttributionBanner';
 import { AuthService } from '../services/authService';
 
 interface AddMosqueSheetProps {
@@ -45,25 +44,58 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
   onMosqueCreated,
   onOpenAuthModal,
 }) => {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResolvingAddress, setIsResolvingAddress] = useState(false);
 
-  // Form State
+  // Form State matching AddMosqueModal.tsx
   const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
   const [city, setCity] = useState('Dhaka');
-  const [amenities, setAmenities] = useState({
-    ac: true,
-    womenSpace: false,
-    parking: true,
-    wheelchair: false,
-  });
+  const [address, setAddress] = useState('');
+  const [landmark, setLandmark] = useState('');
+  const [autoResolvedAddress, setAutoResolvedAddress] = useState<string | null>(null);
 
-  // Duplicate Check (<= 150m)
+  // Prayer Timetable State
+  const [fajrJamaat, setFajrJamaat] = useState('05:15');
+  const [zuhrJamaat, setZuhrJamaat] = useState('13:30');
+  const [asrJamaat, setAsrJamaat] = useState('16:45');
+  const [maghribJamaat, setMaghribJamaat] = useState('18:15');
+  const [ishaJamaat, setIshaJamaat] = useState('20:00');
+  const [jumuahJamaat, setJumuahJamaat] = useState('13:30');
+
+  // Amenities State
+  const [hasAC, setHasAC] = useState(false);
+  const [hasWomenSpace, setHasWomenSpace] = useState(false);
+  const [hasParking, setHasParking] = useState(false);
+  const [hasWheelchair, setHasWheelchair] = useState(false);
+
+  // Duplicate Bypass
+  const [allowBypass, setAllowBypass] = useState(false);
+
+  // Reverse Geocoding Address Resolution on mount
+  useEffect(() => {
+    if (visible && initialCoords?.lat && initialCoords?.lng) {
+      setIsResolvingAddress(true);
+      ApiClient.reverseGeocode(initialCoords.lat, initialCoords.lng)
+        .then((res) => {
+          if (res?.city) setCity(res.city);
+          if (res?.road || res?.formattedAddress) {
+            const resolved = res.road || res.formattedAddress;
+            setAddress(resolved || '');
+            setAutoResolvedAddress(resolved || null);
+          }
+          if (res?.suburb) setLandmark(res.suburb);
+        })
+        .catch(() => {})
+        .finally(() => setIsResolvingAddress(false));
+    }
+  }, [visible, initialCoords]);
+
+  // Proximity Duplicate Detection (<= 50m)
   const nearbyDuplicate = useMemo(() => {
+    if (!initialCoords) return null;
     for (const m of existingMosques) {
       const dist = calculateDistanceMeters(initialCoords.lat, initialCoords.lng, m.latitude, m.longitude);
-      if (dist <= 150) return { mosque: m, distance: Math.round(dist) };
+      if (dist <= 50) return { mosque: m, distance: Math.round(dist) };
     }
     return null;
   }, [initialCoords, existingMosques]);
@@ -73,29 +105,50 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
       Alert.alert('Required Field', 'Please enter the mosque name.');
       return;
     }
+
+    if (nearbyDuplicate && !allowBypass) {
+      Alert.alert(
+        'Possible Duplicate',
+        `A mosque named "${nearbyDuplicate.mosque.name}" is already registered within ${nearbyDuplicate.distance} meters. Please verify the checkbox below if this is a separate hall.`
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const activeUser = AuthService.getUserSync();
       const res = await ApiClient.createMosque({
         name: name.trim(),
         address: address.trim() || undefined,
+        landmark: landmark.trim() || undefined,
         city: city.trim() || 'Dhaka',
         latitude: initialCoords.lat,
         longitude: initialCoords.lng,
-        hasAirConditioning: amenities.ac,
-        hasSeparateWomenSpace: amenities.womenSpace,
-        hasParking: amenities.parking,
-        hasWheelchairAccess: amenities.wheelchair,
+        hasAirConditioning: hasAC,
+        hasSeparateWomenSpace: hasWomenSpace,
+        hasParking: hasParking,
+        hasWheelchairAccess: hasWheelchair,
         contributorId: activeUser?.id,
         contributorName: activeUser?.name,
+        prayerSchedule: {
+          fajrJamaat,
+          zuhrJamaat,
+          asrJamaat,
+          maghribJamaat,
+          ishaJamaat,
+          jumuahJamaat,
+        } as any,
       } as Partial<Mosque>);
+
       if (res.success && res.mosque) {
         onMosqueCreated(res.mosque);
-        Alert.alert('Mosque Submitted', 'Thank you! Your submission is now visible pending community verification.');
+        Alert.alert('Mosque Created', 'Thank you! The mosque has been registered.');
         onClose();
-        setStep(1);
         setName('');
         setAddress('');
+        setLandmark('');
+      } else {
+        Alert.alert('Submission Error', 'Failed to submit mosque.');
       }
     } catch {
       Alert.alert('Submission Error', 'Failed to submit mosque. Please try again.');
@@ -110,9 +163,14 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
         <View style={styles.sheetContainer}>
           {/* Header */}
           <View style={styles.header}>
-            <View>
-              <Text style={styles.headerTitle}>Add New Mosque</Text>
-              <Text style={styles.headerSubtitle}>Step {step} of 3 • OpenStreetMap Community</Text>
+            <View style={styles.headerTitleRow}>
+              <View style={styles.headerIconCircle}>
+                <Text style={styles.headerIcon}>🕌</Text>
+              </View>
+              <View>
+                <Text style={styles.headerTitle}>Add Mosque</Text>
+                <Text style={styles.headerSubtitle}>Community Mosques Registry</Text>
+              </View>
             </View>
             <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
               <Text style={styles.closeBtnText}>✕</Text>
@@ -120,136 +178,224 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
           </View>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
-            {/* Contributor Attribution Banner */}
-            <ContributorAttributionBanner onOpenAuthModal={onOpenAuthModal} />
+            {/* GPS Coordinates & Auto Address Banner */}
+            <View style={styles.coordBox}>
+              <View style={styles.coordHeader}>
+                <Text style={styles.coordTitle}>GEOGRAPHIC COORDINATES</Text>
+                <View style={styles.coordBadge}>
+                  <Text style={styles.coordBadgeText}>📍 Verified Pin</Text>
+                </View>
+              </View>
 
-            {step === 1 && (
-              <View style={styles.stepContent}>
-                <View style={styles.coordBox}>
-                  <Text style={styles.coordLabel}>Selected Pin Coordinates</Text>
-                  <Text style={styles.coordVal}>
-                    {initialCoords.lat.toFixed(6)}, {initialCoords.lng.toFixed(6)}
+              <Text style={styles.coordVal}>
+                {initialCoords.lat.toFixed(5)}, {initialCoords.lng.toFixed(5)}
+              </Text>
+
+              {isResolvingAddress ? (
+                <View style={styles.resolvingRow}>
+                  <ActivityIndicator size="small" color={ferioColors.accent} />
+                  <Text style={styles.resolvingText}>Detecting address from OpenStreetMap...</Text>
+                </View>
+              ) : autoResolvedAddress ? (
+                <View style={styles.resolvedRow}>
+                  <Text style={styles.resolvedIcon}>✓</Text>
+                  <Text style={styles.resolvedText} numberOfLines={2}>
+                    Auto-detected: {autoResolvedAddress}
                   </Text>
                 </View>
+              ) : null}
+            </View>
 
-                {nearbyDuplicate ? (
-                  <View style={styles.warningBox}>
-                    <Text style={styles.warningTitle}>⚠️ Potential Duplicate Detected</Text>
-                    <Text style={styles.warningBody}>
-                      "{nearbyDuplicate.mosque.name}" is located only {nearbyDuplicate.distance}m away. Please verify if this mosque is already listed.
-                    </Text>
+            {/* Proximity Duplicate Warning (ADR-004) */}
+            {nearbyDuplicate && (
+              <View style={styles.duplicateWarning}>
+                <Text style={styles.duplicateTitle}>⚠️ Possible Duplicate Mosque</Text>
+                <Text style={styles.duplicateBody}>
+                  "{nearbyDuplicate.mosque.name}" is located only {nearbyDuplicate.distance}m away.
+                </Text>
+                <Pressable
+                  onPress={() => setAllowBypass((prev) => !prev)}
+                  style={styles.bypassCheckboxRow}
+                >
+                  <View style={[styles.checkbox, allowBypass && styles.checkboxActive]}>
+                    {allowBypass && <Text style={styles.checkboxCheck}>✓</Text>}
                   </View>
-                ) : (
-                  <View style={styles.successBox}>
-                    <Text style={styles.successTitle}>✓ Pin Verified</Text>
-                    <Text style={styles.successBody}>No existing mosque found within 150m of this pin.</Text>
-                  </View>
-                )}
-
-                <Pressable style={styles.primaryBtn} onPress={() => setStep(2)}>
-                  <Text style={styles.primaryBtnText}>Proceed to Details →</Text>
+                  <Text style={styles.bypassText}>
+                    Confirm: This is a separate, distinct mosque hall
+                  </Text>
                 </Pressable>
               </View>
             )}
 
-            {step === 2 && (
-              <View style={styles.stepContent}>
-                <Text style={styles.fieldLabel}>Mosque Name *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="e.g. Baitul Mukarram Jame Masjid"
-                  placeholderTextColor="#9ca3af"
-                  value={name}
-                  onChangeText={setName}
-                />
+            {/* Mosque Name Input */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Mosque Name *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Dhanmondi Eidgah Shahi Masjid"
+                placeholderTextColor={ferioColors.muted}
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
 
-                <Text style={styles.fieldLabel}>Address / Road Name</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="e.g. Topkhana Road, Paltan"
-                  placeholderTextColor="#9ca3af"
-                  value={address}
-                  onChangeText={setAddress}
-                />
-
+            {/* City & Landmark Inputs */}
+            <View style={styles.rowFields}>
+              <View style={[styles.fieldGroup, { flex: 1 }]}>
                 <Text style={styles.fieldLabel}>City / District</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g. Dhaka"
-                  placeholderTextColor="#9ca3af"
+                  placeholder="Dhaka"
+                  placeholderTextColor={ferioColors.muted}
                   value={city}
                   onChangeText={setCity}
                 />
+              </View>
 
-                <View style={styles.btnRow}>
-                  <Pressable style={styles.secondaryBtn} onPress={() => setStep(1)}>
-                    <Text style={styles.secondaryBtnText}>← Back</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.primaryBtn, { flex: 1, marginLeft: 8 }]}
-                    onPress={() => {
-                      if (!name.trim()) {
-                        Alert.alert('Required Field', 'Please enter mosque name.');
-                        return;
-                      }
-                      setStep(3);
-                    }}
-                  >
-                    <Text style={styles.primaryBtnText}>Next: Facilities →</Text>
-                  </Pressable>
+              <View style={[styles.fieldGroup, { flex: 1.2 }]}>
+                <Text style={styles.fieldLabel}>Landmark / Area</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. Near Lake"
+                  placeholderTextColor={ferioColors.muted}
+                  value={landmark}
+                  onChangeText={setLandmark}
+                />
+              </View>
+            </View>
+
+            {/* Street Address Input */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Full Street Address</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Road 7, Dhanmondi, Dhaka"
+                placeholderTextColor={ferioColors.muted}
+                value={address}
+                onChangeText={setAddress}
+              />
+            </View>
+
+            {/* Initial Prayer Timetable (Fajr, Zuhr, Asr, Maghrib, Isha, Jumu'ah) */}
+            <View style={styles.timetableSection}>
+              <Text style={styles.sectionHeader}>Initial Jamaat Times (12-hour format)</Text>
+              <View style={styles.prayerTimesGrid}>
+                <View style={styles.prayerTimeCell}>
+                  <Text style={styles.prayerTimeLabel}>Fajr</Text>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={fajrJamaat}
+                    onChangeText={setFajrJamaat}
+                    placeholder="05:15"
+                  />
+                </View>
+                <View style={styles.prayerTimeCell}>
+                  <Text style={styles.prayerTimeLabel}>Zuhr</Text>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={zuhrJamaat}
+                    onChangeText={setZuhrJamaat}
+                    placeholder="13:30"
+                  />
+                </View>
+                <View style={styles.prayerTimeCell}>
+                  <Text style={styles.prayerTimeLabel}>Asr</Text>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={asrJamaat}
+                    onChangeText={setAsrJamaat}
+                    placeholder="16:45"
+                  />
+                </View>
+                <View style={styles.prayerTimeCell}>
+                  <Text style={styles.prayerTimeLabel}>Maghrib</Text>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={maghribJamaat}
+                    onChangeText={setMaghribJamaat}
+                    placeholder="18:15"
+                  />
+                </View>
+                <View style={styles.prayerTimeCell}>
+                  <Text style={styles.prayerTimeLabel}>Isha</Text>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={ishaJamaat}
+                    onChangeText={setIshaJamaat}
+                    placeholder="20:00"
+                  />
+                </View>
+                <View style={styles.prayerTimeCell}>
+                  <Text style={styles.prayerTimeLabel}>Jumu'ah</Text>
+                  <TextInput
+                    style={styles.timeInput}
+                    value={jumuahJamaat}
+                    onChangeText={setJumuahJamaat}
+                    placeholder="13:30"
+                  />
                 </View>
               </View>
-            )}
+            </View>
 
-            {step === 3 && (
-              <View style={styles.stepContent}>
-                <Text style={styles.sectionHeader}>Available Facilities</Text>
-                {[
-                  { key: 'ac', label: 'Air Conditioning (AC)', icon: '❄️' },
-                  { key: 'womenSpace', label: 'Separate Women Prayer Area', icon: '🧕' },
-                  { key: 'parking', label: 'Vehicle Parking Available', icon: '🚗' },
-                  { key: 'wheelchair', label: 'Wheelchair Accessible Ramp', icon: '♿' },
-                ].map((item) => {
-                  const active = (amenities as Record<string, boolean>)[item.key];
-                  return (
-                    <Pressable
-                      key={item.key}
-                      style={[styles.amenityChip, active && styles.amenityChipActive]}
-                      onPress={() =>
-                        setAmenities((prev) => ({
-                          ...prev,
-                          [item.key]: !prev[item.key as keyof typeof prev],
-                        }))
-                      }
-                    >
-                      <Text style={styles.amenityText}>
-                        {item.icon} {item.label}
-                      </Text>
-                      <Text style={[styles.checkText, active && styles.checkTextActive]}>
-                        {active ? '✓' : '+'}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+            {/* Facilities Checkboxes */}
+            <View style={styles.facilitiesSection}>
+              <Text style={styles.sectionHeader}>Available Facilities</Text>
+              <View style={styles.facilitiesGrid}>
+                <Pressable
+                  onPress={() => setHasAC((p) => !p)}
+                  style={[styles.facilityCard, hasAC && styles.facilityCardActive]}
+                >
+                  <Text style={styles.facilityIcon}>❄️</Text>
+                  <Text style={[styles.facilityText, hasAC && styles.facilityTextActive]}>
+                    Air Conditioned
+                  </Text>
+                </Pressable>
 
-                <View style={[styles.btnRow, { marginTop: ferioSpacing.lg }]}>
-                  <Pressable style={styles.secondaryBtn} onPress={() => setStep(2)}>
-                    <Text style={styles.secondaryBtnText}>← Back</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.primaryBtn, { flex: 1, marginLeft: 8 }]}
-                    onPress={handleSubmit}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <ActivityIndicator color="#ffffff" size="small" />
-                    ) : (
-                      <Text style={styles.primaryBtnText}>Submit Mosque 🚀</Text>
-                    )}
-                  </Pressable>
-                </View>
+                <Pressable
+                  onPress={() => setHasWomenSpace((p) => !p)}
+                  style={[styles.facilityCard, hasWomenSpace && styles.facilityCardActive]}
+                >
+                  <Text style={styles.facilityIcon}>🧕</Text>
+                  <Text style={[styles.facilityText, hasWomenSpace && styles.facilityTextActive]}>
+                    Women Space
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => setHasParking((p) => !p)}
+                  style={[styles.facilityCard, hasParking && styles.facilityCardActive]}
+                >
+                  <Text style={styles.facilityIcon}>🚗</Text>
+                  <Text style={[styles.facilityText, hasParking && styles.facilityTextActive]}>
+                    Parking
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => setHasWheelchair((p) => !p)}
+                  style={[styles.facilityCard, hasWheelchair && styles.facilityCardActive]}
+                >
+                  <Text style={styles.facilityIcon}>♿</Text>
+                  <Text style={[styles.facilityText, hasWheelchair && styles.facilityTextActive]}>
+                    Wheelchair
+                  </Text>
+                </Pressable>
               </View>
-            )}
+            </View>
+
+            {/* Submit Action */}
+            <Pressable
+              style={[styles.submitBtn, isSubmitting && styles.submitBtnDisabled]}
+              onPress={handleSubmit}
+              disabled={isSubmitting}
+              accessibilityRole="button"
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color="#ffffff" size="small" />
+              ) : (
+                <Text style={styles.submitBtnText}>+ Add Mosque to Platform</Text>
+              )}
+            </Pressable>
           </ScrollView>
         </View>
       </View>
@@ -260,185 +406,302 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
     backgroundColor: ferioColors.surface,
-    borderTopLeftRadius: ferioRadius.lg,
-    borderTopRightRadius: ferioRadius.lg,
-    maxHeight: '85%',
+    borderTopLeftRadius: ferioRadius.xl,
+    borderTopRightRadius: ferioRadius.xl,
+    paddingHorizontal: ferioSpacing.lg,
+    paddingTop: ferioSpacing.md,
     paddingBottom: ferioSpacing.xl,
+    maxHeight: '92%',
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 580,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: ferioSpacing.lg,
+    paddingBottom: ferioSpacing.md,
     borderBottomWidth: 1,
     borderBottomColor: ferioColors.border,
   },
-  headerTitle: {
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: ferioSpacing.sm,
+  },
+  headerIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: ferioColors.canvas,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerIcon: {
     fontSize: 18,
+  },
+  headerTitle: {
+    fontSize: 16,
     fontWeight: '700',
     color: ferioColors.primary,
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: ferioColors.muted,
-    marginTop: 2,
   },
   closeBtn: {
-    padding: ferioSpacing.xs,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: ferioColors.canvas,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: ferioColors.border,
   },
   closeBtnText: {
-    fontSize: 16,
+    fontSize: 12,
     color: ferioColors.muted,
+    fontWeight: '700',
   },
   body: {
-    padding: ferioSpacing.lg,
-  },
-  stepContent: {
-    paddingBottom: ferioSpacing.lg,
+    paddingVertical: ferioSpacing.md,
   },
   coordBox: {
     backgroundColor: ferioColors.canvas,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+    borderRadius: ferioRadius.lg,
     padding: ferioSpacing.md,
-    borderRadius: ferioRadius.md,
     marginBottom: ferioSpacing.md,
   },
-  coordLabel: {
+  coordHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  coordTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: ferioColors.muted,
+    letterSpacing: 0.5,
+  },
+  coordBadge: {
+    backgroundColor: '#ecfdf5',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: ferioRadius.full,
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+  },
+  coordBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: ferioColors.accent,
+  },
+  coordVal: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: ferioColors.primary,
+    fontFamily: 'monospace',
+  },
+  resolvingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+  },
+  resolvingText: {
     fontSize: 11,
+    color: '#2563eb',
+  },
+  resolvedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+  },
+  resolvedIcon: {
+    fontSize: 12,
+    color: ferioColors.accent,
+    fontWeight: 'bold',
+  },
+  resolvedText: {
+    fontSize: 11,
+    color: ferioColors.muted,
+    flex: 1,
+  },
+  duplicateWarning: {
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    borderRadius: ferioRadius.lg,
+    padding: ferioSpacing.md,
+    marginBottom: ferioSpacing.md,
+  },
+  duplicateTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#92400e',
+    marginBottom: 2,
+  },
+  duplicateBody: {
+    fontSize: 11,
+    color: '#78350f',
+    marginBottom: 8,
+  },
+  bypassCheckboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: '#b45309',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+  },
+  checkboxActive: {
+    backgroundColor: '#b45309',
+  },
+  checkboxCheck: {
+    fontSize: 11,
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  bypassText: {
+    fontSize: 11,
+    color: '#78350f',
+    fontWeight: '600',
+  },
+  fieldGroup: {
+    marginBottom: ferioSpacing.sm + 2,
+  },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: ferioColors.primary,
+    marginBottom: 4,
+  },
+  input: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+    borderRadius: ferioRadius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 13,
+    color: ferioColors.primary,
+  },
+  rowFields: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  timetableSection: {
+    marginTop: ferioSpacing.sm,
+    marginBottom: ferioSpacing.md,
+    backgroundColor: ferioColors.canvas,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+    borderRadius: ferioRadius.lg,
+    padding: ferioSpacing.md,
+  },
+  sectionHeader: {
+    fontSize: 11,
+    fontWeight: '700',
     color: ferioColors.muted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-  },
-  coordVal: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: ferioColors.primary,
-    marginTop: 4,
-    fontVariant: ['tabular-nums'],
-  },
-  warningBox: {
-    backgroundColor: '#fef3c7',
-    borderWidth: 1,
-    borderColor: '#f59e0b',
-    padding: ferioSpacing.md,
-    borderRadius: ferioRadius.md,
-    marginBottom: ferioSpacing.lg,
-  },
-  warningTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#92400e',
-    marginBottom: 4,
-  },
-  warningBody: {
-    fontSize: 12,
-    color: '#78350f',
-    lineHeight: 17,
-  },
-  successBox: {
-    backgroundColor: '#ecfdf5',
-    borderWidth: 1,
-    borderColor: '#10b981',
-    padding: ferioSpacing.md,
-    borderRadius: ferioRadius.md,
-    marginBottom: ferioSpacing.lg,
-  },
-  successTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#065f46',
-    marginBottom: 2,
-  },
-  successBody: {
-    fontSize: 12,
-    color: '#047857',
-  },
-  fieldLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: ferioColors.primary,
-    marginBottom: ferioSpacing.xs,
-    marginTop: ferioSpacing.sm,
-  },
-  input: {
-    backgroundColor: ferioColors.canvas,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
-    borderRadius: ferioRadius.md,
-    padding: ferioSpacing.md,
-    fontSize: 14,
-    color: ferioColors.primary,
-    marginBottom: ferioSpacing.xs,
-  },
-  sectionHeader: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: ferioColors.primary,
-    marginBottom: ferioSpacing.md,
-  },
-  amenityChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: ferioSpacing.md,
-    backgroundColor: ferioColors.canvas,
-    borderRadius: ferioRadius.md,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
     marginBottom: ferioSpacing.sm,
   },
-  amenityChipActive: {
-    backgroundColor: '#ecfdf5',
-    borderColor: '#10b981',
-  },
-  amenityText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: ferioColors.primary,
-  },
-  checkText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: ferioColors.muted,
-  },
-  checkTextActive: {
-    color: '#059669',
-  },
-  btnRow: {
+  prayerTimesGrid: {
     flexDirection: 'row',
-    marginTop: ferioSpacing.md,
+    flexWrap: 'wrap',
+    gap: 6,
   },
-  primaryBtn: {
-    backgroundColor: ferioColors.primary,
-    paddingVertical: ferioSpacing.md,
-    borderRadius: ferioRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: ferioSpacing.sm,
-  },
-  primaryBtnText: {
-    color: ferioColors.primaryForeground,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  secondaryBtn: {
-    backgroundColor: ferioColors.canvas,
+  prayerTimeCell: {
+    width: '31%',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: ferioColors.border,
-    paddingVertical: ferioSpacing.md,
-    paddingHorizontal: ferioSpacing.lg,
     borderRadius: ferioRadius.md,
+    padding: 6,
+    alignItems: 'center',
+  },
+  prayerTimeLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: ferioColors.muted,
+    marginBottom: 2,
+  },
+  timeInput: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: ferioColors.primary,
+    textAlign: 'center',
+    padding: 0,
+    margin: 0,
+  },
+  facilitiesSection: {
+    marginBottom: ferioSpacing.lg,
+  },
+  facilitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  facilityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: ferioRadius.full,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+    backgroundColor: '#ffffff',
+  },
+  facilityCardActive: {
+    backgroundColor: '#111114',
+    borderColor: '#111114',
+  },
+  facilityIcon: {
+    fontSize: 13,
+  },
+  facilityText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: ferioColors.primary,
+  },
+  facilityTextActive: {
+    color: '#ffffff',
+  },
+  submitBtn: {
+    backgroundColor: '#111114',
+    borderRadius: ferioRadius.full,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: ferioSpacing.sm,
+    marginBottom: ferioSpacing.xxl,
   },
-  secondaryBtnText: {
-    color: ferioColors.primary,
-    fontWeight: '600',
-    fontSize: 14,
+  submitBtnDisabled: {
+    opacity: 0.6,
+  },
+  submitBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });
