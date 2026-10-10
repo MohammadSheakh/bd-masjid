@@ -24,6 +24,7 @@ import { QiblaCompassModal } from './src/components/QiblaCompassModal';
 import { DailyHadithCard } from './src/components/DailyHadithCard';
 import { CollectionFilterBar, CollectionFilterSelection } from './src/components/CollectionFilterBar';
 import { NotificationInboxModal } from './src/components/NotificationInboxModal';
+import { AuthSessionModal } from './src/components/AuthSessionModal';
 import { PreferencesStorage, CollectionStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
@@ -31,6 +32,8 @@ import { PrayerNotificationService } from './src/services/prayerNotificationServ
 import { TelemetryService } from './src/services/telemetryService';
 import { LocalizationService, Language } from './src/services/localizationService';
 import { NotificationInboxService } from './src/services/notificationInboxService';
+import { AuthService } from './src/services/authService';
+import { UserProfile } from './src/types/auth';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -50,6 +53,10 @@ export default function App() {
   const [isNotificationInboxOpen, setIsNotificationInboxOpen] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState<number>(() =>
     NotificationInboxService.getUnreadCountSync()
+  );
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() =>
+    AuthService.getUserSync()
   );
   const [lang, setLang] = useState<Language>(() => LocalizationService.getLanguage());
   const [activeCollectionTag, setActiveCollectionTag] = useState<CollectionFilterSelection>('ALL');
@@ -156,8 +163,14 @@ export default function App() {
     });
     NotificationInboxService.syncUnreadCount();
 
+    const unsubAuth = AuthService.subscribeAuth((session) => {
+      setCurrentUser(session.user);
+    });
+    AuthService.hydrateSession();
+
     return () => {
       unsubNotif();
+      unsubAuth();
     };
   }, []);
 
@@ -216,6 +229,22 @@ export default function App() {
                 </Text>
               </View>
             )}
+          </Pressable>
+
+          {/* User Profile / Contributor Pill (ADR-054) */}
+          <Pressable
+            onPress={() => setIsAuthModalOpen(true)}
+            style={({ pressed }) => [styles.profileToggleBtn, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Open User Account & Profile"
+          >
+            <Text style={styles.profileIcon}>👤</Text>
+            <Text style={styles.profileToggleText} numberOfLines={1}>
+              {currentUser
+                ? currentUser.name.split(' ')[0]
+                : lang === 'bn' ? 'লগইন' : 'Sign In'}
+            </Text>
+            {currentUser && <View style={styles.profileVerifiedDot} />}
           </Pressable>
 
           <Pressable
@@ -398,6 +427,13 @@ export default function App() {
         }}
         isBangla={lang === 'bn'}
       />
+
+      {/* User Auth & Contributor Session Modal (ADR-054) */}
+      <AuthSessionModal
+        visible={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        isBangla={lang === 'bn'}
+      />
     </SafeAreaView>
   );
 }
@@ -477,6 +513,32 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     color: ferioColors.primaryForeground,
+  },
+  profileToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: ferioSpacing.sm + 2,
+    paddingVertical: ferioSpacing.xs,
+    borderRadius: ferioRadius.full,
+    backgroundColor: ferioColors.surface,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+  },
+  profileIcon: {
+    fontSize: 11,
+  },
+  profileToggleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: ferioColors.primary,
+    maxWidth: 70,
+  },
+  profileVerifiedDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: ferioColors.accent,
   },
   qiblaToggleBtn: {
     paddingHorizontal: ferioSpacing.md,

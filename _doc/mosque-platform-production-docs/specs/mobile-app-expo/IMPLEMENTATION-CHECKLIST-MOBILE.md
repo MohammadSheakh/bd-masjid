@@ -323,8 +323,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Wire hardware token encryption via `SecureTokenStorage`.
 - [x] **19.3. Ferio AuthSessionModal Sheet**
   - [x] Create `AuthSessionModal.tsx` with Sign In / Register tabs, authenticated user profile card, verified badge, and sign-out action.
-- [ ] **19.4. Top Navbar Profile Pill & App Integration**
-  - [ ] Add responsive profile avatar/name pill in `App.tsx` top navbar.
-  - [ ] Wire `AuthSessionModal` state and trigger.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **19.4. Top Navbar Profile Pill & App Integration**
+  - [x] Add responsive profile avatar/name pill in `App.tsx` top navbar.
+  - [x] Wire `AuthSessionModal` state and trigger.
+  - [x] Run benchmark gate and TypeScript compilation.
 
