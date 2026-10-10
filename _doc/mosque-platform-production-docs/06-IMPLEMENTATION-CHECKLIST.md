@@ -310,4 +310,13 @@ Before first production release:
 - [x] floating search bar and locate GPS overlay in full-page map mode
 - [x] mosque details bottom sheet parity with web app upon pin click
 
+## V. Mobile Popup Design Parity with Web Platform
+
+- [ ] Mosque Details Popup (`MosqueDetailSheet.tsx`) visual & functional parity
+- [ ] Add Mosque Popup (`AddMosqueSheet.tsx`) reverse geocoding & duplicate check parity
+- [ ] Claim Role Popup (`RoleClaimModal.tsx`) exact form fields & photo upload parity
+- [ ] Donate Popup (`SuggestDonationMethodModal.tsx`) payment channels & copy action parity
+- [ ] Suggest Facilities Popup (`SuggestFacilitiesModal.tsx`) amenities selector parity
+
+
 
