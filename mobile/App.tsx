@@ -44,9 +44,11 @@ import { ModeratorService } from './src/services/moderatorService';
 import { DiagnosticsTelemetryModal } from './src/components/DiagnosticsTelemetryModal';
 import { OfflineMapRegionsModal } from './src/components/OfflineMapRegionsModal';
 import { LocationRadarService } from './src/services/locationRadarService';
+import { AnnouncementsFeedModal } from './src/components/AnnouncementsFeedModal';
+import { CreateAnnouncementModal } from './src/components/CreateAnnouncementModal';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
-const AMENITY_TAGS = ['All', '📍 Nearest', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
+const AMENITY_TAGS = ['All', '📍 Nearest', '📢 Notices', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
 
 export default function App() {
   const [mosquesList, setMosquesList] = useState<Mosque[]>(BANGLADESH_MOSQUES_FIXTURES);
@@ -69,6 +71,8 @@ export default function App() {
   const [isModModalOpen, setIsModModalOpen] = useState(false);
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
   const [isOfflineRegionsOpen, setIsOfflineRegionsOpen] = useState(false);
+  const [isAnnouncementsModalOpen, setIsAnnouncementsModalOpen] = useState(false);
+  const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
   const [pendingModCount, setPendingModCount] = useState<number>(() =>
     ModeratorService.getPendingCountSync()
   );
@@ -250,6 +254,16 @@ export default function App() {
             </Text>
           </Pressable>
 
+          {/* Community Notice Board & Announcements Hub (ADR-044, ADR-065) */}
+          <Pressable
+            onPress={() => setIsAnnouncementsModalOpen(true)}
+            style={({ pressed }) => [styles.announcementsToggleBtn, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Open Notice Board & Bulletins"
+          >
+            <Text style={styles.announcementsToggleText}>📢 {lang === 'bn' ? 'বিজ্ঞপ্তি' : 'Notices'}</Text>
+          </Pressable>
+
           {/* In-App Notification Bell Pill (ADR-053) */}
           <Pressable
             onPress={() => setIsNotificationInboxOpen(true)}
@@ -353,11 +367,23 @@ export default function App() {
         >
           {AMENITY_TAGS.map((tag) => {
             const active = selectedTag === tag;
-            const displayLabel = tag === '📍 Nearest' && lang === 'bn' ? '📍 নিকটবর্তী' : tag;
+            const isNoticesTag = tag === '📢 Notices';
+            const displayLabel =
+              tag === '📍 Nearest' && lang === 'bn'
+                ? '📍 নিকটবর্তী'
+                : tag === '📢 Notices' && lang === 'bn'
+                ? '📢 বিজ্ঞপ্তি'
+                : tag;
             return (
               <Pressable
                 key={tag}
-                onPress={() => setSelectedTag(tag)}
+                onPress={() => {
+                  if (isNoticesTag) {
+                    setIsAnnouncementsModalOpen(true);
+                  } else {
+                    setSelectedTag(tag);
+                  }
+                }}
                 style={[styles.chip, active && styles.chipActive]}
               >
                 <Text style={[styles.chipText, active && styles.chipTextActive]}>{displayLabel}</Text>
@@ -519,6 +545,27 @@ export default function App() {
         onClose={() => setIsOfflineRegionsOpen(false)}
         isBangla={lang === 'bn'}
       />
+
+      {/* Community Notice Board & Announcements Hub (ADR-065) */}
+      <AnnouncementsFeedModal
+        visible={isAnnouncementsModalOpen}
+        onClose={() => setIsAnnouncementsModalOpen(false)}
+        onSelectMosque={(id) => {
+          const found = mosquesList.find((m) => m.id === id);
+          if (found) setSelectedMosque(found);
+        }}
+        onOpenCreate={() => {
+          setIsAnnouncementsModalOpen(false);
+          setIsCreateAnnouncementOpen(true);
+        }}
+      />
+
+      <CreateAnnouncementModal
+        visible={isCreateAnnouncementOpen}
+        mosqueId={topFollowedMosque.id}
+        mosqueName={topFollowedMosque.name}
+        onClose={() => setIsCreateAnnouncementOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -567,6 +614,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: ferioColors.primary,
+  },
+  announcementsToggleBtn: {
+    paddingHorizontal: ferioSpacing.sm + 2,
+    paddingVertical: ferioSpacing.xs,
+    borderRadius: ferioRadius.full,
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  announcementsToggleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2563eb',
   },
   bellToggleBtn: {
     position: 'relative',

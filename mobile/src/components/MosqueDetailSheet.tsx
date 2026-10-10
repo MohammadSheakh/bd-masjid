@@ -20,6 +20,7 @@ import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
 import { DonationChannelsCard } from './DonationChannelsCard';
 import { CollectionTagModal } from './CollectionTagModal';
 import { RoleClaimModal } from './RoleClaimModal';
+import { CreateAnnouncementModal } from './CreateAnnouncementModal';
 import { CollectionStorage } from '../lib/storage';
 import { CollectionService, MosqueCollectionTag } from '../services/collectionService';
 
@@ -46,6 +47,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [suggestFacilitiesModalVisible, setSuggestFacilitiesModalVisible] = useState(false);
   const [tagModalVisible, setTagModalVisible] = useState(false);
   const [roleClaimModalVisible, setRoleClaimModalVisible] = useState(false);
+  const [createAnnouncementVisible, setCreateAnnouncementVisible] = useState(false);
   const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
   const [activeFacility, setActiveFacility] = useState(mosque?.facility);
@@ -275,6 +277,13 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueId={mosque.id}
           mosqueName={mosque.name}
           onClose={() => setRoleClaimModalVisible(false)}
+        />
+
+        <CreateAnnouncementModal
+          visible={createAnnouncementVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          onClose={() => setCreateAnnouncementVisible(false)}
         />
       </View>
     </Modal>

@@ -502,6 +502,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Create `AnnouncementsFeedModal.tsx` with category filter pills, pull-to-refresh, spatial radius query, and FlashList feed rendering.
 - [x] **31.4. Ferio CreateAnnouncementModal Sheet**
   - [x] Create `CreateAnnouncementModal.tsx` with role validation, title, content, expiration date picker, and offline outbox queuing.
-- [ ] **31.5. Wire Announcements Feed into App Filter Chips & Mosque Detail Sheet**
-  - [ ] Add `📢 Announcements / বিজ্ঞপ্তি` trigger to App navigation/filter pills and Mosque detail sheet.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **31.5. Wire Announcements Feed into App Filter Chips & Mosque Detail Sheet**
+  - [x] Add `📢 Announcements / বিজ্ঞপ্তি` trigger to App navigation/filter pills and Mosque detail sheet.
+  - [x] Run benchmark gate and TypeScript compilation.
