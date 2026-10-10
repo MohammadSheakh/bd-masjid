@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   StyleSheet,
@@ -7,9 +7,20 @@ import {
   ScrollView,
   Pressable,
 } from 'react-native';
-import { Mosque, MosqueDonationMethod, MosqueStaffMember } from '../types/mosque';
+import { Mosque, MosqueStaffMember, PrayerSchedule } from '../types/mosque';
 import { formatTo12Hour } from '../lib/time';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
+import { AttendanceAffiliationCard } from './AttendanceAffiliationCard';
+import { TimetableUpdateModal } from './TimetableUpdateModal';
+import { NoticeBoardModal } from './NoticeBoardModal';
+import { ReportIssueModal } from './ReportIssueModal';
+import { LeadershipRosterCard } from './LeadershipRosterCard';
+import { FacilitiesCard } from './FacilitiesCard';
+import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
+import { DonationChannelsCard } from './DonationChannelsCard';
+import { CollectionTagModal } from './CollectionTagModal';
+import { CollectionStorage } from '../lib/storage';
+import { CollectionService, MosqueCollectionTag } from '../services/collectionService';
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -26,11 +37,26 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   onToggleFollow,
   onClose,
 }) => {
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [noticeModalVisible, setNoticeModalVisible] = useState(false);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [suggestFacilitiesModalVisible, setSuggestFacilitiesModalVisible] = useState(false);
+  const [tagModalVisible, setTagModalVisible] = useState(false);
+  const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
+  const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
+  const [activeFacility, setActiveFacility] = useState(mosque?.facility);
+
+  useEffect(() => {
+    setActiveSchedule(mosque?.prayerSchedule);
+    setActiveFacility(mosque?.facility);
+    if (mosque?.id) {
+      setActiveTags(CollectionStorage.getMosqueTags(mosque.id));
+    }
+  }, [mosque?.id, mosque?.prayerSchedule, mosque?.facility]);
 
   if (!mosque) return null;
 
-  const schedule = mosque.prayerSchedule;
+  const schedule = activeSchedule ?? mosque.prayerSchedule;
 
   const prayerRows = [
     { name: 'Fajr', jammat: schedule?.fajrJamaat, start: schedule?.fajrStart },
@@ -40,11 +66,6 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
     { name: 'Isha', jammat: schedule?.ishaJamaat, start: schedule?.ishaStart },
     { name: "Jumu'ah", jammat: schedule?.jumuahJamaat, start: '12:45' },
   ];
-
-  const handleCopy = (method: MosqueDonationMethod) => {
-    setCopiedId(method.id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -68,6 +89,19 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
 
             <View style={styles.headerActions}>
               <Pressable
+                onPress={() => setTagModalVisible(true)}
+                style={styles.tagBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Categorize Mosque"
+              >
+                <Text style={styles.tagBtnText}>
+                  {activeTags.length > 0
+                    ? activeTags.map((t) => CollectionService.getTagMeta(t).icon).join('')
+                    : '🏷️'}
+                </Text>
+              </Pressable>
+
+              <Pressable
                 onPress={() => onToggleFollow?.(mosque.id)}
                 style={[styles.followBtn, isFollowed && styles.followBtnActive]}
               >
@@ -83,13 +117,61 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
+            {/* Mosque Notice Board Strip (ADR-011, ADR-044) */}
+            {mosque.announcements && mosque.announcements.length > 0 && (
+              <Pressable
+                onPress={() => setNoticeModalVisible(true)}
+                style={[
+                  styles.noticeStrip,
+                  mosque.announcements.some((a) => a.priority === 'URGENT') && styles.noticeStripUrgent,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="View Mosque Notice Board"
+              >
+                <View style={styles.noticeStripLeft}>
+                  <Text style={styles.noticeStripIcon}>
+                    {mosque.announcements.some((a) => a.priority === 'URGENT') ? '🚨' : '📢'}
+                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={[
+                        styles.noticeStripTitle,
+                        mosque.announcements.some((a) => a.priority === 'URGENT') && styles.noticeStripTitleUrgent,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {mosque.announcements[0].title}
+                    </Text>
+                    <Text style={styles.noticeStripSub}>
+                      {mosque.announcements.length} active notice{mosque.announcements.length > 1 ? 's' : ''} • Tap to view notice board
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.noticeStripArrow}>→</Text>
+              </Pressable>
+            )}
+
+            {/* Community Attendance Affiliation & Dual-Count (ADR-024, ADR-035) */}
+            <AttendanceAffiliationCard
+              mosqueId={mosque.id}
+              summary={mosque.attendanceSummary}
+            />
+
             {/* Card 1: Complete Timetable Breakdown */}
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Daily Jammat Timetable</Text>
-                <View style={styles.badgeSuccess}>
-                  <Text style={styles.badgeSuccessText}>Verified Active</Text>
+                <View>
+                  <Text style={styles.cardTitle}>Daily Jammat Timetable</Text>
+                  <Text style={styles.cardHeaderSub}>Direct community correction</Text>
                 </View>
+                <Pressable
+                  onPress={() => setUpdateModalVisible(true)}
+                  style={styles.updateTimesBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Update prayer times"
+                >
+                  <Text style={styles.updateTimesBtnText}>+ Update</Text>
+                </Pressable>
               </View>
 
               <View style={styles.timetableTable}>
@@ -102,101 +184,83 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               </View>
             </View>
 
-            {/* Card 2: Verified Donation Channels (ADR-028) */}
+            {/* Card 2: Verified Donation Channels (ADR-028, ADR-051) */}
             {mosque.donationMethods && mosque.donationMethods.length > 0 && (
-              <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>Verified Donations</Text>
-                  <Text style={styles.cardHeaderSub}>1-tap copy</Text>
-                </View>
-
-                {mosque.donationMethods.map((method) => (
-                  <View key={method.id} style={styles.donationItem}>
-                    <View style={styles.donationDetails}>
-                      <View style={styles.methodHeader}>
-                        <Text style={styles.methodName}>{method.methodType}</Text>
-                        <Text style={styles.accountTypeBadge}>{method.accountType}</Text>
-                      </View>
-                      <Text style={styles.accountNumber}>{method.accountNumber}</Text>
-                      {method.accountTitle && (
-                        <Text style={styles.accountTitle}>{method.accountTitle}</Text>
-                      )}
-                      {method.verifiedByRoles && (
-                        <Text style={styles.provenanceText}>
-                          ✓ Verified by {method.verifiedByRoles.join(', ').toLowerCase()}
-                        </Text>
-                      )}
-                    </View>
-
-                    <Pressable
-                      onPress={() => handleCopy(method)}
-                      style={[styles.copyPill, copiedId === method.id && styles.copyPillActive]}
-                    >
-                      <Text
-                        style={[
-                          styles.copyPillText,
-                          copiedId === method.id && styles.copyPillTextActive,
-                        ]}
-                      >
-                        {copiedId === method.id ? 'Copied!' : 'Copy'}
-                      </Text>
-                    </Pressable>
-                  </View>
-                ))}
-              </View>
+              <DonationChannelsCard donationMethods={mosque.donationMethods} />
             )}
 
-            {/* Card 3: Verified Staff Roster (ADR-024) */}
+            {/* Card 3: Mosque Leadership & Staff Roster (ADR-009, ADR-047) */}
             {mosque.staffMembers && mosque.staffMembers.length > 0 && (
-              <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>Mosque Leadership & Staff</Text>
-                </View>
-
-                {mosque.staffMembers.map((staff: MosqueStaffMember) => (
-                  <View key={staff.id} style={styles.staffItem}>
-                    <View style={styles.staffInfo}>
-                      <Text style={styles.staffName}>{staff.name}</Text>
-                      <Text style={styles.staffRole}>{staff.role}</Text>
-                    </View>
-                    {staff.isVerified && (
-                      <View style={styles.staffVerifiedPill}>
-                        <Text style={styles.staffVerifiedText}>✓ Verified</Text>
-                      </View>
-                    )}
-                  </View>
-                ))}
-              </View>
+              <LeadershipRosterCard staffMembers={mosque.staffMembers} />
             )}
 
-            {/* Card 4: Facilities Overview (ADR-025) */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Facilities & Amenities</Text>
-                {mosque.capacity ? (
-                  <Text style={styles.capacityBadge}>Capacity: {mosque.capacity.toLocaleString()}</Text>
-                ) : null}
-              </View>
+            {/* Card 4: Facilities Overview (ADR-025, ADR-050) */}
+            <FacilitiesCard
+              mosque={{
+                ...mosque,
+                facility: activeFacility ?? mosque.facility,
+              }}
+              onPressSuggest={() => setSuggestFacilitiesModalVisible(true)}
+            />
 
-              <View style={styles.facilityGrid}>
-                {[
-                  { label: "Women's Area", available: mosque.hasSeparateWomenSpace },
-                  { label: 'Air Conditioning', available: mosque.hasAirConditioning },
-                  { label: 'Parking Area', available: mosque.hasParking },
-                  { label: 'Wheelchair Access', available: mosque.hasWheelchairAccess },
-                  { label: 'Janaza Facility', available: mosque.hasJanazaFacility },
-                ].map((item) => (
-                  <View key={item.label} style={styles.facilityPill}>
-                    <Text style={item.available ? styles.facIconActive : styles.facIconInactive}>
-                      {item.available ? '●' : '○'}
-                    </Text>
-                    <Text style={styles.facLabel}>{item.label}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
+            {/* Community Issue Reporting Trigger (ADR-020, ADR-045) */}
+            <Pressable
+              style={styles.reportIssueTrigger}
+              onPress={() => setReportModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Report an issue with this mosque"
+            >
+              <Text style={styles.reportIssueText}>🚩 Report an issue / incorrect information</Text>
+            </Pressable>
           </ScrollView>
         </View>
+
+        <TimetableUpdateModal
+          visible={updateModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          currentSchedule={schedule}
+          onClose={() => setUpdateModalVisible(false)}
+          onScheduleUpdated={(partial) => {
+            setActiveSchedule((prev) => ({ ...(prev ?? {}), ...partial }));
+          }}
+        />
+
+        <NoticeBoardModal
+          visible={noticeModalVisible}
+          mosqueName={mosque.name}
+          announcements={mosque.announcements || []}
+          onClose={() => setNoticeModalVisible(false)}
+        />
+
+        <ReportIssueModal
+          visible={reportModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          onClose={() => setReportModalVisible(false)}
+        />
+
+        <SuggestFacilitiesModal
+          visible={suggestFacilitiesModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          initialFacilities={activeFacility ?? mosque.facility}
+          onClose={() => setSuggestFacilitiesModalVisible(false)}
+          onSuccess={(suggested) => {
+            setActiveFacility((prev) => ({
+              ...(prev ?? {}),
+              ...suggested,
+            }));
+          }}
+        />
+
+        <CollectionTagModal
+          visible={tagModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          onClose={() => setTagModalVisible(false)}
+          onTagsUpdated={(updated) => setActiveTags(updated)}
+        />
       </View>
     </Modal>
   );
@@ -250,6 +314,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: ferioSpacing.sm,
+  },
+  tagBtn: {
+    backgroundColor: ferioColors.surface,
+    borderColor: ferioColors.border,
+    borderWidth: 1,
+    borderRadius: ferioRadius.full,
+    paddingHorizontal: 8,
+    paddingVertical: ferioSpacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tagBtnText: {
+    fontSize: 14,
   },
   followBtn: {
     paddingHorizontal: ferioSpacing.md,
@@ -324,6 +401,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: ferioColors.accent,
   },
+  updateTimesBtn: {
+    backgroundColor: '#f4f4f5',
+    paddingHorizontal: ferioSpacing.sm,
+    paddingVertical: 5,
+    borderRadius: ferioRadius.full,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+  },
+  updateTimesBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: ferioColors.primary,
+  },
   timetableTable: {
     borderTopWidth: 1,
     borderTopColor: ferioColors.border,
@@ -345,77 +435,6 @@ const styles = StyleSheet.create({
     color: ferioColors.primary,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
-  },
-  donationItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: ferioColors.canvas,
-    borderRadius: ferioRadius.lg,
-    padding: ferioSpacing.sm,
-    marginBottom: ferioSpacing.xs,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
-  },
-  donationDetails: {
-    flex: 1,
-    marginRight: ferioSpacing.sm,
-  },
-  methodHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
-  },
-  methodName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: ferioColors.primary,
-  },
-  accountTypeBadge: {
-    fontSize: 9,
-    color: ferioColors.muted,
-    backgroundColor: '#e5e7eb',
-    paddingHorizontal: 4,
-    borderRadius: 3,
-  },
-  accountNumber: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: ferioColors.primary,
-    fontVariant: ['tabular-nums'],
-    letterSpacing: 0.5,
-  },
-  accountTitle: {
-    fontSize: 11,
-    color: ferioColors.muted,
-    marginTop: 1,
-  },
-  provenanceText: {
-    fontSize: 10,
-    color: ferioColors.accent,
-    fontWeight: '500',
-    marginTop: 2,
-  },
-  copyPill: {
-    paddingHorizontal: ferioSpacing.md,
-    paddingVertical: ferioSpacing.xs,
-    borderRadius: ferioRadius.full,
-    backgroundColor: ferioColors.surface,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
-  },
-  copyPillActive: {
-    backgroundColor: ferioColors.accent,
-    borderColor: ferioColors.accent,
-  },
-  copyPillText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: ferioColors.primary,
-  },
-  copyPillTextActive: {
-    color: '#ffffff',
   },
   staffItem: {
     flexDirection: 'row',
@@ -449,41 +468,58 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: ferioColors.accent,
   },
-  capacityBadge: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: ferioColors.muted,
-  },
-  facilityGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: ferioSpacing.xs,
-  },
-  facilityPill: {
+  noticeStrip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: ferioColors.canvas,
-    borderRadius: ferioRadius.full,
-    paddingHorizontal: ferioSpacing.sm,
-    paddingVertical: 4,
+    justifyContent: 'space-between',
+    backgroundColor: '#eff6ff',
     borderWidth: 1,
-    borderColor: ferioColors.border,
-    marginRight: 4,
-    marginBottom: 4,
+    borderColor: '#bfdbfe',
+    borderRadius: ferioRadius.md,
+    padding: ferioSpacing.md,
+    marginBottom: ferioSpacing.md,
   },
-  facIconActive: {
-    color: ferioColors.accent,
-    fontSize: 10,
-    marginRight: 4,
+  noticeStripUrgent: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fca5a5',
   },
-  facIconInactive: {
-    color: ferioColors.muted,
-    fontSize: 10,
-    marginRight: 4,
+  noticeStripLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
-  facLabel: {
+  noticeStripIcon: {
+    fontSize: 20,
+    marginRight: ferioSpacing.sm,
+  },
+  noticeStripTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1e40af',
+  },
+  noticeStripTitleUrgent: {
+    color: '#991b1b',
+  },
+  noticeStripSub: {
     fontSize: 11,
-    color: ferioColors.primary,
-    fontWeight: '500',
+    color: ferioColors.muted,
+    marginTop: 2,
+  },
+  noticeStripArrow: {
+    fontSize: 16,
+    color: ferioColors.muted,
+    marginLeft: ferioSpacing.sm,
+  },
+  reportIssueTrigger: {
+    paddingVertical: ferioSpacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: ferioSpacing.sm,
+    marginBottom: ferioSpacing.xl,
+  },
+  reportIssueText: {
+    fontSize: 12,
+    color: ferioColors.muted,
+    textDecorationLine: 'underline',
   },
 });

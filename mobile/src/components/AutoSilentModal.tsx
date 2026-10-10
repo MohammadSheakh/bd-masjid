@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   StyleSheet,
@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { PrayerAutoSilentSettings } from '../types/mosque';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
+import { PreferencesStorage } from '../lib/storage';
+import { OemBatteryWizardModal } from './OemBatteryWizardModal';
 
 interface AutoSilentModalProps {
   visible: boolean;
@@ -28,6 +30,8 @@ export const AutoSilentModal: React.FC<AutoSilentModalProps> = ({
   onUpdateSettings,
   onRequestDndPermission,
 }) => {
+  const [showOemWizard, setShowOemWizard] = useState(false);
+
   const togglePrayer = (waqt: keyof PrayerAutoSilentSettings['enabledPrayers']) => {
     onUpdateSettings({
       enabledPrayers: {
@@ -62,7 +66,12 @@ export const AutoSilentModal: React.FC<AutoSilentModalProps> = ({
               </View>
               <Switch
                 value={settings.isEnabled}
-                onValueChange={(val) => onUpdateSettings({ isEnabled: val })}
+                onValueChange={(val) => {
+                  onUpdateSettings({ isEnabled: val });
+                  if (val && !PreferencesStorage.isOemWizardDismissed()) {
+                    setShowOemWizard(true);
+                  }
+                }}
                 trackColor={{ false: ferioColors.border, true: ferioColors.primary }}
                 thumbColor={ferioColors.surface}
               />
@@ -138,8 +147,29 @@ export const AutoSilentModal: React.FC<AutoSilentModalProps> = ({
                 If your phone is already on Silent or Vibrate before Jammat, it will NEVER be forced into Ringing mode. It safely restores to your initial sound state.
               </Text>
             </View>
+
+            {/* OEM Battery Killer Optimization Guide */}
+            <Pressable
+              onPress={() => setShowOemWizard(true)}
+              style={styles.oemGuideCard}
+              accessibilityRole="button"
+              accessibilityLabel="OEM battery optimization settings"
+            >
+              <View style={styles.oemGuideLeft}>
+                <Text style={styles.oemGuideTitle}>⚡ Background Battery Protection</Text>
+                <Text style={styles.oemGuideDesc}>
+                  Configure Xiaomi/Samsung/Realme to avoid dropping alarms
+                </Text>
+              </View>
+              <Text style={styles.oemGuideArrow}>→</Text>
+            </Pressable>
           </ScrollView>
         </View>
+
+        <OemBatteryWizardModal
+          visible={showOemWizard}
+          onClose={() => setShowOemWizard(false)}
+        />
       </View>
     </Modal>
   );
@@ -335,6 +365,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: ferioColors.muted,
     lineHeight: 16,
+  },
+  oemGuideCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    borderRadius: ferioRadius.lg,
+    padding: ferioSpacing.md,
+    marginBottom: ferioSpacing.xxl,
+  },
+  oemGuideLeft: {
+    flex: 1,
+    marginRight: ferioSpacing.sm,
+  },
+  oemGuideTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#92400e',
+    marginBottom: 2,
+  },
+  oemGuideDesc: {
+    fontSize: 12,
+    color: '#b45309',
+    lineHeight: 16,
+  },
+  oemGuideArrow: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#92400e',
   },
   pressed: {
     opacity: 0.75,

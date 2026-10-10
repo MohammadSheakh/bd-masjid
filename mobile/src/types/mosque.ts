@@ -104,9 +104,14 @@ export interface MosqueDonationMethod {
   accountNumber: string;
   accountTitle?: string | null;
   bankName?: string | null;
+  branchName?: string | null;
+  routingNumber?: string | null;
   instructions?: string | null;
   isVerified: boolean;
   verifiedByRoles?: string[];
+  creatorName?: string | null;
+  creatorRole?: string | null;
+  creatorImageUrl?: string | null;
 }
 
 export interface Mosque {
@@ -138,9 +143,47 @@ export interface Mosque {
   capacity?: number | null;
   staffMembers?: MosqueStaffMember[];
   donationMethods?: MosqueDonationMethod[];
+  announcements?: MosqueAnnouncement[];
   isBookmarked?: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export type MosqueAnnouncementCategory =
+  | 'JANAZAH'
+  | 'EID_PRAYER'
+  | 'RAMADAN'
+  | 'FRIDAY_KHUTBAH'
+  | 'GENERAL_NOTICE';
+
+export type MosqueAnnouncementPriority = 'URGENT' | 'NORMAL';
+
+export interface MosqueAnnouncement {
+  id: string;
+  mosqueId: string;
+  category: MosqueAnnouncementCategory;
+  priority: MosqueAnnouncementPriority;
+  title: string;
+  body: string;
+  authorName?: string;
+  eventDate?: string | null;
+  eventTime?: string | null;
+  expiresAt?: string | null;
+  createdAt: string;
+}
+
+export type MosqueReportType =
+  | 'PRAYER_TIME'
+  | 'LOCATION'
+  | 'CLOSED_MOSQUE'
+  | 'DUPLICATE'
+  | 'CONTACT_INFO'
+  | 'OTHER';
+
+export interface MosqueReportPayload {
+  type: MosqueReportType;
+  description: string;
+  contactEmail?: string;
 }
 
 export type PrayerName = 'fajr' | 'zuhr' | 'asr' | 'maghrib' | 'isha';
@@ -159,4 +202,37 @@ export interface PrayerAutoSilentSettings {
   };
   hasDndPermission: boolean;
   activeSilenceExpiry: string | null; // ISO timestamp if active right now
+}
+
+export type NotificationType =
+  | 'ANNOUNCEMENT'
+  | 'SCHEDULE_CHANGE'
+  | 'DONATION_UPDATE'
+  | 'PRAYER_REMINDER';
+
+export interface UserNotification {
+  id: string;
+  userId?: string;
+  mosqueId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  entityId?: string | null;
+  isRead: boolean;
+  readAt?: string | null;
+  createdAt: string;
+  mosque?: {
+    id: string;
+    name: string;
+    city?: string | null;
+  };
+}
+
+export interface PaginatedNotifications {
+  items: UserNotification[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  unreadCount: number;
 }
