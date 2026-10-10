@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { AttendanceStatus, AttendanceSummary } from '../types/mosque';
 import { ApiClient } from '../lib/apiClient';
@@ -9,12 +9,14 @@ interface AttendanceAffiliationCardProps {
   mosqueId: string;
   summary?: AttendanceSummary;
   onAttendanceChange?: (updatedSummary: AttendanceSummary) => void;
+  isBangla?: boolean;
 }
 
 export const AttendanceAffiliationCard: React.FC<AttendanceAffiliationCardProps> = ({
   mosqueId,
   summary,
   onAttendanceChange,
+  isBangla = true,
 }) => {
   // Read initial selection from synchronous storage or prop summary
   const storedStatus = PreferencesStorage.getUserAttendance(mosqueId);
@@ -24,11 +26,30 @@ export const AttendanceAffiliationCard: React.FC<AttendanceAffiliationCardProps>
   const [regularCount, setRegularCount] = useState<number>(summary?.regularCount ?? 0);
   const [occasionalCount, setOccasionalCount] = useState<number>(summary?.occasionalCount ?? 0);
 
+  useEffect(() => {
+    let isMounted = true;
+    ApiClient.getAttendanceSummary(mosqueId)
+      .then((data) => {
+        if (!isMounted) return;
+        setRegularCount(data.regularCount);
+        setOccasionalCount(data.occasionalCount);
+        if (data.userStatus) setCurrentStatus(data.userStatus);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [mosqueId]);
+
+  const formatCount = (count: number) => {
+    if (!isBangla) return count.toString();
+    const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return count.toString().replace(/\d/g, (d) => bnDigits[parseInt(d, 10)]);
+  };
+
   const handleSelect = async (selected: AttendanceStatus) => {
-    // If clicking the already selected status, toggle it off to NONE
     const nextStatus: AttendanceStatus = currentStatus === selected ? 'NONE' : selected;
 
-    // Optimistic delta computation
     let nextReg = regularCount;
     let nextOcc = occasionalCount;
 
@@ -38,7 +59,6 @@ export const AttendanceAffiliationCard: React.FC<AttendanceAffiliationCardProps>
     if (nextStatus === 'REGULAR') nextReg += 1;
     if (nextStatus === 'OCCASIONAL') nextOcc += 1;
 
-    // Apply immediate local state update (< 1ms)
     setCurrentStatus(nextStatus);
     setRegularCount(nextReg);
     setOccasionalCount(nextOcc);
@@ -50,25 +70,26 @@ export const AttendanceAffiliationCard: React.FC<AttendanceAffiliationCardProps>
     };
     onAttendanceChange?.(updatedSummary);
 
-    // Asynchronously dispatch to API (handles local storage persistence internally)
     try {
       await ApiClient.setAttendance(mosqueId, nextStatus);
-    } catch {
-      // Retain optimistic value; syncs on subsequent refresh
-    }
+    } catch {}
   };
 
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.titleColumn}>
-          <Text style={styles.cardTitle}>Community Attendance</Text>
-          <Text style={styles.microcopy}>Enduring affiliation, not a daily check-in</Text>
+          <Text style={styles.cardTitle}>
+            {isBangla ? 'আমার নিয়মিত মসজিদ' : 'Community Attendance'}
+          </Text>
+          <Text style={styles.microcopy}>
+            {isBangla ? 'নিয়মিত মুসল্লি হিসেবে নিজেকে যুক্ত করুন' : 'Enduring affiliation, not a daily check-in'}
+          </Text>
         </View>
 
         <View style={styles.metricsBadge}>
           <Text style={styles.metricsText}>
-            {regularCount} regular • {occasionalCount} occasional
+            👥 {formatCount(regularCount)} {isBangla ? 'নিয়মিত' : 'regular'} • {formatCount(occasionalCount)} {isBangla ? 'অনিয়মিত' : 'occasional'}
           </Text>
         </View>
       </View>
@@ -90,7 +111,9 @@ export const AttendanceAffiliationCard: React.FC<AttendanceAffiliationCardProps>
               currentStatus === 'REGULAR' && styles.regularPillTextActive,
             ]}
           >
-            {currentStatus === 'REGULAR' ? '✓ Regular Attendee' : 'I pray here regularly'}
+            {currentStatus === 'REGULAR'
+              ? isBangla ? '✓ নিয়মিত মুসল্লি' : '✓ Regular Attendee'
+              : isBangla ? '+ আমি নিয়মিত মুসল্লি' : 'I pray here regularly'}
           </Text>
         </Pressable>
 
@@ -110,7 +133,9 @@ export const AttendanceAffiliationCard: React.FC<AttendanceAffiliationCardProps>
               currentStatus === 'OCCASIONAL' && styles.occasionalPillTextActive,
             ]}
           >
-            {currentStatus === 'OCCASIONAL' ? '✓ Occasional' : 'Occasional attendee'}
+            {currentStatus === 'OCCASIONAL'
+              ? isBangla ? '✓ অনিয়মিত' : '✓ Occasional'
+              : isBangla ? '+ মাঝে মাঝে পড়ি' : 'Occasional attendee'}
           </Text>
         </Pressable>
       </View>
