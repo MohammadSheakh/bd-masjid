@@ -20,6 +20,7 @@ import { MosqueDetailSheet } from './src/components/MosqueDetailSheet';
 import { MosqueMapView } from './src/components/MosqueMapView';
 import { OfflineBanner } from './src/components/OfflineBanner';
 import { AddMosqueSheet } from './src/components/AddMosqueSheet';
+import { QiblaCompassModal } from './src/components/QiblaCompassModal';
 import { PreferencesStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
@@ -40,6 +41,7 @@ export default function App() {
   );
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isQiblaOpen, setIsQiblaOpen] = useState(false);
 
   const [autoSilentSettings, setAutoSilentSettings] = useState<PrayerAutoSilentSettings>(() => {
     const saved = PreferencesStorage.getAutoSilentSettings();
@@ -145,16 +147,27 @@ export default function App() {
           <Text style={styles.brandSubtitle}>Mosque & Prayer Platform</Text>
         </View>
 
-        <Pressable
-          onPress={() => setIsModalOpen(true)}
-          style={({ pressed }) => [styles.silentToggleBtn, pressed && styles.pressed]}
-          accessibilityRole="button"
-          accessibilityLabel="Auto-Silent Settings"
-        >
-          <Text style={styles.silentToggleText}>
-            {autoSilentSettings.isEnabled ? '🔕 Auto-Silent' : '🔔 Silent Off'}
-          </Text>
-        </Pressable>
+        <View style={styles.topNavbarActions}>
+          <Pressable
+            onPress={() => setIsQiblaOpen(true)}
+            style={({ pressed }) => [styles.qiblaToggleBtn, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Open Qibla Compass"
+          >
+            <Text style={styles.qiblaToggleText}>🧭 Qibla</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setIsModalOpen(true)}
+            style={({ pressed }) => [styles.silentToggleBtn, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Auto-Silent Settings"
+          >
+            <Text style={styles.silentToggleText}>
+              {autoSilentSettings.isEnabled ? '🔕 Auto-Silent' : '🔔 Silent Off'}
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       {/* Search Input */}
@@ -285,6 +298,12 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Qibla Direction Compass Modal */}
+      <QiblaCompassModal
+        visible={isQiblaOpen}
+        onClose={() => setIsQiblaOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -315,6 +334,24 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     color: ferioColors.muted,
+  },
+  topNavbarActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: ferioSpacing.xs,
+  },
+  qiblaToggleBtn: {
+    paddingHorizontal: ferioSpacing.md,
+    paddingVertical: ferioSpacing.xs,
+    borderRadius: ferioRadius.full,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+  },
+  qiblaToggleText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#059669',
   },
   silentToggleBtn: {
     paddingHorizontal: ferioSpacing.md,
