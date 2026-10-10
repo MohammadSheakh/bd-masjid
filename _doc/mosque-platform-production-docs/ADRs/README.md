@@ -41,6 +41,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-033](ADR-033-mobile-tiered-storage-and-smart-api-client.md) | Mobile Tiered Storage Architecture, Hardware Token Encryption, and Smart Localhost API Client | Accepted | 2026-10-10 | Tiered Storage, Hardware KeyStore & Smart API Client |
 | [ADR-034](ADR-034-android-native-auto-silent-engine-and-prior-state-dnd.md) | Android Native Auto-Silent Engine, Prior-State DND Preservation, and Exact Alarm Scheduling | Accepted | 2026-10-10 | Auto-Silent, Android DND, Prior-State Invariant & AlarmManager |
 | [ADR-035](ADR-035-mobile-attendance-affiliation-and-dual-count-transparency.md) | Mobile Community Attendance Affiliation, Dual-Count Transparency, and Optimistic Sync Architecture | Accepted | 2026-10-10 | Attendance Affiliation, Dual Metrics, Optimistic Sync & ADR-024 Parity |
+| [ADR-036](ADR-036-mobile-community-timetable-update-and-feedback-modal.md) | Mobile Community Timetable Update & Feedback Modal Architecture | Accepted | 2026-10-10 | Timetable Updates, Community Corrections, ADR-021 & ADR-027 Parity |
 
 
 ---

@@ -104,9 +104,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] 1-Tap copy to clipboard with instant visual feedback.
   - [x] Display multi-signatory committee verification ticks (President, Secretary, Mutawalli).
 
-- [ ] **4.4. Community Feedback & Reporting Modals**
-  - [ ] Community Suggestion / Timetable Update modal (ADR-021, ADR-027).
-  - [ ] Inaccurate information and fraud report modal (ADR-006).
+- [x] **4.4. Community Feedback & Reporting Modals (ADR-021, ADR-027, ADR-036)**
+  - [x] Community Suggestion / Timetable Update modal (ADR-021, ADR-027, ADR-036).
+  - [x] Inaccurate information and fraud report modal (ADR-006).
 
 ---
 
