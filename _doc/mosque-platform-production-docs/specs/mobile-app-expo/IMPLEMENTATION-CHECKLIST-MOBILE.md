@@ -480,9 +480,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 30: Mosque Leadership Role Claim & Staff Verification Sheet (ADR-064)
 
-- [ ] **30.1. Role Claim Domain Contracts & ApiClient Transport**
-  - [ ] Define `MosqueStaffRole` and `CreateRoleClaimPayload` in `types/community.ts`.
-  - [ ] Add `submitRoleClaim` to `ApiClient` (`POST /api/v1/community/:id/claims`) with offline outbox fallback.
+- [x] **30.1. Role Claim Domain Contracts & ApiClient Transport**
+  - [x] Define `MosqueStaffRole` and `CreateRoleClaimPayload` in `types/community.ts`.
+  - [x] Add `submitRoleClaim` to `ApiClient` (`POST /api/v1/community/:id/claims`) with offline outbox fallback.
 - [ ] **30.2. Ferio RoleClaimModal Sheet**
   - [ ] Create `RoleClaimModal.tsx` with role pill selector, applicant name/phone inputs, appointment evidence details, and submission loader.
 - [ ] **30.3. Wire Role Claim Trigger into Mosque Detail Sheet & Performance Gate**

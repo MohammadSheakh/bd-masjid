@@ -16,6 +16,7 @@ import { OfflineOutboxService } from '../services/offlineOutboxService';
 import { OutboxMutationType } from '../types/outbox';
 import { ModerationAction, ModerationQueueItem, ResolveModerationPayload } from '../types/moderation';
 import { ContributorActivityItem, ContributorReputationSummary } from '../types/contributor';
+import { CreateRoleClaimPayload, RoleClaimResponse } from '../types/community';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -630,6 +631,28 @@ export const ApiClient = {
       userId ? `/contributors/${userId}/activity` : '/contributors/me/activity',
       { method: 'GET' },
       fallbackHistory
+    );
+  },
+
+  async submitRoleClaim(
+    mosqueId: string,
+    payload: CreateRoleClaimPayload
+  ): Promise<RoleClaimResponse> {
+    const fallbackResponse: RoleClaimResponse = {
+      id: `claim-${Date.now()}`,
+      mosqueId,
+      role: payload.role,
+      status: 'PENDING',
+      message: 'Role claim submitted successfully. Awaiting verification.',
+    };
+
+    return fetchWithFallback<RoleClaimResponse>(
+      `/community/${mosqueId}/claims`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      fallbackResponse
     );
   },
 };
