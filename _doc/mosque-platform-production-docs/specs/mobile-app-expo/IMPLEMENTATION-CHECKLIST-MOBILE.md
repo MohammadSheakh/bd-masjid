@@ -496,8 +496,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **31.1. Announcement Domain Contracts & ApiClient Transport**
   - [x] Define `AnnouncementCategory`, `MosqueAnnouncement`, `FeedAnnouncementsParams`, and `CreateAnnouncementPayload` in `types/announcement.ts`.
   - [x] Add `getAnnouncementsFeed`, `getMosqueAnnouncements`, and `createAnnouncement` to `ApiClient`.
-- [ ] **31.2. Ferio AnnouncementCard Component**
-  - [ ] Create `AnnouncementCard.tsx` with category badges (`🚨 Emergency`, `⚰️ Janazah`, `🕌 Jumu'ah`, etc.), pinned indicator, and expandable content.
+- [x] **31.2. Ferio AnnouncementCard Component**
+  - [x] Create `AnnouncementCard.tsx` with category badges (`🚨 Emergency`, `⚰️ Janazah`, `🕌 Jumu'ah`, etc.), pinned indicator, and expandable content.
 - [ ] **31.3. Ferio AnnouncementsFeedModal Sheet**
   - [ ] Create `AnnouncementsFeedModal.tsx` with category filter pills, pull-to-refresh, spatial radius query, and FlashList feed rendering.
 - [ ] **31.4. Ferio CreateAnnouncementModal Sheet**
