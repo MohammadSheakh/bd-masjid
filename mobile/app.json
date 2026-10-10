@@ -1,22 +1,45 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "BD Masjid",
+    "slug": "bd-masjid",
+    "scheme": "bdmasjid",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "jsEngine": "hermes",
+    "splash": {
+      "backgroundColor": "#111114",
+      "resizeMode": "contain"
+    },
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "org.bdmasjid.app",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "BD Masjid uses your location to discover nearby mosques and calculate walking distances."
+      }
     },
     "android": {
-      "package": "org.bdmasjid.mobile",
+      "package": "org.bdmasjid.app",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#111114",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
+        "ACCESS_NOTIFICATION_POLICY",
+        "VIBRATE",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "plugins": [
