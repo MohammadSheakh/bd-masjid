@@ -46,9 +46,10 @@ import { OfflineMapRegionsModal } from './src/components/OfflineMapRegionsModal'
 import { LocationRadarService } from './src/services/locationRadarService';
 import { AnnouncementsFeedModal } from './src/components/AnnouncementsFeedModal';
 import { CreateAnnouncementModal } from './src/components/CreateAnnouncementModal';
+import { MyAttendedMosquesModal } from './src/components/MyAttendedMosquesModal';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
-const AMENITY_TAGS = ['All', '📍 Nearest', '📢 Notices', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
+const AMENITY_TAGS = ['All', '📍 Nearest', '🕌 My Mosques', '📢 Notices', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
 
 export default function App() {
   const [mosquesList, setMosquesList] = useState<Mosque[]>(BANGLADESH_MOSQUES_FIXTURES);
@@ -73,6 +74,7 @@ export default function App() {
   const [isOfflineRegionsOpen, setIsOfflineRegionsOpen] = useState(false);
   const [isAnnouncementsModalOpen, setIsAnnouncementsModalOpen] = useState(false);
   const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
+  const [isMyAttendedOpen, setIsMyAttendedOpen] = useState(false);
   const [pendingModCount, setPendingModCount] = useState<number>(() =>
     ModeratorService.getPendingCountSync()
   );
@@ -368,11 +370,14 @@ export default function App() {
           {AMENITY_TAGS.map((tag) => {
             const active = selectedTag === tag;
             const isNoticesTag = tag === '📢 Notices';
+            const isMyMosquesTag = tag === '🕌 My Mosques';
             const displayLabel =
               tag === '📍 Nearest' && lang === 'bn'
                 ? '📍 নিকটবর্তী'
                 : tag === '📢 Notices' && lang === 'bn'
                 ? '📢 বিজ্ঞপ্তি'
+                : tag === '🕌 My Mosques' && lang === 'bn'
+                ? '🕌 আমার মসজিদ'
                 : tag;
             return (
               <Pressable
@@ -380,6 +385,8 @@ export default function App() {
                 onPress={() => {
                   if (isNoticesTag) {
                     setIsAnnouncementsModalOpen(true);
+                  } else if (isMyMosquesTag) {
+                    setIsMyAttendedOpen(true);
                   } else {
                     setSelectedTag(tag);
                   }
@@ -565,6 +572,17 @@ export default function App() {
         mosqueId={topFollowedMosque.id}
         mosqueName={topFollowedMosque.name}
         onClose={() => setIsCreateAnnouncementOpen(false)}
+      />
+
+      {/* Musalli Regular Congregation & Attended Mosques Hub (ADR-066) */}
+      <MyAttendedMosquesModal
+        visible={isMyAttendedOpen}
+        onClose={() => setIsMyAttendedOpen(false)}
+        onSelectMosque={(id) => {
+          const found = mosquesList.find((m) => m.id === id);
+          if (found) setSelectedMosque(found);
+        }}
+        isBangla={lang === 'bn'}
       />
     </SafeAreaView>
   );

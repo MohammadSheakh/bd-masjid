@@ -516,6 +516,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Add bilingual label support (`আমার নিয়মিত মসজিদ` / `Regular Attendee`), headcount pill, and live sync on mount.
 - [x] **32.3. Ferio MyAttendedMosquesModal Sheet**
   - [x] Create `MyAttendedMosquesModal.tsx` listing all user-affiliated congregations with regular/occasional tags, direct sheet jump, and 1-tap unregister.
-- [ ] **32.4. Wire My Attended Mosques Hub into App & Performance Gate**
-  - [ ] Add trigger to App profile/header and MosqueDetailSheet.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **32.4. Wire My Attended Mosques Hub into App & Performance Gate**
+  - [x] Add trigger to App profile/header and MosqueDetailSheet.
+  - [x] Run benchmark gate and TypeScript compilation.
