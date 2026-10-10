@@ -241,6 +241,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueId={mosque.id}
           mosqueName={mosque.name}
           onClose={() => setReportModalVisible(false)}
+          onOpenAuthModal={onOpenAuthModal}
         />
 
         <SuggestFacilitiesModal

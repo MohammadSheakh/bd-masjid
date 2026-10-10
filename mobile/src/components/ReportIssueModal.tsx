@@ -13,12 +13,15 @@ import {
 import { MosqueReportType } from '../types/mosque';
 import { ApiClient } from '../lib/apiClient';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
+import { ContributorAttributionBanner } from './ContributorAttributionBanner';
+import { AuthService } from '../services/authService';
 
 interface ReportIssueModalProps {
   visible: boolean;
   mosqueId: string;
   mosqueName: string;
   onClose: () => void;
+  onOpenAuthModal?: () => void;
 }
 
 const REPORT_OPTIONS: { type: MosqueReportType; label: string; icon: string }[] = [
@@ -34,10 +37,11 @@ export const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
   mosqueId,
   mosqueName,
   onClose,
+  onOpenAuthModal,
 }) => {
   const [selectedType, setSelectedType] = useState<MosqueReportType>('PRAYER_TIME');
   const [description, setDescription] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
+  const [contactEmail, setContactEmail] = useState(() => AuthService.getUserSync()?.email || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -48,11 +52,13 @@ export const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
 
     setIsSubmitting(true);
     try {
+      const activeUser = AuthService.getUserSync();
       const res = await ApiClient.submitMosqueReport(mosqueId, {
         type: selectedType,
         description: description.trim(),
-        contactEmail: contactEmail.trim() || undefined,
-      });
+        contactEmail: contactEmail.trim() || activeUser?.email || undefined,
+        userId: activeUser?.id,
+      } as any);
 
       Alert.alert('Report Received', res.message || 'Thank you for helping keep BD Masjid accurate.');
       setDescription('');
@@ -83,6 +89,9 @@ export const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
           </View>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
+            {/* Contributor Attribution Banner */}
+            <ContributorAttributionBanner onOpenAuthModal={onOpenAuthModal} />
+
             <Text style={styles.sectionTitle}>What is incorrect?</Text>
 
             {/* Type selector */}
