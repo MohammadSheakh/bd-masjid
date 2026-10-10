@@ -258,8 +258,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **15.1. Facilities Taxonomy Service & API Client Integration**
   - [x] Implement `facilityService.ts` with curated catalog of Bangladeshi mosque amenities and bilingual metadata.
   - [x] Add `submitFacilitySuggestion` in `ApiClient` with optimistic resolution and validation ($\le 20$ tags).
-- [ ] **15.2. Ferio FacilitiesCard with Custom Amenities Tags**
-  - [ ] Create `FacilitiesCard.tsx` rendering canonical badges, capacity pill, custom amenities tags, and "+ Suggest" CTA.
+- [x] **15.2. Ferio FacilitiesCard with Custom Amenities Tags**
+  - [x] Create `FacilitiesCard.tsx` rendering canonical badges, capacity pill, custom amenities tags, and "+ Suggest" CTA.
 - [ ] **15.3. Dedicated SuggestFacilitiesModal Sheet**
   - [ ] Create `SuggestFacilitiesModal.tsx` with canonical toggles, catalog chips, custom tag input, and submission feedback.
 - [ ] **15.4. Integration into MosqueDetailSheet & Verification**
