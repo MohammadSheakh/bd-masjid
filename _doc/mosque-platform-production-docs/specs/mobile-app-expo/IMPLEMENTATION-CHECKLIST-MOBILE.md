@@ -250,3 +250,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **14.2. Ferio DailyHadithCard & Collapsible Feed Integration**
   - [x] Implement `DailyHadithCard.tsx` with collapsible toggle, citation tag, and native share trigger.
   - [x] Position card in feed header beneath `PrayerCountdownBanner` with collapse memory.
+
+---
+
+## Phase 15: Extensible Facilities Taxonomy & Community Suggestion Modal (ADR-050)
+
+- [ ] **15.1. Facilities Taxonomy Service & API Client Integration**
+  - [ ] Implement `facilityService.ts` with curated catalog of Bangladeshi mosque amenities and bilingual metadata.
+  - [ ] Add `submitFacilitySuggestion` in `ApiClient` with optimistic resolution and validation ($\le 20$ tags).
+- [ ] **15.2. Ferio FacilitiesCard with Custom Amenities Tags**
+  - [ ] Create `FacilitiesCard.tsx` rendering canonical badges, capacity pill, custom amenities tags, and "+ Suggest" CTA.
+- [ ] **15.3. Dedicated SuggestFacilitiesModal Sheet**
+  - [ ] Create `SuggestFacilitiesModal.tsx` with canonical toggles, catalog chips, custom tag input, and submission feedback.
+- [ ] **15.4. Integration into MosqueDetailSheet & Verification**
+  - [ ] Replace basic facility grid in `MosqueDetailSheet.tsx` with `FacilitiesCard` and `SuggestFacilitiesModal`.
+  - [ ] Run benchmark gate and TypeScript compilation.
