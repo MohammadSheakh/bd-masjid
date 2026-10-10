@@ -253,12 +253,24 @@ export default function App() {
     return list;
   }, [isSearchingOrFiltering, followedMosques, discoveredMosques, selectedTag, activeCollectionTag, followedIds]);
 
+  const loadInitialMosques = useCallback(async () => {
+    try {
+      const results = await ApiClient.getNearbyMosques(23.75, 90.39, 25000);
+      if (Array.isArray(results) && results.length > 0) {
+        setDiscoveredMosques(results);
+      }
+    } catch {
+      // fallback handled gracefully
+    }
+  }, []);
+
   const mapMosques = useMemo(() => {
     const mosqueMap = new Map<string, Mosque>();
+    discoveredMosques.forEach((m) => mosqueMap.set(m.id, m));
     displayedMosques.forEach((m) => mosqueMap.set(m.id, m));
     followedMosques.forEach((m) => mosqueMap.set(m.id, m));
     return Array.from(mosqueMap.values());
-  }, [displayedMosques, followedMosques]);
+  }, [discoveredMosques, displayedMosques, followedMosques]);
 
   const collectionCounts = useMemo(() => {
     const all = CollectionStorage.getCollections();
@@ -278,6 +290,7 @@ export default function App() {
 
   useEffect(() => {
     loadFollowedMosques();
+    loadInitialMosques();
     TelemetryService.initTelemetry();
     TelemetryService.addBreadcrumb('lifecycle', 'BD Masjid application initialized');
 
@@ -480,150 +493,154 @@ export default function App() {
         </Pressable>
       </View>
 
-      {/* Routine Collection Filter Pills (ADR-052) */}
-      <CollectionFilterBar
-        activeTag={activeCollectionTag}
-        tagCounts={collectionCounts}
-        language={lang}
-        onSelectTag={setActiveCollectionTag}
-      />
-
-      {/* Amenity Filter Chips */}
-      <View style={styles.filterChipContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterChipRow}
-        >
-          {AMENITY_TAGS.map((tag) => {
-            const active = selectedTag === tag;
-            const isNoticesTag = tag === '📢 Notices';
-            const isMyMosquesTag = tag === '🕌 My Mosques';
-            const displayLabel =
-              tag === '📍 Nearest' && lang === 'bn'
-                ? '📍 নিকটবর্তী'
-                : tag === '📢 Notices' && lang === 'bn'
-                ? '📢 বিজ্ঞপ্তি'
-                : tag === '🕌 My Mosques' && lang === 'bn'
-                ? '🕌 আমার মসজিদ'
-                : tag;
-            return (
-              <Pressable
-                key={tag}
-                onPress={() => {
-                  if (isNoticesTag) {
-                    setIsAnnouncementsModalOpen(true);
-                  } else if (isMyMosquesTag) {
-                    setIsMyAttendedOpen(true);
-                  } else {
-                    setSelectedTag(tag);
-                  }
-                }}
-                style={[styles.chip, active && styles.chipActive]}
-              >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{displayLabel}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      {/* Offline Status Warning Banner (ADR-038) */}
-      <OfflineBanner
-        visible={isOffline}
-        onRetry={handleRetrySync}
-        isRetrying={isRetrying}
-      />
-
-      {/* Offline Outbox Mutation Sync Badge (ADR-057) */}
-      <OutboxSyncBadge />
-
-      {/* Viewport: List or Map */}
+      {/* Viewport: List or Full-Page Map */}
       {viewportMode === 'list' ? (
-        <FlatList
-          data={displayedMosques}
-          keyExtractor={(item) => item.id}
-          ListHeaderComponent={
-            topFollowedMosque ? (
-              <PrayerCountdownBanner
-                schedule={topFollowedMosque.prayerSchedule}
-                autoSilentSettings={autoSilentSettings}
-                onPressAutoSilentSettings={() => setIsModalOpen(true)}
+        <>
+          {/* Routine Collection Filter Pills (ADR-052) */}
+          <CollectionFilterBar
+            activeTag={activeCollectionTag}
+            tagCounts={collectionCounts}
+            language={lang}
+            onSelectTag={setActiveCollectionTag}
+          />
+
+          {/* Amenity Filter Chips */}
+          <View style={styles.filterChipContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterChipRow}
+            >
+              {AMENITY_TAGS.map((tag) => {
+                const active = selectedTag === tag;
+                const isNoticesTag = tag === '📢 Notices';
+                const isMyMosquesTag = tag === '🕌 My Mosques';
+                const displayLabel =
+                  tag === '📍 Nearest' && lang === 'bn'
+                    ? '📍 নিকটবর্তী'
+                    : tag === '📢 Notices' && lang === 'bn'
+                    ? '📢 বিজ্ঞপ্তি'
+                    : tag === '🕌 My Mosques' && lang === 'bn'
+                    ? '🕌 আমার মসজিদ'
+                    : tag;
+                return (
+                  <Pressable
+                    key={tag}
+                    onPress={() => {
+                      if (isNoticesTag) {
+                        setIsAnnouncementsModalOpen(true);
+                      } else if (isMyMosquesTag) {
+                        setIsMyAttendedOpen(true);
+                      } else {
+                        setSelectedTag(tag);
+                      }
+                    }}
+                    style={[styles.chip, active && styles.chipActive]}
+                  >
+                    <Text style={[styles.chipText, active && styles.chipTextActive]}>{displayLabel}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Offline Status Warning Banner (ADR-038) */}
+          <OfflineBanner
+            visible={isOffline}
+            onRetry={handleRetrySync}
+            isRetrying={isRetrying}
+          />
+
+          {/* Offline Outbox Mutation Sync Badge (ADR-057) */}
+          <OutboxSyncBadge />
+
+          <FlatList
+            data={displayedMosques}
+            keyExtractor={(item) => item.id}
+            ListHeaderComponent={
+              topFollowedMosque ? (
+                <PrayerCountdownBanner
+                  schedule={topFollowedMosque.prayerSchedule}
+                  autoSilentSettings={autoSilentSettings}
+                  onPressAutoSilentSettings={() => setIsModalOpen(true)}
+                />
+              ) : null
+            }
+            renderItem={({ item }) => (
+              <MosqueCard
+                mosque={item}
+                isFollowed={followedIds.includes(item.id)}
+                onToggleFollow={toggleFollow}
+                onPress={(m) => setSelectedMosque(m)}
               />
-            ) : null
-          }
-          renderItem={({ item }) => (
-            <MosqueCard
-              mosque={item}
-              isFollowed={followedIds.includes(item.id)}
-              onToggleFollow={toggleFollow}
-              onPress={(m) => setSelectedMosque(m)}
-            />
-          )}
-          ListFooterComponent={
-            <View style={styles.footerContainer}>
-              <DailyHadithCard language={lang} />
-            </View>
-          }
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            (isSearchingOrFiltering ? isSearchingLoading : isFollowedLoading) ? (
-              <View style={styles.emptyContainer}>
-                <ActivityIndicator size="small" color={ferioColors.primary} />
-                <Text style={styles.emptySubtitle}>
-                  {!isSearchingOrFiltering
-                    ? (lang === 'bn' ? 'অনুসৃত মসজিদ লোড হচ্ছে...' : 'Loading followed mosques...')
-                    : (lang === 'bn' ? 'মসজিদ খোঁজা হচ্ছে...' : 'Searching mosques...')}
-                </Text>
+            )}
+            ListFooterComponent={
+              <View style={styles.footerContainer}>
+                <DailyHadithCard language={lang} />
               </View>
-            ) : !isSearchingOrFiltering ? (
-              <View style={styles.emptyContainer}>
-                <View style={styles.emptyIconCircle}>
-                  <Text style={styles.emptyIcon}>🕌</Text>
-                </View>
-                <Text style={styles.emptyTitle}>
-                  {lang === 'bn' ? 'কোনো অনুসৃত মসজিদ নেই' : 'No followed mosques yet'}
-                </Text>
-                <Text style={styles.emptySubtitle}>
-                  {lang === 'bn'
-                    ? 'আপনার এলাকার মসজিদ খুঁজে পেতে বা ফিল্টার করে মসজিদ ফলো করুন।'
-                    : 'Search above for your neighborhood mosque or explore nearby mosques to follow their daily prayer schedule.'}
-                </Text>
-                <Pressable
-                  onPress={() => setSelectedTag('📍 Nearest')}
-                  style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.emptyActionBtnText}>
-                    {lang === 'bn' ? '📍 নিকটস্থ মসজিদ খুঁজুন' : '📍 Explore Nearest Mosques'}
+            }
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              (isSearchingOrFiltering ? isSearchingLoading : isFollowedLoading) ? (
+                <View style={styles.emptyContainer}>
+                  <ActivityIndicator size="small" color={ferioColors.primary} />
+                  <Text style={styles.emptySubtitle}>
+                    {!isSearchingOrFiltering
+                      ? (lang === 'bn' ? 'অনুসৃত মসজিদ লোড হচ্ছে...' : 'Loading followed mosques...')
+                      : (lang === 'bn' ? 'মসজিদ খোঁজা হচ্ছে...' : 'Searching mosques...')}
                   </Text>
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyTitle}>
-                  {lang === 'bn' ? 'কোনো মসজিদ পাওয়া যায়নি' : 'No mosques match your criteria'}
-                </Text>
-                <Text style={styles.emptySubtitle}>
-                  {lang === 'bn' ? 'অনুসন্ধান বা ফিল্টার পরিবর্তন করুন।' : 'Try adjusting your search query or filter tags.'}
-                </Text>
-              </View>
-            )
-          }
-        />
+                </View>
+              ) : !isSearchingOrFiltering ? (
+                <View style={styles.emptyContainer}>
+                  <View style={styles.emptyIconCircle}>
+                    <Text style={styles.emptyIcon}>🕌</Text>
+                  </View>
+                  <Text style={styles.emptyTitle}>
+                    {lang === 'bn' ? 'কোনো অনুসৃত মসজিদ নেই' : 'No followed mosques yet'}
+                  </Text>
+                  <Text style={styles.emptySubtitle}>
+                    {lang === 'bn'
+                      ? 'আপনার এলাকার মসজিদ খুঁজে পেতে বা ফিল্টার করে মসজিদ ফলো করুন।'
+                      : 'Search above for your neighborhood mosque or explore nearby mosques to follow their daily prayer schedule.'}
+                  </Text>
+                  <Pressable
+                    onPress={() => setSelectedTag('📍 Nearest')}
+                    style={({ pressed }) => [styles.emptyActionBtn, pressed && styles.pressed]}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.emptyActionBtnText}>
+                      {lang === 'bn' ? '📍 নিকটস্থ মসজিদ খুঁজুন' : '📍 Explore Nearest Mosques'}
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyTitle}>
+                    {lang === 'bn' ? 'কোনো মসজিদ পাওয়া যায়নি' : 'No mosques match your criteria'}
+                  </Text>
+                  <Text style={styles.emptySubtitle}>
+                    {lang === 'bn' ? 'অনুসন্ধান বা ফিল্টার পরিবর্তন করুন।' : 'Try adjusting your search query or filter tags.'}
+                  </Text>
+                </View>
+              )
+            }
+          />
+        </>
       ) : (
-        <MosqueMapView
-          mosques={mapMosques}
-          followedIds={followedIds}
-          selectedMosqueId={selectedMosque?.id}
-          onSelectMosque={(m) => setSelectedMosque(m)}
-          onPinDropped={(coords) => setAddMosqueCoords(coords)}
-          onLocateMe={() => {
-            setSelectedTag('All');
-            setSearchQuery('');
-          }}
-        />
+        <View style={styles.fullPageMapContainer}>
+          <MosqueMapView
+            mosques={mapMosques}
+            followedIds={followedIds}
+            selectedMosqueId={selectedMosque?.id}
+            onSelectMosque={(m) => setSelectedMosque(m)}
+            onPinDropped={(coords) => setAddMosqueCoords(coords)}
+            onLocateMe={() => {
+              setSelectedTag('All');
+              setSearchQuery('');
+            }}
+          />
+        </View>
       )}
 
       {/* Floating Centered Viewport Toggle Pill */}
@@ -755,6 +772,12 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: ferioColors.canvas,
+  },
+  fullPageMapContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    position: 'relative',
   },
   topNavbar: {
     flexDirection: 'row',
