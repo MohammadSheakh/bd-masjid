@@ -569,9 +569,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Implement production-grade multi-stage `mobile/Dockerfile` with `base`, `dev` (Metro on 8081), `builder`, and `production` (Nginx Alpine on 8082) targets.
 - [x] **36.2. Hardened Nginx Reverse Proxy & Static Distribution Config**
   - [x] Create `mobile/nginx.conf` with gzip compression, security headers, and SPA routing fallback.
-- [ ] **36.3. Root docker-compose.yml Integration & Healthcheck Verification**
-  - [ ] Add `mobile` service to root `docker-compose.yml` with port 8082 web distribution, port 8081 Metro bundler, backend health dependency, and HTTP probe.
-  - [ ] Verify `docker compose config` syntax across backend, frontend, redis, cloudflared, and mobile.
+- [x] **36.3. Root docker-compose.yml Integration & Healthcheck Verification**
+  - [x] Add `mobile` service to root `docker-compose.yml` with port 8082 web distribution, port 8081 Metro bundler, backend health dependency, and HTTP probe.
+  - [x] Verify `docker compose config` syntax across backend, frontend, redis, cloudflared, and mobile.
 
 
 
