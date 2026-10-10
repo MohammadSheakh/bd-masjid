@@ -26,6 +26,7 @@ import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
 import { PrayerNotificationService } from './src/services/prayerNotificationService';
 import { TelemetryService } from './src/services/telemetryService';
+import { LocalizationService, Language } from './src/services/localizationService';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -42,6 +43,7 @@ export default function App() {
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQiblaOpen, setIsQiblaOpen] = useState(false);
+  const [lang, setLang] = useState<Language>(() => LocalizationService.getLanguage());
 
   const [autoSilentSettings, setAutoSilentSettings] = useState<PrayerAutoSilentSettings>(() => {
     const saved = PreferencesStorage.getAutoSilentSettings();
@@ -143,18 +145,33 @@ export default function App() {
       {/* Top Navbar */}
       <View style={styles.topNavbar}>
         <View>
-          <Text style={styles.brandTitle}>BD Masjid</Text>
-          <Text style={styles.brandSubtitle}>Mosque & Prayer Platform</Text>
+          <Text style={styles.brandTitle}>{LocalizationService.t('brandTitle')}</Text>
+          <Text style={styles.brandSubtitle}>{LocalizationService.t('brandSubtitle')}</Text>
         </View>
 
         <View style={styles.topNavbarActions}>
+          {/* 1-Tap Language Toggle Pill (ADR-048) */}
+          <Pressable
+            onPress={() => {
+              const next = LocalizationService.toggleLanguage();
+              setLang(next);
+            }}
+            style={({ pressed }) => [styles.langToggleBtn, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Toggle Language between Bangla and English"
+          >
+            <Text style={styles.langToggleText}>
+              {lang === 'bn' ? 'বাং' : 'EN'}
+            </Text>
+          </Pressable>
+
           <Pressable
             onPress={() => setIsQiblaOpen(true)}
             style={({ pressed }) => [styles.qiblaToggleBtn, pressed && styles.pressed]}
             accessibilityRole="button"
             accessibilityLabel="Open Qibla Compass"
           >
-            <Text style={styles.qiblaToggleText}>🧭 Qibla</Text>
+            <Text style={styles.qiblaToggleText}>{LocalizationService.t('qiblaCompass')}</Text>
           </Pressable>
 
           <Pressable
@@ -164,7 +181,9 @@ export default function App() {
             accessibilityLabel="Auto-Silent Settings"
           >
             <Text style={styles.silentToggleText}>
-              {autoSilentSettings.isEnabled ? '🔕 Auto-Silent' : '🔔 Silent Off'}
+              {autoSilentSettings.isEnabled
+                ? LocalizationService.t('autoSilentOn')
+                : LocalizationService.t('autoSilentOff')}
             </Text>
           </Pressable>
         </View>
@@ -174,7 +193,7 @@ export default function App() {
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by mosque name, area, or city..."
+          placeholder={LocalizationService.t('searchPlaceholder')}
           placeholderTextColor={ferioColors.muted}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -339,6 +358,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: ferioSpacing.xs,
+  },
+  langToggleBtn: {
+    paddingHorizontal: ferioSpacing.sm + 2,
+    paddingVertical: ferioSpacing.xs,
+    borderRadius: ferioRadius.full,
+    backgroundColor: ferioColors.canvas,
+    borderWidth: 1,
+    borderColor: ferioColors.border,
+  },
+  langToggleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: ferioColors.primary,
   },
   qiblaToggleBtn: {
     paddingHorizontal: ferioSpacing.md,

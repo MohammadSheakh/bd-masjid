@@ -236,6 +236,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **13.1. Type-Safe Localization Engine & Bangla Dictionaries**
   - [x] Implement `localizationService.ts` with complete Bangla (বাংলা) and English (`en`) dictionaries.
   - [x] Add Musalli terminology (ওয়াক্ত, জামাত, আজান, খতিব, কিবলা, অনুদান) and numerals converter (`convertToBanglaNumber`).
-- [ ] **13.2. Fast 1-Tap Toggle Pill & UI Integration**
-  - [ ] Add compact `বাং | EN` switcher in `App.tsx` top navbar with synchronous `PreferencesStorage` persistence.
-  - [ ] Wire localized string helpers across Countdown Banner, Mosque Cards, and Navigation headers.
+- [x] **13.2. Fast 1-Tap Toggle Pill & UI Integration**
+  - [x] Add compact `বাং | EN` switcher in `App.tsx` top navbar with synchronous `PreferencesStorage` persistence.
+  - [x] Wire localized string helpers across Countdown Banner, Mosque Cards, and Navigation headers.
