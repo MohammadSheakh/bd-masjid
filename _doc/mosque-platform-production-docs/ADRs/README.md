@@ -43,6 +43,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-035](ADR-035-mobile-attendance-affiliation-and-dual-count-transparency.md) | Mobile Community Attendance Affiliation, Dual-Count Transparency, and Optimistic Sync Architecture | Accepted | 2026-10-10 | Attendance Affiliation, Dual Metrics, Optimistic Sync & ADR-024 Parity |
 | [ADR-036](ADR-036-mobile-community-timetable-update-and-feedback-modal.md) | Mobile Community Timetable Update & Feedback Modal Architecture | Accepted | 2026-10-10 | Timetable Updates, Community Corrections, ADR-021 & ADR-027 Parity |
 | [ADR-037](ADR-037-mobile-oem-battery-optimization-mitigation-wizard.md) | Mobile OEM Battery Optimization Mitigation Wizard Architecture | Accepted | 2026-10-10 | OEM Battery Killers, Xiaomi/Samsung/Realme, Exact Alarms & Reliability |
+| [ADR-038](ADR-038-mobile-offline-resilience-and-stale-while-revalidate-cache.md) | Mobile Offline Resilience, Stale-While-Revalidate Cache, and Offline Status Banner | Accepted | 2026-10-10 | Offline Resilience, SWR Cache, Offline Banner & Network Hydration |
 
 
 ---

@@ -112,10 +112,10 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 5: State, Offline Resilience & Attendance
 
-- [ ] **5.1. Persistent Local Storage**
-  - [ ] Store followed mosque IDs and cached schedules in `expo-sqlite` and `react-native-mmkv`.
-  - [ ] App immediately displays cached data on cold start while refreshing in background.
-  - [ ] Display offline warning banner if network request fails: *"Offline — showing cached schedule"*.
+- [x] **5.1. Persistent Local Storage & Offline Status Banner (ADR-038)**
+  - [x] Store followed mosque IDs and cached schedules in synchronous local storage.
+  - [x] App immediately displays cached data on cold start with Stale-While-Revalidate refresh in background.
+  - [x] Display sticky offline warning banner if network request fails: *"Offline — showing cached schedule"* with retry action.
 
 - [x] **5.2. Attendance Affiliation (ADR-024, ADR-035)**
   - [x] Single-tap attendance toggle (Regular / Occasional / None).
