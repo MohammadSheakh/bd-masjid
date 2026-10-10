@@ -19,6 +19,7 @@ import { FacilitiesCard } from './FacilitiesCard';
 import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
 import { DonationChannelsCard } from './DonationChannelsCard';
 import { CollectionTagModal } from './CollectionTagModal';
+import { RoleClaimModal } from './RoleClaimModal';
 import { CollectionStorage } from '../lib/storage';
 import { CollectionService, MosqueCollectionTag } from '../services/collectionService';
 
@@ -44,6 +45,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [suggestFacilitiesModalVisible, setSuggestFacilitiesModalVisible] = useState(false);
   const [tagModalVisible, setTagModalVisible] = useState(false);
+  const [roleClaimModalVisible, setRoleClaimModalVisible] = useState(false);
   const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
   const [activeFacility, setActiveFacility] = useState(mosque?.facility);
@@ -191,10 +193,11 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               <DonationChannelsCard donationMethods={mosque.donationMethods} />
             )}
 
-            {/* Card 3: Mosque Leadership & Staff Roster (ADR-009, ADR-047) */}
-            {mosque.staffMembers && mosque.staffMembers.length > 0 && (
-              <LeadershipRosterCard staffMembers={mosque.staffMembers} />
-            )}
+            {/* Card 3: Mosque Leadership & Staff Roster (ADR-009, ADR-047, ADR-064) */}
+            <LeadershipRosterCard
+              staffMembers={mosque.staffMembers || []}
+              onClaimRole={() => setRoleClaimModalVisible(true)}
+            />
 
             {/* Card 4: Facilities Overview (ADR-025, ADR-050) */}
             <FacilitiesCard
@@ -265,6 +268,13 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueName={mosque.name}
           onClose={() => setTagModalVisible(false)}
           onTagsUpdated={(updated) => setActiveTags(updated)}
+        />
+
+        <RoleClaimModal
+          visible={roleClaimModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          onClose={() => setRoleClaimModalVisible(false)}
         />
       </View>
     </Modal>

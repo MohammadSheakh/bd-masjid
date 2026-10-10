@@ -12,6 +12,7 @@ import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 
 interface LeadershipRosterCardProps {
   staffMembers: MosqueStaffMember[];
+  onClaimRole?: () => void;
 }
 
 const ROLE_THEMES: Record<string, { bg: string; text: string; border: string }> = {
@@ -27,10 +28,31 @@ const ROLE_THEMES: Record<string, { bg: string; text: string; border: string }> 
 
 export const LeadershipRosterCard: React.FC<LeadershipRosterCardProps> = ({
   staffMembers,
+  onClaimRole,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!staffMembers || staffMembers.length === 0) return null;
+  if (!staffMembers || staffMembers.length === 0) {
+    if (!onClaimRole) return null;
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View>
+            <Text style={styles.cardTitle}>Mosque Leadership & Staff</Text>
+            <Text style={styles.cardSubtitle}>Verified spiritual & administrative leads</Text>
+          </View>
+        </View>
+        <Pressable
+          style={styles.claimRoleBtn}
+          onPress={onClaimRole}
+          accessibilityRole="button"
+          accessibilityLabel="Claim Leadership Role"
+        >
+          <Text style={styles.claimRoleText}>👑 Are you an Imam or Committee lead? Claim Role →</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   const displayedStaff = isExpanded ? staffMembers : staffMembers.slice(0, 2);
 
@@ -120,6 +142,17 @@ export const LeadershipRosterCard: React.FC<LeadershipRosterCardProps> = ({
               ? '▲ Show Less'
               : `▼ Show all ${staffMembers.length} leadership members`}
           </Text>
+        </Pressable>
+      )}
+
+      {onClaimRole && (
+        <Pressable
+          style={styles.claimRoleBtn}
+          onPress={onClaimRole}
+          accessibilityRole="button"
+          accessibilityLabel="Claim Leadership Role"
+        >
+          <Text style={styles.claimRoleText}>👑 Are you an Imam or Committee lead? Claim Role →</Text>
         </Pressable>
       )}
     </View>
@@ -244,5 +277,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: ferioColors.primary,
+  },
+  claimRoleBtn: {
+    backgroundColor: '#fafafa',
+    borderWidth: 1,
+    borderColor: '#e8e8ea',
+    borderRadius: ferioRadius.md,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    marginTop: ferioSpacing.sm,
+  },
+  claimRoleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#059669',
   },
 });

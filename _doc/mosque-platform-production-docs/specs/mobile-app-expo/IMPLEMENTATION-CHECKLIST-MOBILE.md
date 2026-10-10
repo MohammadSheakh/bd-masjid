@@ -485,6 +485,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Add `submitRoleClaim` to `ApiClient` (`POST /api/v1/community/:id/claims`) with offline outbox fallback.
 - [x] **30.2. Ferio RoleClaimModal Sheet**
   - [x] Create `RoleClaimModal.tsx` with role pill selector, applicant name/phone inputs, appointment evidence details, and submission loader.
-- [ ] **30.3. Wire Role Claim Trigger into Mosque Detail Sheet & Performance Gate**
-  - [ ] Add "Claim Leadership Role" trigger in `LeadershipRosterCard.tsx` / `MosqueDetailSheet.tsx`.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **30.3. Wire Role Claim Trigger into Mosque Detail Sheet & Performance Gate**
+  - [x] Add "Claim Leadership Role" trigger in `LeadershipRosterCard.tsx` / `MosqueDetailSheet.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
