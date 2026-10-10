@@ -239,3 +239,14 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **13.2. Fast 1-Tap Toggle Pill & UI Integration**
   - [x] Add compact `বাং | EN` switcher in `App.tsx` top navbar with synchronous `PreferencesStorage` persistence.
   - [x] Wire localized string helpers across Countdown Banner, Mosque Cards, and Navigation headers.
+
+---
+
+## Phase 14: Daily Authentic Hadith & Reflection Digest (ADR-049)
+
+- [ ] **14.1. Authentic Hadith Collection & Deterministic Rotation**
+  - [ ] Curate verified canonical collection with Arabic, Bangla, English, and Sahih references.
+  - [ ] Deterministic day-of-year rotation algorithm ensuring uniform national reflection.
+- [ ] **14.2. Ferio DailyHadithCard & Collapsible Feed Integration**
+  - [ ] Implement `DailyHadithCard.tsx` with collapsible toggle, citation tag, and native share trigger.
+  - [ ] Position card in feed header beneath `PrayerCountdownBanner` with collapse memory.

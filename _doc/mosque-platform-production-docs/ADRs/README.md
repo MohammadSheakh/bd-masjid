@@ -54,6 +54,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-046](ADR-046-mobile-sensor-fused-qibla-compass.md) | Mobile Real-Time Sensor-Fused Qibla Compass | Accepted | 2026-10-10 | Qibla Compass, Great-Circle Kaaba Bearing, Ferio Dial & Alignment Feedback |
 | [ADR-047](ADR-047-mobile-mosque-leadership-and-staff-directory.md) | Mobile Mosque Leadership & Staff Directory | Accepted | 2026-10-10 | MosqueStaff, Khatib/Imam/Mutawalli Roles, Verified Badges & Direct Dialing |
 | [ADR-048](ADR-048-mobile-bilingual-localization-and-musalli-terminology.md) | Mobile Bilingual Localization & Musalli Terminology | Accepted | 2026-10-10 | Bangla/English i18n, Musalli Terminology, 1-Tap Toggle Pill & Fast Synchronous Engine |
+| [ADR-049](ADR-049-mobile-daily-authentic-hadith-and-prayer-reflection-digest.md) | Mobile Daily Authentic Hadith & Prayer Reflection Digest | Accepted | 2026-10-10 | Daily Hadith, Sahih Bukhari/Muslim Citations, Collapsible Card & Native Share |
 
 
 ---
