@@ -71,6 +71,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-063](ADR-063-mobile-live-gps-proximity-radar-and-nearest-mosque-sorting-engine.md) | Mobile Live GPS Proximity Radar and Nearest Mosque Sorting Engine | Accepted | 2026-10-10 | Geodesic Haversine Math, Memoized Distance Badging, 60 FPS Gate & Sort by Nearest |
 | [ADR-064](ADR-064-mobile-mosque-leadership-role-claim-and-staff-verification-sheet.md) | Mobile Mosque Leadership Role Claim and Staff Verification Sheet | Accepted | 2026-10-10 | Role Claims, Imam/Muazzin Onboarding, POST /community/:id/claims & Verification Sheet |
 | [ADR-065](ADR-065-mobile-community-announcements-and-janazah-emergency-bulletin-feed.md) | Mobile Community Announcements and Janazah / Emergency Bulletin Feed | Accepted | 2026-10-10 | Announcements Feed, Janazah Notices, Spatial Query, Ferio Bulletin Sheet & ADR-065 |
+| [ADR-066](ADR-066-mobile-musalli-attendance-status-and-regular-congregation-hub.md) | Mobile Musalli Attendance Status and Regular Congregation Hub | Accepted | 2026-10-10 | Attendance Affiliation, Regular Musalli Toggle, Headcount Summary & ADR-066 |
 
 
 ---

@@ -505,3 +505,17 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **31.5. Wire Announcements Feed into App Filter Chips & Mosque Detail Sheet**
   - [x] Add `📢 Announcements / বিজ্ঞপ্তি` trigger to App navigation/filter pills and Mosque detail sheet.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 32: Musalli Attendance Status & Regular Congregation Hub (ADR-066)
+
+- [ ] **32.1. Attendance Summary & My-Mosques ApiClient Transport**
+  - [ ] Define `AttendedMosqueItem` contract and add `getAttendanceSummary` and `getMyAttendedMosques` to `ApiClient`.
+- [ ] **32.2. Enhance AttendanceAffiliationCard with Bilingual Tokens & Live Headcount**
+  - [ ] Add bilingual label support (`আমার নিয়মিত মসজিদ` / `Regular Attendee`), headcount pill, and live sync on mount.
+- [ ] **32.3. Ferio MyAttendedMosquesModal Sheet**
+  - [ ] Create `MyAttendedMosquesModal.tsx` listing all user-affiliated congregations with regular/occasional tags, direct sheet jump, and 1-tap unregister.
+- [ ] **32.4. Wire My Attended Mosques Hub into App & Performance Gate**
+  - [ ] Add trigger to App profile/header and MosqueDetailSheet.
+  - [ ] Run benchmark gate and TypeScript compilation.
