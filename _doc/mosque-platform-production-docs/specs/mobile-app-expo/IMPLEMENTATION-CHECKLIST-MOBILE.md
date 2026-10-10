@@ -174,3 +174,12 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Configure `eas.json` for Android App Bundle (`.aab`) and iOS (`.ipa`).
   - [x] Configure release profiles with Hermes bytecode and ProGuard resource shrinking ($< 18$ MB).
   - [x] Configure App Store and Google Play credentials and compliance privacy manifests.
+
+---
+
+## Phase 8: Contributor Flows & Mosque Submission (ADR-043)
+
+- [x] **8.1. Contributor Pin-Drop & Add Mosque Sheet**
+  - [x] Multi-step guided sheet (`AddMosqueSheet.tsx`): Location confirm, info & prayer times, amenities & submit.
+  - [x] Real-time proximity duplicate check ($\le 150$m warning alert).
+  - [x] Immediate optimistic map integration with backend `POST /api/v1/mosques` dispatch.

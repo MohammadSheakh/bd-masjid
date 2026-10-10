@@ -48,6 +48,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-040](ADR-040-mobile-enterprise-telemetry-and-privacy-sanitization.md) | Mobile Enterprise Telemetry, Crash Reporting, and Privacy Data Scrubbing | Accepted | 2026-10-10 | Telemetry, Sentry, PII Scrubbing, Breadcrumb Sanitization & Observability |
 | [ADR-041](ADR-041-mobile-eas-production-build-pipeline-and-app-bundle-optimization.md) | Mobile EAS Production Build Pipeline and App Bundle Optimization | Accepted | 2026-10-10 | EAS Build, Production AAB, Hermes Bytecode, ProGuard & Release Gates |
 | [ADR-042](ADR-042-mobile-low-end-hardware-performance-profiling-and-benchmark-gate.md) | Mobile Low-End Hardware Performance Profiling and Automated Benchmark Gate | Accepted | 2026-10-10 | Low-End Hardware, $\le 3$GB RAM, Memory Ceilings, 60 FPS & Benchmark Harness |
+| [ADR-043](ADR-043-mobile-contributor-pin-drop-and-add-mosque-flow.md) | Mobile Contributor Pin-Drop, Duplicate Prevention, and Add Mosque Sheet Architecture | Accepted | 2026-10-10 | Contributor Mapping, Pin-Drop, Duplicate Check & Multi-Step Sheet |
 
 
 ---
