@@ -14,6 +14,7 @@ import { PreferencesStorage, SecureTokenStorage } from './storage';
 import { FacilityService, SuggestedFacilitiesPayload } from '../services/facilityService';
 import { OfflineOutboxService } from '../services/offlineOutboxService';
 import { OutboxMutationType } from '../types/outbox';
+import { ModerationAction, ModerationQueueItem, ResolveModerationPayload } from '../types/moderation';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -497,6 +498,72 @@ export const ApiClient = {
       '/users/devices',
       { method: 'GET' },
       [fallbackDevice]
+    );
+  },
+
+  async fetchModerationQueue(): Promise<ModerationQueueItem[]> {
+    const fallbackQueue: ModerationQueueItem[] = [
+      {
+        id: 'mod-uttara-baitun-noor',
+        type: 'MOSQUE_VERIFICATION',
+        targetId: 'mosque-pending-1',
+        targetName: 'Baitun Noor Jame Masjid',
+        location: 'Sector 11, Uttara, Dhaka',
+        coordinates: { lat: 23.8732, lng: 90.3951 },
+        details: 'Newly constructed 3-story neighborhood mosque, 5 times jamaat with AC and female prayer section.',
+        contributorName: 'Tariqul Islam (Scout)',
+        contributorRole: 'CONTRIBUTOR',
+        createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+        status: 'PENDING',
+      },
+      {
+        id: 'mod-dhanmondi-duplicate',
+        type: 'DUPLICATE_FLAG',
+        targetId: 'mosque-pending-2',
+        targetName: 'Dhanmondi Central Masjid',
+        location: 'Road 27, Dhanmondi, Dhaka',
+        coordinates: { lat: 23.7461, lng: 90.3752 },
+        distanceMeters: 85,
+        duplicateWith: 'Masjid-ut-Taqwa Dhanmondi',
+        details: 'Proximity alert: Located 85m from listed Masjid-ut-Taqwa. Verify if duplicate or independent prayer space.',
+        contributorName: 'Rafiqul Hasan',
+        contributorRole: 'USER',
+        createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+        status: 'PENDING',
+      },
+      {
+        id: 'mod-gulshan-isha-timing',
+        type: 'ISSUE_REPORT',
+        targetId: 'mosque-dhaka-gulshan-society',
+        targetName: 'Gulshan Society Jame Masjid',
+        location: 'Gulshan 2, Dhaka',
+        details: 'Isha Jamaat time shifted from 8:30 PM to 8:45 PM for summer schedule.',
+        contributorName: 'Anonymous Musalli',
+        contributorRole: 'USER',
+        createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+        status: 'PENDING',
+      },
+    ];
+
+    return fetchWithFallback<ModerationQueueItem[]>(
+      '/moderation/queue',
+      { method: 'GET' },
+      fallbackQueue
+    );
+  },
+
+  async resolveModerationItem(
+    itemId: string,
+    action: ModerationAction,
+    notes?: string
+  ): Promise<{ success: boolean; message: string }> {
+    return fetchWithFallback<{ success: boolean; message: string }>(
+      `/moderation/queue/${itemId}/resolve`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ action, notes }),
+      },
+      { success: true, message: `Item ${action.toLowerCase()}d successfully` }
     );
   },
 };
