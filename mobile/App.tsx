@@ -42,7 +42,6 @@ import { OfflineOutboxService } from './src/services/offlineOutboxService';
 import { ModeratorReviewModal } from './src/components/ModeratorReviewModal';
 import { ModeratorService } from './src/services/moderatorService';
 import { DiagnosticsTelemetryModal } from './src/components/DiagnosticsTelemetryModal';
-import { RamadanFastingModal } from './src/components/RamadanFastingModal';
 import { OfflineMapRegionsModal } from './src/components/OfflineMapRegionsModal';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
@@ -68,7 +67,6 @@ export default function App() {
   const [isOemWizardOpen, setIsOemWizardOpen] = useState(false);
   const [isModModalOpen, setIsModModalOpen] = useState(false);
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
-  const [isRamadanOpen, setIsRamadanOpen] = useState(false);
   const [isOfflineRegionsOpen, setIsOfflineRegionsOpen] = useState(false);
   const [pendingModCount, setPendingModCount] = useState<number>(() =>
     ModeratorService.getPendingCountSync()
@@ -296,16 +294,6 @@ export default function App() {
             </Pressable>
           )}
 
-          {/* Ramadan Fasting Hub Pill (ADR-061) */}
-          <Pressable
-            onPress={() => setIsRamadanOpen(true)}
-            style={({ pressed }) => [styles.ramadanToggleBtn, pressed && styles.pressed]}
-            accessibilityRole="button"
-            accessibilityLabel="Open Ramadan Fasting & Iftar Hub"
-          >
-            <Text style={styles.ramadanToggleText}>🌙 {lang === 'bn' ? 'রোজা' : 'Fasting'}</Text>
-          </Pressable>
-
           <Pressable
             onPress={() => setIsQiblaOpen(true)}
             style={({ pressed }) => [styles.qiblaToggleBtn, pressed && styles.pressed]}
@@ -516,13 +504,6 @@ export default function App() {
       <DiagnosticsTelemetryModal
         visible={isDiagnosticsOpen}
         onClose={() => setIsDiagnosticsOpen(false)}
-      />
-
-      {/* Ramadan & Fasting Hub Modal (ADR-061) */}
-      <RamadanFastingModal
-        visible={isRamadanOpen}
-        onClose={() => setIsRamadanOpen(false)}
-        isBangla={lang === 'bn'}
       />
 
       {/* Offline Map Regions Manager Modal (ADR-062) */}
