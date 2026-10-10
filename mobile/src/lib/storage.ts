@@ -48,7 +48,7 @@ export const SecureTokenStorage = {
  * Tier 2: Synchronous Preferences & UI State Store (< 1 ms latency)
  */
 export const PreferencesStorage = {
-  getFollowedMosqueIds(fallback: string[] = ['mosque-dhaka-baitul-mukarram']): string[] {
+  getFollowedMosqueIds(fallback: string[] = []): string[] {
     const raw = syncKvCache.get(STORAGE_KEYS.FOLLOWED_MOSQUES);
     if (!raw) return fallback;
     try {

@@ -40,6 +40,9 @@ export function getApiBaseUrl(): string {
     return 'http://10.0.2.2:6733/api/v1';
   }
   if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined' && window.location?.hostname) {
+      return `http://${window.location.hostname}:6733/api/v1`;
+    }
     return 'http://localhost:6733/api/v1';
   }
   // Physical mobile devices on same Wi-Fi LAN
@@ -77,14 +80,23 @@ async function fetchWithFallback<T>(
 
     const res = await fetch(url, { ...options, headers });
     if (!res.ok) {
+      if (res.status === 404) {
+        notifyOfflineStatus(false);
+        return fallbackData;
+      }
       throw new Error(`API error ${res.status}: ${res.statusText}`);
     }
     const data = await res.json();
     notifyOfflineStatus(false);
     return (data.data ?? data) as T;
   } catch (error) {
-    // Graceful offline fallback: flag offline status and return fixture
-    notifyOfflineStatus(true);
+    const isNetworkError =
+      (typeof navigator !== 'undefined' && !navigator.onLine) ||
+      (error instanceof TypeError) ||
+      (error instanceof Error && error.message.toLowerCase().includes('fetch'));
+    if (isNetworkError) {
+      notifyOfflineStatus(true);
+    }
 
     // If this was a mutation (POST/PUT/DELETE/PATCH), queue in offline outbox for automatic sync
     if (options.method && options.method !== 'GET') {
