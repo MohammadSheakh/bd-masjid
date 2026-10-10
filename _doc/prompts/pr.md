@@ -60,10 +60,23 @@ no need to verify this platform admin .. there should be mention to general publ
 
 and when they create a donation channel .. that should show verified by president, general secretary, vice president .. if president verify .. then that should green tick mark .. other position will be dull ... 
 
+
 in a commitee there can be multiple vice president and member .. member should be commitee member .. 
+
+
 
 now create spec, adr, implement and dont generate huge 1000 line code then commit .. lets say 100 line code then commit [SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/git-commit-push/SKILL.md)  . make sure about production grade work . [02-SYSTEM-ARCHITECTURE.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/_doc/mosque-platform-production-docs/02-SYSTEM-ARCHITECTURE.md)  to [08-PRODUCTION-ENGINEERING-STANDARD.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/_doc/mosque-platform-production-docs/08-PRODUCTION-ENGINEERING-STANDARD.md)  . keep in mind these docs 
 
 
 
+
+
 proceed where you left off .. you know the  @directory:mobile-app-expo .. always grill-me then create spec, adr and keep work track by check marking implementation checklist.  design guideline was [SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/ferio-frontend-design/SKILL.md)  .. always produce production ready enterprize level code and solution ..  and dont generate huge 1000 line code then commit .. lets say 100 line code then commit [SKILL.md](file;file:///home/chillpc/MohammadSheakh/projects/26/bd-moshjid/bd-moshjid-project/bd-moshjid-project/.agents/skills/git-commit-push/SKILL.md) 
+
+
+
+
+
+
+dont change websites design .. we copy that exact design into mobile app .. lets say mosque details pop up design, claim official mosque role pop up design , Donate pop up design, Suggest pop up design , Add Mosque pop up design .. as same backend serve both web application and mobile app .. it is possible .. 
+because we know mobile app has more functionality that web application .. but i want if there exact same feature is found in mobile app and web app ... we copy exact same design and api integration from web app to mobile app for specific that feature or screen or section 
