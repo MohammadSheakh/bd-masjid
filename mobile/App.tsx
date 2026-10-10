@@ -194,12 +194,17 @@ export default function App() {
       setIsSearchingLoading(true);
       try {
         let results: Mosque[];
+        const filters = {
+          hasSeparateWomenSpace: selectedTag === 'Women Space' ? true : undefined,
+          hasAirConditioning: selectedTag === 'Air Conditioned' ? true : undefined,
+          hasParking: selectedTag === 'Parking' ? true : undefined,
+        };
         if (searchQuery.trim()) {
-          results = await ApiClient.searchMosques(searchQuery.trim());
+          results = await ApiClient.searchMosques(searchQuery.trim(), undefined, filters);
         } else if (selectedTag === '📍 Nearest') {
           results = await ApiClient.getNearbyMosques(23.8103, 90.4125);
         } else {
-          results = await ApiClient.searchMosques();
+          results = await ApiClient.searchMosques('', undefined, filters);
         }
         setDiscoveredMosques(results);
       } catch {

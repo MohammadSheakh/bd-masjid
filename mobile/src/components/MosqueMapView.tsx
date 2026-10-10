@@ -5,6 +5,7 @@ import {
   Text,
   Pressable,
   Dimensions,
+  Image,
 } from 'react-native';
 import { Mosque } from '../types/mosque';
 import { MosquePin } from './MosquePin';
@@ -57,10 +58,38 @@ export const MosqueMapView: React.FC<MosqueMapViewProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Map Canvas with Subtle Grid Lines */}
+      {/* Map Canvas with OpenStreetMap Tiles */}
       <View style={[styles.canvas, { height: mapHeight }]}>
-        {/* Raster Tile Simulation Grid */}
-        <View style={styles.gridOverlay}>
+        {/* OpenStreetMap Raster Tile Layer */}
+        <View style={styles.tileGrid} pointerEvents="none">
+          <View style={styles.tileRow}>
+            <Image
+              source={{ uri: 'https://a.basemaps.cartocdn.com/light_all/13/6152/3567.png' }}
+              style={styles.mapTile}
+              resizeMode="cover"
+            />
+            <Image
+              source={{ uri: 'https://b.basemaps.cartocdn.com/light_all/13/6153/3567.png' }}
+              style={styles.mapTile}
+              resizeMode="cover"
+            />
+          </View>
+          <View style={styles.tileRow}>
+            <Image
+              source={{ uri: 'https://c.basemaps.cartocdn.com/light_all/13/6152/3568.png' }}
+              style={styles.mapTile}
+              resizeMode="cover"
+            />
+            <Image
+              source={{ uri: 'https://a.basemaps.cartocdn.com/light_all/13/6153/3568.png' }}
+              style={styles.mapTile}
+              resizeMode="cover"
+            />
+          </View>
+        </View>
+
+        {/* OpenStreetMap Attribution Pill */}
+        <View style={styles.attributionPill} pointerEvents="none">
           <Text style={styles.mapAttribution}>© OpenStreetMap contributors</Text>
         </View>
 
@@ -166,15 +195,31 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: ferioColors.border,
   },
-  gridOverlay: {
+  tileGrid: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#f1f3f5',
-    justifyContent: 'flex-end',
-    padding: ferioSpacing.sm,
+    overflow: 'hidden',
+  },
+  tileRow: {
+    flexDirection: 'row',
+  },
+  mapTile: {
+    width: 256,
+    height: 256,
+  },
+  attributionPill: {
+    position: 'absolute',
+    bottom: 6,
+    right: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    zIndex: 15,
   },
   mapAttribution: {
     fontSize: 10,
-    color: '#9ca3af',
+    color: '#6e6e73',
+    fontWeight: '500',
   },
   pinWrapper: {
     position: 'absolute',

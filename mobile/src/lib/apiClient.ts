@@ -37,9 +37,13 @@ export function getApiBaseUrl(): string {
   }
   // Android emulator routes host machine loopback to 10.0.2.2
   if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:4000/api/v1';
+    return 'http://10.0.2.2:6733/api/v1';
   }
-  return 'http://localhost:4000/api/v1';
+  if (Platform.OS === 'web') {
+    return 'http://localhost:6733/api/v1';
+  }
+  // Physical mobile devices on same Wi-Fi LAN
+  return 'http://192.168.0.110:6733/api/v1';
 }
 
 let isCurrentlyOffline = false;
@@ -114,10 +118,23 @@ export const ApiClient = {
     );
   },
 
-  async searchMosques(query: string = '', city?: string): Promise<Mosque[]> {
+  async searchMosques(
+    query: string = '',
+    city?: string,
+    filters?: {
+      hasSeparateWomenSpace?: boolean;
+      hasAirConditioning?: boolean;
+      hasParking?: boolean;
+      hasWheelchairAccess?: boolean;
+    }
+  ): Promise<Mosque[]> {
     const params = new URLSearchParams();
-    if (query) params.append('q', query);
-    if (city) params.append('city', city);
+    if (query) params.append('search', query);
+    if (city && city !== 'All') params.append('city', city);
+    if (filters?.hasSeparateWomenSpace) params.append('hasSeparateWomenSpace', 'true');
+    if (filters?.hasAirConditioning) params.append('hasAirConditioning', 'true');
+    if (filters?.hasParking) params.append('hasParking', 'true');
+    if (filters?.hasWheelchairAccess) params.append('hasWheelchairAccess', 'true');
 
     const fallback = BANGLADESH_MOSQUES_FIXTURES.filter((m) => {
       const matchQ = !query || m.name.toLowerCase().includes(query.toLowerCase());
@@ -125,11 +142,19 @@ export const ApiClient = {
       return matchQ && matchC;
     });
 
-    return fetchWithFallback<Mosque[]>(
-      `/mosques/search?${params.toString()}`,
-      { method: 'GET' },
-      fallback
-    );
+    try {
+      const res = await fetchWithFallback<any>(
+        `/mosques?${params.toString()}`,
+        { method: 'GET' },
+        { items: fallback }
+      );
+      if (Array.isArray(res)) return res;
+      if (Array.isArray(res?.items)) return res.items;
+      if (Array.isArray(res?.data?.items)) return res.data.items;
+      return fallback;
+    } catch {
+      return fallback;
+    }
   },
 
   async getMosqueById(id: string): Promise<Mosque | null> {
