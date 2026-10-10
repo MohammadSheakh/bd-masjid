@@ -430,3 +430,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **26.4. Profile Integration & Performance Verification**
   - [x] Wire trigger in `AuthSessionModal.tsx` to launch `ContributorActivityModal`.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 27: Ramadan & Iftar / Sehri Fasting Countdown & Division Timetable Hub (ADR-061)
+
+- [ ] **27.1. Ramadan Domain Contracts & Division Offset Taxonomy**
+  - [ ] Define `BangladeshiDivision`, `DivisionOffset`, `FastingTarget`, and `RamadanDaySchedule` in `types/ramadan.ts`.
+  - [ ] Add canonical 8-division offset matrix and Dhaka baseline data in `data/ramadanFixtures.ts`.
+- [ ] **27.2. Dedicated RamadanService with Synchronous Real-time Fasting Engine**
+  - [ ] Implement `ramadanService.ts` providing synchronous division offsets, dynamic Sehri/Iftar countdown, and persistence in `PreferencesStorage`.
+- [ ] **27.3. Ferio RamadanFastingModal Sheet & Fasting Duas Carousel**
+  - [ ] Create `RamadanFastingModal.tsx` with live countdown gauge, 8-division switcher, Sehri/Iftar Duas with Bengali phonetics and meaning, and 30-day schedule view.
+- [ ] **27.4. Top Navbar Fasting Pill Integration & Performance Gate**
+  - [ ] Wire `🌙 রোজা / Fasting` quick launcher pill in `App.tsx` top action bar.
+  - [ ] Run benchmark gate and TypeScript compilation.

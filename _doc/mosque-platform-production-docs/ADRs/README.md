@@ -66,6 +66,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-058](ADR-058-mobile-community-moderator-and-scout-review-sheet.md) | Mobile Community Moderator and Scout Review Sheet Architecture | Accepted | 2026-10-10 | Moderation Queue, RBAC Role Gate, Pending Mosques, Duplicate Triage & Review Sheet |
 | [ADR-059](ADR-059-mobile-low-end-hardware-diagnostics-and-field-ops-telemetry-panel.md) | Mobile Low-End Hardware Diagnostics and Field Operations Telemetry Panel | Accepted | 2026-10-10 | Diagnostics Panel, Live FPS Gauge, Heap Memory Profiler, 1-Tap Sanitized Report |
 | [ADR-060](ADR-060-mobile-contributor-activity-and-scout-reputation-console.md) | Mobile Contributor Activity and Scout Reputation Console Architecture | Accepted | 2026-10-10 | Scout Reputation, Contributor Tiers, Submission Moderation History & Activity Modal |
+| [ADR-061](ADR-061-mobile-ramadan-and-iftar-sehri-fasting-countdown-and-division-timetable-hub.md) | Mobile Ramadan & Iftar / Sehri Fasting Countdown and Division Timetable Hub | Accepted | 2026-10-10 | Ramadan Fasting, Sehri/Iftar Countdown, 8 Division Offsets, Duas & Timetable |
 
 
 ---
