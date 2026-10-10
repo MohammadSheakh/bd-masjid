@@ -125,4 +125,12 @@ export const PreferencesStorage = {
   setLanguagePreference(lang: 'bn' | 'en'): void {
     syncKvCache.set('bd_masjid_language_pref', lang);
   },
+
+  isHadithCardCollapsed(): boolean {
+    return syncKvCache.get('bd_masjid_hadith_collapsed') === 'true';
+  },
+
+  setHadithCardCollapsed(collapsed: boolean): void {
+    syncKvCache.set('bd_masjid_hadith_collapsed', String(collapsed));
+  },
 };

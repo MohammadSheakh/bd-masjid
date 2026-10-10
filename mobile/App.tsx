@@ -21,6 +21,7 @@ import { MosqueMapView } from './src/components/MosqueMapView';
 import { OfflineBanner } from './src/components/OfflineBanner';
 import { AddMosqueSheet } from './src/components/AddMosqueSheet';
 import { QiblaCompassModal } from './src/components/QiblaCompassModal';
+import { DailyHadithCard } from './src/components/DailyHadithCard';
 import { PreferencesStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
@@ -236,11 +237,14 @@ export default function App() {
           data={filteredMosques}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
-            <PrayerCountdownBanner
-              schedule={topFollowedMosque.prayerSchedule}
-              autoSilentSettings={autoSilentSettings}
-              onPressAutoSilentSettings={() => setIsModalOpen(true)}
-            />
+            <>
+              <PrayerCountdownBanner
+                schedule={topFollowedMosque.prayerSchedule}
+                autoSilentSettings={autoSilentSettings}
+                onPressAutoSilentSettings={() => setIsModalOpen(true)}
+              />
+              <DailyHadithCard language={lang} />
+            </>
           }
           renderItem={({ item }) => (
             <MosqueCard
