@@ -406,8 +406,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 25: Low-End Hardware Diagnostics & Field Ops Telemetry Panel (ADR-059)
 
-- [ ] **25.1. Hardware Diagnostics Domain Contracts**
-  - [ ] Define `DeviceHardwareMetrics` and `SanitizedDiagnosticReport` in `types/diagnostics.ts`.
+- [x] **25.1. Hardware Diagnostics Domain Contracts**
+  - [x] Define `DeviceHardwareMetrics` and `SanitizedDiagnosticReport` in `types/diagnostics.ts`.
 - [ ] **25.2. Live DiagnosticsService with Frame Loop & Memory Profiler**
   - [ ] Implement `diagnosticsService.ts` measuring live FPS/frame time, heap footprint, network latency, and report generation.
 - [ ] **25.3. Ferio DiagnosticsTelemetryModal Sheet**
