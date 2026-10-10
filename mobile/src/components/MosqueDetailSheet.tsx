@@ -14,6 +14,7 @@ import { AttendanceAffiliationCard } from './AttendanceAffiliationCard';
 import { TimetableUpdateModal } from './TimetableUpdateModal';
 import { NoticeBoardModal } from './NoticeBoardModal';
 import { ReportIssueModal } from './ReportIssueModal';
+import { LeadershipRosterCard } from './LeadershipRosterCard';
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -206,27 +207,9 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               </View>
             )}
 
-            {/* Card 3: Verified Staff Roster (ADR-024) */}
+            {/* Card 3: Mosque Leadership & Staff Roster (ADR-009, ADR-047) */}
             {mosque.staffMembers && mosque.staffMembers.length > 0 && (
-              <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>Mosque Leadership & Staff</Text>
-                </View>
-
-                {mosque.staffMembers.map((staff: MosqueStaffMember) => (
-                  <View key={staff.id} style={styles.staffItem}>
-                    <View style={styles.staffInfo}>
-                      <Text style={styles.staffName}>{staff.name}</Text>
-                      <Text style={styles.staffRole}>{staff.role}</Text>
-                    </View>
-                    {staff.isVerified && (
-                      <View style={styles.staffVerifiedPill}>
-                        <Text style={styles.staffVerifiedText}>✓ Verified</Text>
-                      </View>
-                    )}
-                  </View>
-                ))}
-              </View>
+              <LeadershipRosterCard staffMembers={mosque.staffMembers} />
             )}
 
             {/* Card 4: Facilities Overview (ADR-025) */}

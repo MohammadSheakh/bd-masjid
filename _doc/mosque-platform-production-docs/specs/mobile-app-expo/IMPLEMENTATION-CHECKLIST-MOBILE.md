@@ -225,6 +225,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **12.1. Leadership Data Model & Staff API Fetching**
   - [x] Implement `fetchMosqueStaff` in `ApiClient` (`GET /mosques/:id/staff`).
   - [x] Support role taxonomy (`Khatib`, `Senior Pesh Imam`, `Imam`, `Moazzin`, `Mutawalli`, `President`).
-- [ ] **12.2. Ferio LeadershipRosterCard & Direct Phone Dialer**
-  - [ ] Create `LeadershipRosterCard.tsx` with role badges, verified tags, and direct telephone trigger (`tel:` Linking).
-  - [ ] Integrate into `MosqueDetailSheet.tsx` with expandable card view.
+- [x] **12.2. Ferio LeadershipRosterCard & Direct Phone Dialer**
+  - [x] Create `LeadershipRosterCard.tsx` with role badges, verified tags, and direct telephone trigger (`tel:` Linking).
+  - [x] Integrate into `MosqueDetailSheet.tsx` with expandable card view.
