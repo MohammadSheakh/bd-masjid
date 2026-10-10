@@ -301,12 +301,13 @@ Before first production release:
 
 ## U. Mobile Interactive Full-Page Map & Database Synchronization
 
-- [ ] smart API base URL resolution for mobile web browser runtime
-- [ ] 404 response offline false alarm prevention
-- [ ] database mosque discovery on initial mount (`loadInitialMosques`)
-- [ ] full-screen interactive Leaflet 1.9.4 map component
-- [ ] smooth multi-directional pan and zoom controls (`+`/`-`)
-- [ ] custom mosque pins matching web app styles (`.custom-mosque-pin`)
-- [ ] floating search bar and locate GPS overlay in full-page map mode
-- [ ] mosque details bottom sheet parity with web app upon pin click
+- [x] smart API base URL resolution for mobile web browser runtime
+- [x] 404 response offline false alarm prevention
+- [x] database mosque discovery on initial mount (`loadInitialMosques`)
+- [x] full-screen interactive Leaflet 1.9.4 map component
+- [x] smooth multi-directional pan and zoom controls (`+`/`-`)
+- [x] custom mosque pins matching web app styles (`.custom-mosque-pin`)
+- [x] floating search bar and locate GPS overlay in full-page map mode
+- [x] mosque details bottom sheet parity with web app upon pin click
+
 

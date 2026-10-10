@@ -2,7 +2,7 @@
 id: F-071
 name: Mobile Interactive Full-Page Leaflet Map & Database Mosque Sync
 phase: 2
-status: in-progress
+status: completed
 
 depends_on:
   - F-004
