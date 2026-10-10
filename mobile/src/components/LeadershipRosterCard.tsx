@@ -13,6 +13,7 @@ import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 interface LeadershipRosterCardProps {
   staffMembers: MosqueStaffMember[];
   onClaimRole?: () => void;
+  onVerifyCommittee?: () => void;
 }
 
 const ROLE_THEMES: Record<string, { bg: string; text: string; border: string }> = {
@@ -29,6 +30,7 @@ const ROLE_THEMES: Record<string, { bg: string; text: string; border: string }> 
 export const LeadershipRosterCard: React.FC<LeadershipRosterCardProps> = ({
   staffMembers,
   onClaimRole,
+  onVerifyCommittee,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -42,14 +44,26 @@ export const LeadershipRosterCard: React.FC<LeadershipRosterCardProps> = ({
             <Text style={styles.cardSubtitle}>Verified spiritual & administrative leads</Text>
           </View>
         </View>
-        <Pressable
-          style={styles.claimRoleBtn}
-          onPress={onClaimRole}
-          accessibilityRole="button"
-          accessibilityLabel="Claim Leadership Role"
-        >
-          <Text style={styles.claimRoleText}>👑 Are you an Imam or Committee lead? Claim Role →</Text>
-        </Pressable>
+        {onClaimRole && (
+          <Pressable
+            style={styles.claimRoleBtn}
+            onPress={onClaimRole}
+            accessibilityRole="button"
+            accessibilityLabel="Claim Leadership Role"
+          >
+            <Text style={styles.claimRoleText}>👑 Are you an Imam or Committee lead? Claim Role →</Text>
+          </Pressable>
+        )}
+        {onVerifyCommittee && (
+          <Pressable
+            style={styles.verifyCommitteeBtn}
+            onPress={onVerifyCommittee}
+            accessibilityRole="button"
+            accessibilityLabel="Official Committee Verification"
+          >
+            <Text style={styles.verifyCommitteeText}>🛡️ Official Committee Verification & Proof →</Text>
+          </Pressable>
+        )}
       </View>
     );
   }
@@ -153,6 +167,17 @@ export const LeadershipRosterCard: React.FC<LeadershipRosterCardProps> = ({
           accessibilityLabel="Claim Leadership Role"
         >
           <Text style={styles.claimRoleText}>👑 Are you an Imam or Committee lead? Claim Role →</Text>
+        </Pressable>
+      )}
+
+      {onVerifyCommittee && (
+        <Pressable
+          style={styles.verifyCommitteeBtn}
+          onPress={onVerifyCommittee}
+          accessibilityRole="button"
+          accessibilityLabel="Official Committee Verification"
+        >
+          <Text style={styles.verifyCommitteeText}>🛡️ Official Committee Verification & Proof →</Text>
         </Pressable>
       )}
     </View>
@@ -289,6 +314,21 @@ const styles = StyleSheet.create({
     marginTop: ferioSpacing.sm,
   },
   claimRoleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  verifyCommitteeBtn: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: ferioRadius.md,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  verifyCommitteeText: {
     fontSize: 11,
     fontWeight: '700',
     color: '#059669',

@@ -22,6 +22,7 @@ import { SuggestDonationMethodModal } from './SuggestDonationMethodModal';
 import { PrayerScheduleAuditModal } from './PrayerScheduleAuditModal';
 import { CollectionTagModal } from './CollectionTagModal';
 import { RoleClaimModal } from './RoleClaimModal';
+import { CommitteeVerificationModal } from './CommitteeVerificationModal';
 import { CreateAnnouncementModal } from './CreateAnnouncementModal';
 import { CollectionStorage } from '../lib/storage';
 import { CollectionService, MosqueCollectionTag } from '../services/collectionService';
@@ -52,6 +53,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [createAnnouncementVisible, setCreateAnnouncementVisible] = useState(false);
   const [suggestDonationModalVisible, setSuggestDonationModalVisible] = useState(false);
   const [auditModalVisible, setAuditModalVisible] = useState(false);
+  const [committeeVerificationModalVisible, setCommitteeVerificationModalVisible] = useState(false);
   const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
   const [activeFacility, setActiveFacility] = useState(mosque?.facility);
@@ -210,10 +212,11 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               onPressSuggest={() => setSuggestDonationModalVisible(true)}
             />
 
-            {/* Card 3: Mosque Leadership & Staff Roster (ADR-009, ADR-047, ADR-064) */}
+            {/* Card 3: Mosque Leadership & Staff Roster (ADR-009, ADR-047, ADR-064, ADR-069) */}
             <LeadershipRosterCard
               staffMembers={mosque.staffMembers || []}
               onClaimRole={() => setRoleClaimModalVisible(true)}
+              onVerifyCommittee={() => setCommitteeVerificationModalVisible(true)}
             />
 
             {/* Card 4: Facilities Overview (ADR-025, ADR-050) */}
@@ -314,6 +317,13 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueName={mosque.name}
           onClose={() => setAuditModalVisible(false)}
           onReportDiscrepancy={() => setReportModalVisible(true)}
+        />
+
+        <CommitteeVerificationModal
+          visible={committeeVerificationModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          onClose={() => setCommitteeVerificationModalVisible(false)}
         />
       </View>
     </Modal>

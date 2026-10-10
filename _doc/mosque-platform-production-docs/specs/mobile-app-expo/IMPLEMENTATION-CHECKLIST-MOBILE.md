@@ -556,8 +556,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Add `uploadVerificationProof`, `submitCommitteeVerification`, and `getMosqueVerificationClaims` to `ApiClient`.
 - [x] **35.2. Ferio CommitteeVerificationModal Sheet**
   - [x] Create `CommitteeVerificationModal.tsx` with document type selector, document attachment preview card, live claim status tracker, and submission loader.
-- [ ] **35.3. Wire Verification Sheet into LeadershipRosterCard & MosqueDetailSheet**
-  - [ ] Add verification trigger to `LeadershipRosterCard.tsx` and wire modal into `MosqueDetailSheet.tsx`.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **35.3. Wire Verification Sheet into LeadershipRosterCard & MosqueDetailSheet**
+  - [x] Add verification trigger to `LeadershipRosterCard.tsx` and wire modal into `MosqueDetailSheet.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
 
 
