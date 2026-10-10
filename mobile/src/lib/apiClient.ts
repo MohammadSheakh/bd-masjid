@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import { AttendanceStatus, AttendanceSummary, Mosque, MosqueAnnouncement, MosqueReportPayload, MosqueStaffMember, PrayerSchedule } from '../types/mosque';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
 import { PreferencesStorage, SecureTokenStorage } from './storage';
+import { FacilityService, SuggestedFacilitiesPayload } from '../services/facilityService';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -246,6 +247,34 @@ export const ApiClient = {
       `/mosques/${mosqueId}/staff`,
       { method: 'GET' },
       fallbackStaff
+    );
+  },
+
+  async submitFacilitySuggestion(
+    mosqueId: string,
+    payload: SuggestedFacilitiesPayload
+  ): Promise<{ success: boolean; message: string }> {
+    const sanitizedCustom = payload.customAmenities
+      ? FacilityService.sanitizeCustomAmenities(payload.customAmenities)
+      : [];
+
+    return fetchWithFallback<{ success: boolean; message: string }>(
+      `/mosques/${mosqueId}/suggestions`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'SUGGESTION',
+          suggestedFacilities: {
+            ...payload,
+            customAmenities: sanitizedCustom,
+          },
+          comment: payload.comment || 'Facility details suggestion submitted via mobile app',
+        }),
+      },
+      {
+        success: true,
+        message: 'Facility details submitted! Community moderators will review your contribution.',
+      }
     );
   },
 };

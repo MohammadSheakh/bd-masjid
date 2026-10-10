@@ -255,9 +255,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 15: Extensible Facilities Taxonomy & Community Suggestion Modal (ADR-050)
 
-- [ ] **15.1. Facilities Taxonomy Service & API Client Integration**
-  - [ ] Implement `facilityService.ts` with curated catalog of Bangladeshi mosque amenities and bilingual metadata.
-  - [ ] Add `submitFacilitySuggestion` in `ApiClient` with optimistic resolution and validation ($\le 20$ tags).
+- [x] **15.1. Facilities Taxonomy Service & API Client Integration**
+  - [x] Implement `facilityService.ts` with curated catalog of Bangladeshi mosque amenities and bilingual metadata.
+  - [x] Add `submitFacilitySuggestion` in `ApiClient` with optimistic resolution and validation ($\le 20$ tags).
 - [ ] **15.2. Ferio FacilitiesCard with Custom Amenities Tags**
   - [ ] Create `FacilitiesCard.tsx` rendering canonical badges, capacity pill, custom amenities tags, and "+ Suggest" CTA.
 - [ ] **15.3. Dedicated SuggestFacilitiesModal Sheet**
