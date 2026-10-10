@@ -58,6 +58,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-050](ADR-050-mobile-extensible-facilities-taxonomy-and-community-suggestion-modal.md) | Mobile Extensible Facilities Taxonomy & Dedicated Community Suggestion Modal | Accepted | 2026-10-10 | Facilities Taxonomy, Custom Amenities, ADR-025 Parity & Suggest Facilities Modal |
 | [ADR-051](ADR-051-mobile-donation-channels-governance-and-multi-signatory-verification.md) | Mobile Mosque Donation Channels Hub, Multi-Signatory Badges & Financial Governance | Accepted | 2026-10-10 | Donations Hub, bKash/Nagad Brands, Multi-Signatory Badges & Fraud Safeguards |
 | [ADR-052](ADR-052-mobile-categorized-collections-and-custom-bookmarks.md) | Mobile Categorized Mosque Collections & Custom Bookmarks | Accepted | 2026-10-10 | Mosque Collections, Home/Work/Jumu'ah Tags, Quick Filtering & Feed Switcher |
+| [ADR-053](ADR-053-mobile-in-app-notification-inbox-and-unread-badge.md) | Mobile In-App Notification Inbox, Unread Counter Badge & F-031 Parity | Accepted | 2026-10-10 | Notification Inbox, Unread Count Badge, Read Lifecycle & F-031 Backend Parity |
 
 
 ---

@@ -295,3 +295,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **17.4. Integration into App Feed & MosqueDetailSheet**
   - [x] Wire `CollectionFilterBar` and `CollectionTagModal` in `App.tsx` and `MosqueDetailSheet.tsx`.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 18: In-App Notification Inbox & Real-Time Bell Badge (ADR-053)
+
+- [ ] **18.1. Notification Domain Types & API Client Integration**
+  - [ ] Add `NotificationType`, `UserNotification`, and `PaginatedNotifications` to `types/mosque.ts`.
+  - [ ] Add `fetchUserNotifications`, `fetchUnreadNotificationCount`, `markNotificationAsRead`, and `markAllNotificationsAsRead` in `ApiClient`.
+- [ ] **18.2. Notification Inbox Service & Local State**
+  - [ ] Implement `notificationInboxService.ts` with unread count caching, category filtering, and offline fixtures.
+- [ ] **18.3. Ferio NotificationInboxModal Sheet**
+  - [ ] Create `NotificationInboxModal.tsx` with category filters, unread dot indicators, and mark-all-read trigger.
+- [ ] **18.4. Top Navbar Bell Trigger & Verification**
+  - [ ] Add bell icon with unread count badge in `App.tsx` top navbar.
+  - [ ] Run benchmark gate and TypeScript compilation.
