@@ -7,6 +7,7 @@
 import { Platform } from 'react-native';
 import { AttendanceStatus, AttendanceSummary, Mosque, MosqueAnnouncement, MosqueReportPayload, MosqueStaffMember, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
 import { AuthResponse, LoginPayload, RegisterPayload, UserProfile } from '../types/auth';
+import { RegisterDevicePayload, UserDevice } from '../types/device';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
 import { BANGLADESH_NOTIFICATION_FIXTURES } from '../data/notificationFixtures';
 import { PreferencesStorage, SecureTokenStorage } from './storage';
@@ -434,5 +435,46 @@ export const ApiClient = {
     } finally {
       await SecureTokenStorage.clearTokens();
     }
+  },
+
+  async registerUserDevice(payload: RegisterDevicePayload): Promise<UserDevice> {
+    const fallbackDevice: UserDevice = {
+      id: 'device-bd-masjid-local',
+      fcmToken: payload.fcmToken,
+      deviceType: payload.deviceType,
+      deviceName: payload.deviceName || 'Android Mobile Device',
+      deviceOsVersion: payload.deviceOsVersion || 'Android 14',
+      appVersion: payload.appVersion || '1.0.0',
+      isPushEnabled: true,
+      lastActiveAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    return fetchWithFallback<UserDevice>(
+      '/users/devices/register',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      fallbackDevice
+    );
+  },
+
+  async fetchUserDevices(): Promise<UserDevice[]> {
+    const fallbackDevice: UserDevice = {
+      id: 'device-bd-masjid-local',
+      fcmToken: 'fcm-token-preview-cached',
+      deviceType: Platform.OS === 'ios' ? 'ios' : 'android',
+      deviceName: Platform.OS === 'ios' ? 'Apple iPhone' : 'Android Mobile Device',
+      isPushEnabled: true,
+      lastActiveAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    return fetchWithFallback<UserDevice[]>(
+      '/users/devices',
+      { method: 'GET' },
+      [fallbackDevice]
+    );
   },
 };
