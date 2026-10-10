@@ -493,9 +493,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 31: Community Announcements & Janazah / Emergency Bulletin Feed (ADR-065)
 
-- [ ] **31.1. Announcement Domain Contracts & ApiClient Transport**
-  - [ ] Define `AnnouncementCategory`, `MosqueAnnouncement`, `FeedAnnouncementsParams`, and `CreateAnnouncementPayload` in `types/announcement.ts`.
-  - [ ] Add `getAnnouncementsFeed`, `getMosqueAnnouncements`, and `createAnnouncement` to `ApiClient`.
+- [x] **31.1. Announcement Domain Contracts & ApiClient Transport**
+  - [x] Define `AnnouncementCategory`, `MosqueAnnouncement`, `FeedAnnouncementsParams`, and `CreateAnnouncementPayload` in `types/announcement.ts`.
+  - [x] Add `getAnnouncementsFeed`, `getMosqueAnnouncements`, and `createAnnouncement` to `ApiClient`.
 - [ ] **31.2. Ferio AnnouncementCard Component**
   - [ ] Create `AnnouncementCard.tsx` with category badges (`🚨 Emergency`, `⚰️ Janazah`, `🕌 Jumu'ah`, etc.), pinned indicator, and expandable content.
 - [ ] **31.3. Ferio AnnouncementsFeedModal Sheet**

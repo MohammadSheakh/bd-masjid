@@ -17,6 +17,12 @@ import { OutboxMutationType } from '../types/outbox';
 import { ModerationAction, ModerationQueueItem, ResolveModerationPayload } from '../types/moderation';
 import { ContributorActivityItem, ContributorReputationSummary } from '../types/contributor';
 import { CreateRoleClaimPayload, RoleClaimResponse } from '../types/community';
+import {
+  AnnouncementsFeedResponse,
+  CreateAnnouncementPayload,
+  FeedAnnouncementsParams,
+  MosqueAnnouncement as DomainAnnouncement,
+} from '../types/announcement';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -245,6 +251,65 @@ export const ApiClient = {
       `/mosques/${mosqueId}/announcements`,
       { method: 'GET' },
       fallbackAnnouncements
+    );
+  },
+
+  async getAnnouncementsFeed(
+    params: FeedAnnouncementsParams = {}
+  ): Promise<AnnouncementsFeedResponse> {
+    const query = new URLSearchParams();
+    if (params.lat !== undefined) query.append('lat', params.lat.toString());
+    if (params.lng !== undefined) query.append('lng', params.lng.toString());
+    if (params.radiusKm !== undefined) query.append('radiusKm', params.radiusKm.toString());
+    if (params.category) query.append('category', params.category);
+    if (params.emergencyOnly) query.append('emergencyOnly', 'true');
+    if (params.bookmarkedOnly) query.append('bookmarkedOnly', 'true');
+    if (params.limit !== undefined) query.append('limit', params.limit.toString());
+    if (params.offset !== undefined) query.append('offset', params.offset.toString());
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+
+    const fallbackData: DomainAnnouncement[] = BANGLADESH_MOSQUES_FIXTURES.flatMap((m) =>
+      (m.announcements || []).map((a) => ({
+        id: a.id,
+        mosqueId: m.id,
+        mosqueName: m.name,
+        city: m.city || 'Dhaka',
+        title: a.title,
+        content: a.body || '',
+        category: (a.category as any) || 'GENERAL',
+        isPinned: a.priority === 'URGENT',
+        createdAt: a.createdAt,
+      }))
+    );
+
+    return fetchWithFallback<AnnouncementsFeedResponse>(
+      `/announcements/feed${queryString}`,
+      { method: 'GET' },
+      {
+        success: true,
+        data: fallbackData,
+        total: fallbackData.length,
+        limit: params.limit || 20,
+        offset: params.offset || 0,
+      }
+    );
+  },
+
+  async createAnnouncement(
+    mosqueId: string,
+    payload: CreateAnnouncementPayload
+  ): Promise<{ success: boolean; message: string; data?: any }> {
+    return fetchWithFallback<{ success: boolean; message: string; data?: any }>(
+      `/mosques/${mosqueId}/announcements`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      {
+        success: true,
+        message: 'Announcement posted successfully.',
+      }
     );
   },
 
