@@ -167,6 +167,20 @@ export interface MosqueAnnouncement {
   createdAt: string;
 }
 
+export type MosqueReportType =
+  | 'PRAYER_TIME'
+  | 'LOCATION'
+  | 'CLOSED_MOSQUE'
+  | 'DUPLICATE'
+  | 'CONTACT_INFO'
+  | 'OTHER';
+
+export interface MosqueReportPayload {
+  type: MosqueReportType;
+  description: string;
+  contactEmail?: string;
+}
+
 export type PrayerName = 'fajr' | 'zuhr' | 'asr' | 'maghrib' | 'isha';
 
 export interface PrayerAutoSilentSettings {

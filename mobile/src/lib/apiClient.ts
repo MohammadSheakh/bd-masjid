@@ -5,7 +5,7 @@
  * - Resilient offline fallback to structured Bangladeshi fixtures
  */
 import { Platform } from 'react-native';
-import { AttendanceStatus, AttendanceSummary, Mosque, MosqueAnnouncement, PrayerSchedule } from '../types/mosque';
+import { AttendanceStatus, AttendanceSummary, Mosque, MosqueAnnouncement, MosqueReportPayload, PrayerSchedule } from '../types/mosque';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
 import { PreferencesStorage, SecureTokenStorage } from './storage';
 
@@ -216,6 +216,23 @@ export const ApiClient = {
       `/mosques/${mosqueId}/announcements`,
       { method: 'GET' },
       fallbackAnnouncements
+    );
+  },
+
+  async submitMosqueReport(
+    mosqueId: string,
+    payload: MosqueReportPayload
+  ): Promise<{ success: boolean; message: string }> {
+    return fetchWithFallback<{ success: boolean; message: string }>(
+      `/mosques/${mosqueId}/reports`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      {
+        success: true,
+        message: 'Thank you! Your report has been submitted to community moderators for inspection.',
+      }
     );
   },
 };
