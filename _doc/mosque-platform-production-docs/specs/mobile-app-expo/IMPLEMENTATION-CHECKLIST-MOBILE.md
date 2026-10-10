@@ -328,3 +328,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Wire `AuthSessionModal` state and trigger.
   - [x] Run benchmark gate and TypeScript compilation.
 
+---
+
+## Phase 20: OEM Battery Killer Mitigation Wizard (ADR-037 & Screen 15)
+
+- [x] **20.1. OEM Manufacturer Detection Engine & Brand Profiles**
+  - [x] Implement `oemBatteryService.ts` detecting Xiaomi/Redmi (HyperOS/MIUI), Samsung (OneUI), Realme/Oppo (ColorOS), Vivo, and stock Android.
+  - [x] Provide manufacturer-specific instructions, brand tokens, and 1-tap settings intent launcher.
+- [x] **20.2. Ferio OemBatteryWizardModal Sheet**
+  - [x] Create `OemBatteryWizardModal.tsx` with manufacturer badge, step-by-step checklist, "Open Battery Settings" button, and "Don't Show Again" dismiss action.
+- [ ] **20.3. Auto-Silent & App Integration**
+  - [ ] Wire `OemBatteryWizardModal` into `App.tsx` and `AutoSilentModal.tsx` triggerable on auto-silent enable or info trigger.
+  - [ ] Respect `PreferencesStorage.isOemWizardDismissed()`.
+  - [ ] Run benchmark gate and TypeScript compilation.
+
+
