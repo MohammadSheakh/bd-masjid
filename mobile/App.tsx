@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
   SafeAreaView,
@@ -20,6 +20,7 @@ import { MosqueDetailSheet } from './src/components/MosqueDetailSheet';
 import { MosqueMapView } from './src/components/MosqueMapView';
 import { PreferencesStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
+import { AutoSilentService } from './src/services/autoSilentService';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -85,6 +86,21 @@ export default function App() {
   const topFollowedMosque = useMemo(() => {
     return BANGLADESH_MOSQUES_FIXTURES.find((m) => followedIds.includes(m.id)) ?? BANGLADESH_MOSQUES_FIXTURES[0];
   }, [followedIds]);
+
+  useEffect(() => {
+    AutoSilentService.checkDndPermission().then((granted) => {
+      setAutoSilentSettings((prev) => ({ ...prev, hasDndPermission: granted }));
+    });
+  }, []);
+
+  useEffect(() => {
+    if (topFollowedMosque?.prayerSchedule && autoSilentSettings.isEnabled) {
+      AutoSilentService.syncDailyPrayerAlarms(
+        topFollowedMosque.prayerSchedule,
+        autoSilentSettings
+      );
+    }
+  }, [topFollowedMosque, autoSilentSettings]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -197,6 +213,7 @@ export default function App() {
         visible={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         settings={autoSilentSettings}
+        onRequestDndPermission={() => AutoSilentService.requestDndPermission()}
         onUpdateSettings={(updated) =>
           setAutoSilentSettings((prev) => {
             const next = { ...prev, ...updated };

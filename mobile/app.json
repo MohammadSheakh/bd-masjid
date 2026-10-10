@@ -10,6 +10,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "org.bdmasjid.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -18,6 +19,9 @@
       },
       "predictiveBackGestureEnabled": false
     },
+    "plugins": [
+      "./plugins/withAndroidAutoSilent.js"
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }
