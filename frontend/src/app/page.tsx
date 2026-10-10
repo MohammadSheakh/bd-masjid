@@ -262,7 +262,7 @@ export default function HomePage() {
   }, [mosques, followedMosques]);
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#fafafa]">
+    <div className="flex flex-col h-full h-screen h-[100dvh] w-full min-w-0 min-h-0 overflow-hidden bg-[#fafafa]">
       {/* Top Navigation */}
       <Navbar
         onAddMosqueClick={() => setIsAddModalOpen(true)}
@@ -271,15 +271,15 @@ export default function HomePage() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-61px)] overflow-hidden relative">
+      <main className="flex-1 flex flex-col md:flex-row w-full min-w-0 min-h-0 overflow-hidden relative">
         {/* Left Panel: Search, Filter, and Mosque List */}
         <div
-          className={`flex-1 md:w-[420px] md:max-w-[420px] md:flex-none flex flex-col h-full bg-white border-r border-[#e8e8ea] z-10 ${
+          className={`flex-1 md:w-[360px] lg:w-[420px] md:max-w-[420px] md:flex-none flex flex-col h-full min-w-0 min-h-0 bg-white border-r border-[#e8e8ea] z-10 ${
             mobileTab === 'list' ? 'flex' : 'hidden md:flex'
           }`}
         >
           {/* Search & City Filter Bar */}
-          <div className="p-3 sm:p-4 border-b border-[#e8e8ea] space-y-2.5 bg-white">
+          <div className="shrink-0 p-3 sm:p-4 border-b border-[#e8e8ea] space-y-2.5 bg-white">
             {/* Live Next Prayer Countdown & Reminder */}
             <PrayerCountdownBanner
               schedule={selectedMosque?.prayerSchedule || displayedMosques[0]?.prayerSchedule}
@@ -378,7 +378,7 @@ export default function HomePage() {
           </div>
 
           {/* Mosque List Header / Counter */}
-          <div className="px-4 py-2 bg-[#fafafa] border-b border-[#f0f0f2] flex items-center justify-between text-xs text-[#6e6e73]">
+          <div className="shrink-0 px-4 py-2 bg-[#fafafa] border-b border-[#f0f0f2] flex items-center justify-between text-xs text-[#6e6e73]">
             <span>
               {(isSearchingOrFiltering ? isLoading : isFollowedLoading)
                 ? 'Searching...'
@@ -390,7 +390,7 @@ export default function HomePage() {
           </div>
 
           {/* Mosque Cards List */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
+          <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-3">
             {(isSearchingOrFiltering ? isLoading : isFollowedLoading) && displayedMosques.length === 0 ? (
               <div className="p-8 text-center text-xs text-[#6e6e73] flex flex-col items-center justify-center space-y-2">
                 <RefreshCw className="w-5 h-5 animate-spin text-zinc-400" />
@@ -440,7 +440,7 @@ export default function HomePage() {
 
         {/* Right Panel: Interactive Map */}
         <div
-          className={`flex-1 h-full relative z-0 isolate ${
+          className={`flex-1 h-full min-h-0 min-w-0 relative z-0 isolate ${
             mobileTab === 'map' ? 'flex' : 'hidden md:flex'
           }`}
         >
@@ -453,6 +453,7 @@ export default function HomePage() {
             pinLocation={droppedPin}
             onPinDrop={handleMapPinDrop}
             bookmarkedIds={bookmarkedIds}
+            isVisible={mobileTab === 'map'}
           />
         </div>
 

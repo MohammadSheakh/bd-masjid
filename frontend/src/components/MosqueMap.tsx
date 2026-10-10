@@ -13,6 +13,7 @@ interface MosqueMapProps {
   pinLocation?: { lat: number; lng: number } | null;
   onPinDrop?: (coords: { lat: number; lng: number }) => void;
   bookmarkedIds?: string[];
+  isVisible?: boolean;
 }
 
 export function MosqueMap({
@@ -24,6 +25,7 @@ export function MosqueMap({
   pinLocation,
   onPinDrop,
   bookmarkedIds = [],
+  isVisible = true,
 }: MosqueMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -51,8 +53,9 @@ export function MosqueMap({
     // Add zoom controls to top-right
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // OpenStreetMap tile layer
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // OpenStreetMap tile layer with subdomain sharding (a, b, c) for mobile connection concurrency
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      subdomains: ['a', 'b', 'c'],
       maxZoom: 19,
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -62,9 +65,79 @@ export function MosqueMap({
     markersLayerRef.current = markersLayer;
     mapInstanceRef.current = map;
 
+    // Trigger initial size check after mount in case container had zero or delayed dimensions
+    requestAnimationFrame(() => {
+      if (mapInstanceRef.current && mapContainerRef.current) {
+        if (mapContainerRef.current.clientWidth > 0 && mapContainerRef.current.clientHeight > 0) {
+          mapInstanceRef.current.invalidateSize({ pan: false });
+        }
+      }
+    });
+
     return () => {
       map.remove();
       mapInstanceRef.current = null;
+    };
+  }, []);
+
+  // Invalidate map size when tab visibility transitions
+  useEffect(() => {
+    if (!isVisible) return;
+    const map = mapInstanceRef.current;
+    const container = mapContainerRef.current;
+    if (!map || !container) return;
+
+    const triggerResize = () => {
+      if (container.clientWidth > 0 && container.clientHeight > 0) {
+        map.invalidateSize({ pan: false });
+      }
+    };
+
+    const rafId = requestAnimationFrame(triggerResize);
+    const timerId = setTimeout(triggerResize, 150);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(timerId);
+    };
+  }, [isVisible]);
+
+  // Observe container dimensions for mobile orientation changes, tab switching, and viewport resizes
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const container = mapContainerRef.current;
+    if (!map || !container) return;
+
+    let resizeRaf: number | null = null;
+    const handleResize = () => {
+      if (container.clientWidth > 0 && container.clientHeight > 0) {
+        if (resizeRaf) cancelAnimationFrame(resizeRaf);
+        resizeRaf = requestAnimationFrame(() => {
+          map.invalidateSize({ pan: false });
+        });
+      }
+    };
+
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+            handleResize();
+          }
+        }
+      });
+      observer.observe(container);
+    }
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    return () => {
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
     };
   }, []);
 
@@ -134,7 +207,7 @@ export function MosqueMap({
     }
   }, [isPinDropMode, pinLocation, onPinDrop]);
 
-  // Update User GPS Marker
+  // Update User GPS Marker and pan to location
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !userLocation) return;
@@ -163,6 +236,11 @@ export function MosqueMap({
         zIndexOffset: 1000,
       }).addTo(map);
     }
+
+    map.panTo([userLocation.lat, userLocation.lng], {
+      animate: true,
+      duration: 0.6,
+    });
   }, [userLocation]);
 
   // Update Mosque Markers
@@ -222,8 +300,15 @@ export function MosqueMap({
   }, [selectedMosque]);
 
   return (
-    <div className="relative w-full h-full bg-[#f4f4f5] overflow-hidden z-0 isolate">
-      <div ref={mapContainerRef} className="w-full h-full" />
+    <div
+      className="relative w-full h-full min-h-0 min-w-0 bg-[#f4f4f5] overflow-hidden z-0 isolate"
+      style={{ height: '100%', minHeight: '100%' }}
+    >
+      <div
+        ref={mapContainerRef}
+        className="w-full h-full min-h-full"
+        style={{ height: '100%', minHeight: '100%' }}
+      />
 
       {/* Pin drop instructional badge */}
       {isPinDropMode && (
