@@ -260,8 +260,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Add `submitFacilitySuggestion` in `ApiClient` with optimistic resolution and validation ($\le 20$ tags).
 - [x] **15.2. Ferio FacilitiesCard with Custom Amenities Tags**
   - [x] Create `FacilitiesCard.tsx` rendering canonical badges, capacity pill, custom amenities tags, and "+ Suggest" CTA.
-- [ ] **15.3. Dedicated SuggestFacilitiesModal Sheet**
-  - [ ] Create `SuggestFacilitiesModal.tsx` with canonical toggles, catalog chips, custom tag input, and submission feedback.
+- [x] **15.3. Dedicated SuggestFacilitiesModal Sheet**
+  - [x] Create `SuggestFacilitiesModal.tsx` with canonical toggles, catalog chips, custom tag input, and submission feedback.
 - [ ] **15.4. Integration into MosqueDetailSheet & Verification**
   - [ ] Replace basic facility grid in `MosqueDetailSheet.tsx` with `FacilitiesCard` and `SuggestFacilitiesModal`.
   - [ ] Run benchmark gate and TypeScript compilation.
