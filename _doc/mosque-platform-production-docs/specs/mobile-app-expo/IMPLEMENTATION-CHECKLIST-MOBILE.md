@@ -445,3 +445,18 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **27.4. Top Navbar Fasting Pill Integration & Performance Gate**
   - [x] Wire `🌙 রোজা / Fasting` quick launcher pill in `App.tsx` top action bar.
   - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 28: Division-Level Offline Vector Map Tile Pre-Caching Engine (ADR-062)
+
+- [ ] **28.1. Offline Map Region Contracts & Bounding Box Taxonomy**
+  - [ ] Define `OfflineMapRegion`, `RegionBoundingBox`, and `RegionDownloadStatus` in `types/offlineMap.ts`.
+  - [ ] Add canonical 8-division coordinate bounding boxes and tile size metrics in `data/offlineMapFixtures.ts`.
+- [ ] **28.2. Dedicated OfflineMapRegionService with Storage & Chunked Download Simulation**
+  - [ ] Implement `offlineMapRegionService.ts` providing synchronous region cache inspection, storage usage budget tracking (150 MB max), and download state management.
+- [ ] **28.3. Ferio OfflineMapRegionsModal Sheet & Storage Gauge**
+  - [ ] Create `OfflineMapRegionsModal.tsx` with total storage quota bar, division download cards, progress indicators, and 1-tap delete actions.
+- [ ] **28.4. Map View Trigger Integration & Performance Verification**
+  - [ ] Wire offline map cache management trigger into `MosqueMapView.tsx` or `App.tsx`.
+  - [ ] Run benchmark gate and TypeScript compilation.

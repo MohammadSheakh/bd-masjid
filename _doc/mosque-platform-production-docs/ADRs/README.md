@@ -67,6 +67,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-059](ADR-059-mobile-low-end-hardware-diagnostics-and-field-ops-telemetry-panel.md) | Mobile Low-End Hardware Diagnostics and Field Operations Telemetry Panel | Accepted | 2026-10-10 | Diagnostics Panel, Live FPS Gauge, Heap Memory Profiler, 1-Tap Sanitized Report |
 | [ADR-060](ADR-060-mobile-contributor-activity-and-scout-reputation-console.md) | Mobile Contributor Activity and Scout Reputation Console Architecture | Accepted | 2026-10-10 | Scout Reputation, Contributor Tiers, Submission Moderation History & Activity Modal |
 | [ADR-061](ADR-061-mobile-ramadan-and-iftar-sehri-fasting-countdown-and-division-timetable-hub.md) | Mobile Ramadan & Iftar / Sehri Fasting Countdown and Division Timetable Hub | Accepted | 2026-10-10 | Ramadan Fasting, Sehri/Iftar Countdown, 8 Division Offsets, Duas & Timetable |
+| [ADR-062](ADR-062-mobile-division-level-offline-vector-map-tile-pre-caching-engine.md) | Mobile Division-Level Offline Vector Map Tile Pre-Caching Engine | Accepted | 2026-10-10 | Offline Vector Map Tiles, Division Bounding Boxes, 150MB Storage Budget & Cache Hub |
 
 
 ---
