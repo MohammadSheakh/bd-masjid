@@ -24,6 +24,7 @@ import {
   MosqueAnnouncement as DomainAnnouncement,
 } from '../types/announcement';
 import { CreateDonationPayload, DonationSubmissionResponse } from '../types/donation';
+import { PrayerScheduleHistoryResponse } from '../types/prayerScheduleAudit';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -770,6 +771,55 @@ export const ApiClient = {
         method: 'POST',
         body: JSON.stringify(payload),
       },
+      fallbackResponse
+    );
+  },
+
+  async getPrayerScheduleHistory(
+    mosqueId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PrayerScheduleHistoryResponse> {
+    const fallbackResponse: PrayerScheduleHistoryResponse = {
+      items: [
+        {
+          id: `hist-latest-${mosqueId}`,
+          mosqueId,
+          scheduleSnapshot: {
+            fajrJamaat: '05:30',
+            fajrStart: '04:45',
+            zuhrJamaat: '13:15',
+            zuhrStart: '12:00',
+            asrJamaat: '16:30',
+            asrStart: '15:15',
+            maghribJamaat: '18:05',
+            maghribStart: '18:00',
+            ishaJamaat: '19:45',
+            ishaStart: '19:15',
+            jumuahJamaat: '13:30',
+            effectiveDate: new Date().toISOString(),
+            freshnessLevel: 'HIGH',
+          },
+          changedById: 'user-lead-1',
+          changedBy: {
+            id: 'user-lead-1',
+            name: 'Khatib & Committee',
+          },
+          reason: 'Seasonal sunset & dawn shift adjustment',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      meta: {
+        page,
+        limit,
+        total: 1,
+        totalPages: 1,
+      },
+    };
+
+    return fetchWithFallback<PrayerScheduleHistoryResponse>(
+      `/mosques/${mosqueId}/prayer-schedule/history?page=${page}&limit=${limit}`,
+      { method: 'GET' },
       fallbackResponse
     );
   },

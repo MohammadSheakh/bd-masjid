@@ -537,9 +537,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 34: Prayer Schedule Revision History & Audit Timeline Sheet (ADR-068)
 
-- [ ] **34.1. Prayer Schedule Revision History Domain Contracts & ApiClient Transport**
-  - [ ] Define `PrayerScheduleSnapshot`, `PrayerScheduleHistoryItem`, and `PrayerScheduleHistoryResponse` in `types/prayerScheduleAudit.ts`.
-  - [ ] Add `getPrayerScheduleHistory` to `ApiClient` (`GET /api/v1/mosques/:id/prayer-schedule/history`) with cache support.
+- [x] **34.1. Prayer Schedule Revision History Domain Contracts & ApiClient Transport**
+  - [x] Define `PrayerScheduleSnapshot`, `PrayerScheduleHistoryItem`, and `PrayerScheduleHistoryResponse` in `types/prayerScheduleAudit.ts`.
+  - [x] Add `getPrayerScheduleHistory` to `ApiClient` (`GET /api/v1/mosques/:id/prayer-schedule/history`) with cache support.
 - [ ] **34.2. Schedule Diff Calculation Engine & Ferio PrayerScheduleAuditModal Sheet**
   - [ ] Implement `scheduleDiff.ts` helper computing waqt-by-waqt time deltas (`+15m`, `-10m`, formatted times).
   - [ ] Create `PrayerScheduleAuditModal.tsx` rendering chronological change timeline cards, visual diff pills, editor attribution, and "Report Discrepancy" action.
