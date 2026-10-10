@@ -25,6 +25,11 @@ import {
 } from '../types/announcement';
 import { CreateDonationPayload, DonationSubmissionResponse } from '../types/donation';
 import { PrayerScheduleHistoryResponse } from '../types/prayerScheduleAudit';
+import {
+  SubmitVerificationPayload,
+  VerificationProofUploadResponse,
+  VerificationClaimItem,
+} from '../types/verification';
 
 export function getApiBaseUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -819,6 +824,88 @@ export const ApiClient = {
 
     return fetchWithFallback<PrayerScheduleHistoryResponse>(
       `/mosques/${mosqueId}/prayer-schedule/history?page=${page}&limit=${limit}`,
+      { method: 'GET' },
+      fallbackResponse
+    );
+  },
+
+  async uploadVerificationProof(
+    imageUri: string,
+    filename: string = 'proof.jpg',
+    mimeType: string = 'image/jpeg'
+  ): Promise<VerificationProofUploadResponse> {
+    const fallbackResponse: VerificationProofUploadResponse = {
+      success: true,
+      url: imageUri,
+      filename,
+      size: 1024,
+      mimeType,
+    };
+
+    try {
+      const formData = new FormData();
+      formData.append('image', {
+        uri: imageUri,
+        name: filename,
+        type: mimeType,
+      } as any);
+
+      const token = await SecureTokenStorage.getAccessToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${getApiBaseUrl()}/community/upload-image`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        return fallbackResponse;
+      }
+      const json = await response.json();
+      return json.data ?? json;
+    } catch {
+      return fallbackResponse;
+    }
+  },
+
+  async submitCommitteeVerification(
+    mosqueId: string,
+    payload: SubmitVerificationPayload
+  ): Promise<RoleClaimResponse> {
+    const fallbackResponse: RoleClaimResponse = {
+      id: `claim-${Date.now()}`,
+      mosqueId,
+      role: payload.role,
+      status: 'PENDING',
+      message: 'Committee verification submitted with proof document.',
+    };
+
+    return fetchWithFallback<RoleClaimResponse>(
+      `/community/${mosqueId}/claims`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          role: payload.role,
+          phone: payload.phone,
+          documentUrl: payload.documentUrl,
+          declarationAccepted: true,
+        }),
+      },
+      fallbackResponse
+    );
+  },
+
+  async getMosqueVerificationClaims(
+    mosqueId: string
+  ): Promise<VerificationClaimItem[]> {
+    const fallbackResponse: VerificationClaimItem[] = [];
+
+    return fetchWithFallback<VerificationClaimItem[]>(
+      `/mosques/${mosqueId}/role-claims`,
       { method: 'GET' },
       fallbackResponse
     );

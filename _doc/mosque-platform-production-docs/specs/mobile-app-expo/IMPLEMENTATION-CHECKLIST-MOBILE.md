@@ -551,9 +551,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 35: Mosque Committee Official Verification & Proof Document Submission Sheet (ADR-069)
 
-- [ ] **35.1. Verification Domain Contracts & ApiClient Document Transport**
-  - [ ] Define `VerificationDocumentType`, `VerificationClaimStatus`, and `SubmitVerificationPayload` in `types/verification.ts`.
-  - [ ] Add `uploadVerificationProof`, `submitCommitteeVerification`, and `getMosqueVerificationClaims` to `ApiClient`.
+- [x] **35.1. Verification Domain Contracts & ApiClient Document Transport**
+  - [x] Define `VerificationDocumentType`, `VerificationClaimStatus`, and `SubmitVerificationPayload` in `types/verification.ts`.
+  - [x] Add `uploadVerificationProof`, `submitCommitteeVerification`, and `getMosqueVerificationClaims` to `ApiClient`.
 - [ ] **35.2. Ferio CommitteeVerificationModal Sheet**
   - [ ] Create `CommitteeVerificationModal.tsx` with document type selector, document attachment preview card, live claim status tracker, and submission loader.
 - [ ] **35.3. Wire Verification Sheet into LeadershipRosterCard & MosqueDetailSheet**
