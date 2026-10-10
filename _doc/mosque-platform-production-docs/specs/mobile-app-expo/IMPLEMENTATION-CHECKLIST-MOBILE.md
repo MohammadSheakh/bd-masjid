@@ -337,9 +337,9 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Provide manufacturer-specific instructions, brand tokens, and 1-tap settings intent launcher.
 - [x] **20.2. Ferio OemBatteryWizardModal Sheet**
   - [x] Create `OemBatteryWizardModal.tsx` with manufacturer badge, step-by-step checklist, "Open Battery Settings" button, and "Don't Show Again" dismiss action.
-- [ ] **20.3. Auto-Silent & App Integration**
-  - [ ] Wire `OemBatteryWizardModal` into `App.tsx` and `AutoSilentModal.tsx` triggerable on auto-silent enable or info trigger.
-  - [ ] Respect `PreferencesStorage.isOemWizardDismissed()`.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **20.3. Auto-Silent & App Integration**
+  - [x] Wire `OemBatteryWizardModal` into `App.tsx` and `AutoSilentModal.tsx` triggerable on auto-silent enable or info trigger.
+  - [x] Respect `PreferencesStorage.isOemWizardDismissed()`.
+  - [x] Run benchmark gate and TypeScript compilation.
 
 

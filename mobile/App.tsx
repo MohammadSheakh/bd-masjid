@@ -25,6 +25,7 @@ import { DailyHadithCard } from './src/components/DailyHadithCard';
 import { CollectionFilterBar, CollectionFilterSelection } from './src/components/CollectionFilterBar';
 import { NotificationInboxModal } from './src/components/NotificationInboxModal';
 import { AuthSessionModal } from './src/components/AuthSessionModal';
+import { OemBatteryWizardModal } from './src/components/OemBatteryWizardModal';
 import { PreferencesStorage, CollectionStorage } from './src/lib/storage';
 import { ApiClient } from './src/lib/apiClient';
 import { AutoSilentService } from './src/services/autoSilentService';
@@ -33,6 +34,7 @@ import { TelemetryService } from './src/services/telemetryService';
 import { LocalizationService, Language } from './src/services/localizationService';
 import { NotificationInboxService } from './src/services/notificationInboxService';
 import { AuthService } from './src/services/authService';
+import { OemBatteryService } from './src/services/oemBatteryService';
 import { UserProfile } from './src/types/auth';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
@@ -55,6 +57,7 @@ export default function App() {
     NotificationInboxService.getUnreadCountSync()
   );
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isOemWizardOpen, setIsOemWizardOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() =>
     AuthService.getUserSync()
   );
@@ -433,6 +436,12 @@ export default function App() {
         visible={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         isBangla={lang === 'bn'}
+      />
+
+      {/* OEM Battery Killer Mitigation Wizard Modal (ADR-037 & Screen 15) */}
+      <OemBatteryWizardModal
+        visible={isOemWizardOpen}
+        onClose={() => setIsOemWizardOpen(false)}
       />
     </SafeAreaView>
   );
