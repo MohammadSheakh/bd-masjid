@@ -125,12 +125,11 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 6: Native Alarms, OEM Battery Mitigation & Observability
 
-- [ ] **6.1. Battery-Safe Exact Prayer Alarms**
-  - [ ] Install `@notifee/react-native`.
-  - [ ] Configure `SCHEDULE_EXACT_ALARM` and `USE_EXACT_ALARM` permissions in `app.json`.
-  - [ ] Calculate today's and tomorrow's 5 Jammat times for followed mosques.
-  - [ ] Schedule trigger notifications 10 minutes prior to Jamaat start.
-  - [ ] Include native notification action buttons: "View Timetable", "Dismiss".
+- [x] **6.1. Battery-Safe Exact Prayer Alarms & Actionable Notifications (ADR-039)**
+  - [x] Configure `SCHEDULE_EXACT_ALARM` and `USE_EXACT_ALARM` permissions in configuration.
+  - [x] Calculate today's and tomorrow's 5 Jammat times for followed mosques.
+  - [x] Schedule trigger notifications 10 minutes prior to Jamaat start.
+  - [x] Include actionable notification buttons: "View Timetable", "Dismiss".
 
 - [x] **6.2. OEM Battery Optimization Wizard (ADR-037)**
   - [x] Implement detection for aggressive OEM background battery killers (Xiaomi HyperOS, Realme ColorOS, Samsung OneUI).
