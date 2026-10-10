@@ -13,6 +13,7 @@ import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 import { AttendanceAffiliationCard } from './AttendanceAffiliationCard';
 import { TimetableUpdateModal } from './TimetableUpdateModal';
 import { NoticeBoardModal } from './NoticeBoardModal';
+import { ReportIssueModal } from './ReportIssueModal';
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -32,6 +33,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [noticeModalVisible, setNoticeModalVisible] = useState(false);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
 
   useEffect(() => {
@@ -253,6 +255,16 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
                 ))}
               </View>
             </View>
+
+            {/* Community Issue Reporting Trigger (ADR-020, ADR-045) */}
+            <Pressable
+              style={styles.reportIssueTrigger}
+              onPress={() => setReportModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Report an issue with this mosque"
+            >
+              <Text style={styles.reportIssueText}>🚩 Report an issue / incorrect information</Text>
+            </Pressable>
           </ScrollView>
         </View>
 
@@ -272,6 +284,13 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           mosqueName={mosque.name}
           announcements={mosque.announcements || []}
           onClose={() => setNoticeModalVisible(false)}
+        />
+
+        <ReportIssueModal
+          visible={reportModalVisible}
+          mosqueId={mosque.id}
+          mosqueName={mosque.name}
+          onClose={() => setReportModalVisible(false)}
         />
       </View>
     </Modal>
@@ -616,5 +635,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: ferioColors.muted,
     marginLeft: ferioSpacing.sm,
+  },
+  reportIssueTrigger: {
+    paddingVertical: ferioSpacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: ferioSpacing.sm,
+    marginBottom: ferioSpacing.xl,
+  },
+  reportIssueText: {
+    fontSize: 12,
+    color: ferioColors.muted,
+    textDecorationLine: 'underline',
   },
 });
