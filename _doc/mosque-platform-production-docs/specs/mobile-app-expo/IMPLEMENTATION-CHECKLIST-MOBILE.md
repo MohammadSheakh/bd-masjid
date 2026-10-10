@@ -361,8 +361,8 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 
 ## Phase 22: Contributor Attribution & Submission Provenance (ADR-056)
 
-- [ ] **22.1. Ferio ContributorAttributionBanner Component**
-  - [ ] Implement `ContributorAttributionBanner.tsx` showing synchronous session status (Verified Contributor vs Anonymous Musalli) with 1-tap sign-in trigger.
+- [x] **22.1. Ferio ContributorAttributionBanner Component**
+  - [x] Implement `ContributorAttributionBanner.tsx` showing synchronous session status (Verified Contributor vs Anonymous Musalli) with 1-tap sign-in trigger.
 - [ ] **22.2. Wire Attribution into AddMosqueSheet**
   - [ ] Embed `ContributorAttributionBanner` in `AddMosqueSheet.tsx` and pass `contributorId` & `contributorName` in payload.
 - [ ] **22.3. Wire Attribution into TimetableUpdateModal & SuggestFacilitiesModal**
