@@ -42,6 +42,7 @@ import { OfflineOutboxService } from './src/services/offlineOutboxService';
 import { ModeratorReviewModal } from './src/components/ModeratorReviewModal';
 import { ModeratorService } from './src/services/moderatorService';
 import { DiagnosticsTelemetryModal } from './src/components/DiagnosticsTelemetryModal';
+import { RamadanFastingModal } from './src/components/RamadanFastingModal';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -66,6 +67,7 @@ export default function App() {
   const [isOemWizardOpen, setIsOemWizardOpen] = useState(false);
   const [isModModalOpen, setIsModModalOpen] = useState(false);
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
+  const [isRamadanOpen, setIsRamadanOpen] = useState(false);
   const [pendingModCount, setPendingModCount] = useState<number>(() =>
     ModeratorService.getPendingCountSync()
   );
@@ -292,6 +294,16 @@ export default function App() {
             </Pressable>
           )}
 
+          {/* Ramadan Fasting Hub Pill (ADR-061) */}
+          <Pressable
+            onPress={() => setIsRamadanOpen(true)}
+            style={({ pressed }) => [styles.ramadanToggleBtn, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Open Ramadan Fasting & Iftar Hub"
+          >
+            <Text style={styles.ramadanToggleText}>🌙 {lang === 'bn' ? 'রোজা' : 'Fasting'}</Text>
+          </Pressable>
+
           <Pressable
             onPress={() => setIsQiblaOpen(true)}
             style={({ pressed }) => [styles.qiblaToggleBtn, pressed && styles.pressed]}
@@ -502,6 +514,13 @@ export default function App() {
         visible={isDiagnosticsOpen}
         onClose={() => setIsDiagnosticsOpen(false)}
       />
+
+      {/* Ramadan & Fasting Hub Modal (ADR-061) */}
+      <RamadanFastingModal
+        visible={isRamadanOpen}
+        onClose={() => setIsRamadanOpen(false)}
+        isBangla={lang === 'bn'}
+      />
     </SafeAreaView>
   );
 }
@@ -651,6 +670,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#059669',
+  },
+  ramadanToggleBtn: {
+    paddingHorizontal: ferioSpacing.sm + 2,
+    paddingVertical: ferioSpacing.xs,
+    borderRadius: ferioRadius.full,
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  ramadanToggleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#d97706',
   },
   silentToggleBtn: {
     paddingHorizontal: ferioSpacing.md,

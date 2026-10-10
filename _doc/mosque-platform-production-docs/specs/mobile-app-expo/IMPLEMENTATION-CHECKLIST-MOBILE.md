@@ -442,6 +442,6 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Implement `ramadanService.ts` providing synchronous division offsets, dynamic Sehri/Iftar countdown, and persistence in `PreferencesStorage`.
 - [x] **27.3. Ferio RamadanFastingModal Sheet & Fasting Duas Carousel**
   - [x] Create `RamadanFastingModal.tsx` with live countdown gauge, 8-division switcher, Sehri/Iftar Duas with Bengali phonetics and meaning, and 30-day schedule view.
-- [ ] **27.4. Top Navbar Fasting Pill Integration & Performance Gate**
-  - [ ] Wire `🌙 রোজা / Fasting` quick launcher pill in `App.tsx` top action bar.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **27.4. Top Navbar Fasting Pill Integration & Performance Gate**
+  - [x] Wire `🌙 রোজা / Fasting` quick launcher pill in `App.tsx` top action bar.
+  - [x] Run benchmark gate and TypeScript compilation.
