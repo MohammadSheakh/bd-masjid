@@ -56,6 +56,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-048](ADR-048-mobile-bilingual-localization-and-musalli-terminology.md) | Mobile Bilingual Localization & Musalli Terminology | Accepted | 2026-10-10 | Bangla/English i18n, Musalli Terminology, 1-Tap Toggle Pill & Fast Synchronous Engine |
 | [ADR-049](ADR-049-mobile-daily-authentic-hadith-and-prayer-reflection-digest.md) | Mobile Daily Authentic Hadith & Prayer Reflection Digest | Accepted | 2026-10-10 | Daily Hadith, Sahih Bukhari/Muslim Citations, Collapsible Card & Native Share |
 | [ADR-050](ADR-050-mobile-extensible-facilities-taxonomy-and-community-suggestion-modal.md) | Mobile Extensible Facilities Taxonomy & Dedicated Community Suggestion Modal | Accepted | 2026-10-10 | Facilities Taxonomy, Custom Amenities, ADR-025 Parity & Suggest Facilities Modal |
+| [ADR-051](ADR-051-mobile-donation-channels-governance-and-multi-signatory-verification.md) | Mobile Mosque Donation Channels Hub, Multi-Signatory Badges & Financial Governance | Accepted | 2026-10-10 | Donations Hub, bKash/Nagad Brands, Multi-Signatory Badges & Fraud Safeguards |
 
 
 ---
