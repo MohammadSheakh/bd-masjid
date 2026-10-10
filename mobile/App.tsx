@@ -37,6 +37,8 @@ import { AuthService } from './src/services/authService';
 import { OemBatteryService } from './src/services/oemBatteryService';
 import { PushDeviceService } from './src/services/pushDeviceService';
 import { UserProfile } from './src/types/auth';
+import { OutboxSyncBadge } from './src/components/OutboxSyncBadge';
+import { OfflineOutboxService } from './src/services/offlineOutboxService';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -101,6 +103,7 @@ export default function App() {
     setIsRetrying(true);
     try {
       await ApiClient.getNearbyMosques(23.8103, 90.4125);
+      await OfflineOutboxService.drainOutbox();
     } finally {
       setIsRetrying(false);
     }
@@ -173,6 +176,7 @@ export default function App() {
     AuthService.hydrateSession();
 
     PushDeviceService.syncDeviceRegistration();
+    OfflineOutboxService.drainOutbox();
 
     return () => {
       unsubNotif();
@@ -325,6 +329,9 @@ export default function App() {
         onRetry={handleRetrySync}
         isRetrying={isRetrying}
       />
+
+      {/* Offline Outbox Mutation Sync Badge (ADR-057) */}
+      <OutboxSyncBadge />
 
       {/* Viewport: List or Map */}
       {viewportMode === 'list' ? (

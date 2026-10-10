@@ -382,7 +382,7 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Implement `offlineOutboxService.ts` with persistent storage, synchronous count mirroring, and event dispatcher.
 - [x] **23.3. ApiClient Mutation Fallback Queuing**
   - [x] Automatically enqueue failed write requests (`PUT /attendance`, `PUT /prayer-schedule`, `POST /mosques`, `POST /suggestions`, `POST /reports`) into outbox when offline or network timeout occurs.
-- [ ] **23.4. Ferio OutboxSyncBadge, Reconnection Drain & Performance Verification**
-  - [ ] Create `OutboxSyncBadge.tsx` displaying pending mutation counter and manual sync action.
-  - [ ] Wire automatic drain on app boot and network reconnection in `App.tsx`.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **23.4. Ferio OutboxSyncBadge, Reconnection Drain & Performance Verification**
+  - [x] Create `OutboxSyncBadge.tsx` displaying pending mutation counter and manual sync action.
+  - [x] Wire automatic drain on app boot and network reconnection in `App.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
