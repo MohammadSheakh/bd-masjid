@@ -5,8 +5,9 @@
  * - Resilient offline fallback to structured Bangladeshi fixtures
  */
 import { Platform } from 'react-native';
-import { AttendanceStatus, AttendanceSummary, Mosque, MosqueAnnouncement, MosqueReportPayload, MosqueStaffMember, PrayerSchedule } from '../types/mosque';
+import { AttendanceStatus, AttendanceSummary, Mosque, MosqueAnnouncement, MosqueReportPayload, MosqueStaffMember, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
+import { BANGLADESH_NOTIFICATION_FIXTURES } from '../data/notificationFixtures';
 import { PreferencesStorage, SecureTokenStorage } from './storage';
 import { FacilityService, SuggestedFacilitiesPayload } from '../services/facilityService';
 
@@ -275,6 +276,67 @@ export const ApiClient = {
         success: true,
         message: 'Facility details submitted! Community moderators will review your contribution.',
       }
+    );
+  },
+
+  async fetchUserNotifications(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedNotifications> {
+    const unreadCount = BANGLADESH_NOTIFICATION_FIXTURES.filter((n) => !n.isRead).length;
+    const fallback: PaginatedNotifications = {
+      items: BANGLADESH_NOTIFICATION_FIXTURES,
+      total: BANGLADESH_NOTIFICATION_FIXTURES.length,
+      page,
+      limit,
+      totalPages: Math.ceil(BANGLADESH_NOTIFICATION_FIXTURES.length / limit),
+      unreadCount,
+    };
+
+    return fetchWithFallback<PaginatedNotifications>(
+      `/notifications?page=${page}&limit=${limit}`,
+      { method: 'GET' },
+      fallback
+    );
+  },
+
+  async fetchUnreadNotificationCount(): Promise<number> {
+    const fallbackCount = BANGLADESH_NOTIFICATION_FIXTURES.filter((n) => !n.isRead).length;
+    const res = await fetchWithFallback<{ unreadCount: number }>(
+      '/notifications/unread-count',
+      { method: 'GET' },
+      { unreadCount: fallbackCount }
+    );
+    return res.unreadCount;
+  },
+
+  async markNotificationAsRead(id: string): Promise<UserNotification> {
+    const item = BANGLADESH_NOTIFICATION_FIXTURES.find((n) => n.id === id);
+    const fallback: UserNotification = item
+      ? { ...item, isRead: true, readAt: new Date().toISOString() }
+      : {
+          id,
+          mosqueId: '',
+          type: 'ANNOUNCEMENT',
+          title: '',
+          body: '',
+          isRead: true,
+          readAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        };
+
+    return fetchWithFallback<UserNotification>(
+      `/notifications/${id}/read`,
+      { method: 'PATCH' },
+      fallback
+    );
+  },
+
+  async markAllNotificationsAsRead(): Promise<{ success: boolean; count: number }> {
+    return fetchWithFallback<{ success: boolean; count: number }>(
+      '/notifications/read-all',
+      { method: 'PATCH' },
+      { success: true, count: BANGLADESH_NOTIFICATION_FIXTURES.length }
     );
   },
 };

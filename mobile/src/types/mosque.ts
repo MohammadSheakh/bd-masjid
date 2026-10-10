@@ -203,3 +203,36 @@ export interface PrayerAutoSilentSettings {
   hasDndPermission: boolean;
   activeSilenceExpiry: string | null; // ISO timestamp if active right now
 }
+
+export type NotificationType =
+  | 'ANNOUNCEMENT'
+  | 'SCHEDULE_CHANGE'
+  | 'DONATION_UPDATE'
+  | 'PRAYER_REMINDER';
+
+export interface UserNotification {
+  id: string;
+  userId?: string;
+  mosqueId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  entityId?: string | null;
+  isRead: boolean;
+  readAt?: string | null;
+  createdAt: string;
+  mosque?: {
+    id: string;
+    name: string;
+    city?: string | null;
+  };
+}
+
+export interface PaginatedNotifications {
+  items: UserNotification[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  unreadCount: number;
+}
