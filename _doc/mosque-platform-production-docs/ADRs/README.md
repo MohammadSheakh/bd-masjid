@@ -46,6 +46,7 @@ This directory contains the foundational Architecture Decision Records for the *
 | [ADR-038](ADR-038-mobile-offline-resilience-and-stale-while-revalidate-cache.md) | Mobile Offline Resilience, Stale-While-Revalidate Cache, and Offline Status Banner | Accepted | 2026-10-10 | Offline Resilience, SWR Cache, Offline Banner & Network Hydration |
 | [ADR-039](ADR-039-mobile-battery-safe-exact-prayer-alarms-and-notifications.md) | Mobile Battery-Safe Exact Prayer Alarms and Actionable Notifications | Accepted | 2026-10-10 | Exact Alarms, 10m Pre-Jamaat Alerts, Actionable Pills & Battery Safety |
 | [ADR-040](ADR-040-mobile-enterprise-telemetry-and-privacy-sanitization.md) | Mobile Enterprise Telemetry, Crash Reporting, and Privacy Data Scrubbing | Accepted | 2026-10-10 | Telemetry, Sentry, PII Scrubbing, Breadcrumb Sanitization & Observability |
+| [ADR-041](ADR-041-mobile-eas-production-build-pipeline-and-app-bundle-optimization.md) | Mobile EAS Production Build Pipeline and App Bundle Optimization | Accepted | 2026-10-10 | EAS Build, Production AAB, Hermes Bytecode, ProGuard & Release Gates |
 
 
 ---

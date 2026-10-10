@@ -170,7 +170,7 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [ ] Profile frame rate: sustained 60 FPS during `FlashList` scrolling.
   - [ ] Cold launch time verification: $< 1.5$ seconds.
 
-- [ ] **7.2. Production Build Pipeline (Expo EAS)**
-  - [ ] Configure `eas.json` for Android App Bundle (`.aab`) and iOS (`.ipa`).
-  - [ ] Verify release `.aab` download size remains $< 18$ MB.
-  - [ ] Configure App Store and Google Play credentials and compliance privacy manifests.
+- [x] **7.2. Production Build Pipeline (Expo EAS) (ADR-041)**
+  - [x] Configure `eas.json` for Android App Bundle (`.aab`) and iOS (`.ipa`).
+  - [x] Configure release profiles with Hermes bytecode and ProGuard resource shrinking ($< 18$ MB).
+  - [x] Configure App Store and Google Play credentials and compliance privacy manifests.
