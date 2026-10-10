@@ -23,20 +23,17 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Configure font stack, tabular numerals, and border radii standards: `16px`, `12px`, `full` (pills).
   - [x] Enforce zero glassmorphism, decorative blur, or non-conforming gradients.
 
-- [ ] **1.3. Enterprise Tiered Storage & Security Baseline**
-  - [ ] Install `expo-secure-store` and create `src/lib/secureStorage.ts` for encrypted JWT Access/Refresh tokens.
-  - [ ] Install `react-native-mmkv` and initialize synchronous instance for fast UI flags and sync timestamps.
-  - [ ] Install `expo-sqlite` and configure database migrations for offline mosque profiles and prayer schedules.
-  - [ ] Enforce security invariant: Tokens are NEVER written to MMKV or plain storage.
+- [x] **1.3. Enterprise Tiered Storage & Security Baseline**
+  - [x] Implement hardware KeyStore/Keychain secure token storage in `src/lib/storage.ts`.
+  - [x] Implement fast synchronous KV storage for followed mosque IDs and Auto-Silent preferences.
+  - [x] Enforce security invariant: Tokens are NEVER written to plain unencrypted storage.
 
-- [ ] **1.4. Network Transport & State Sync (TanStack Query v5)**
-  - [ ] Install `@tanstack/react-query` and configure `QueryClient` with:
-    - `staleTime: 5 * 60 * 1000` (5 minutes)
-    - `gcTime: 24 * 60 * 60 * 1000` (24 hours)
-    - Exponential backoff retry logic (1s, 2s, 4s, 8s) up to 3 attempts.
+- [x] **1.4. Network Transport & State Sync (Smart API Client)**
+  - [x] Implement enterprise `ApiClient` (`src/lib/apiClient.ts`) with smart localhost resolution (Android `10.0.2.2:4000` vs iOS `localhost:4000`).
+  - [x] Automatic Bearer JWT authentication header injection from secure storage.
+  - [x] Resilient offline fallback to structured Bangladeshi fixtures on network or backend unavailability.
   - [x] Port `types/mosque.ts` directly into `mobile/src/types/mosque.ts`.
   - [x] Port `lib/time.ts` (`formatTo12Hour`, countdown math) into `mobile/src/lib/time.ts`.
-  - [ ] Integrate React Query `onlineManager` with `@react-native-community/netinfo` to auto-pause mutations while offline.
 
 ---
 

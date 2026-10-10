@@ -18,6 +18,8 @@ import { ViewTogglePill, ViewportMode } from './src/components/ViewTogglePill';
 import { AutoSilentModal } from './src/components/AutoSilentModal';
 import { MosqueDetailSheet } from './src/components/MosqueDetailSheet';
 import { MosqueMapView } from './src/components/MosqueMapView';
+import { PreferencesStorage } from './src/lib/storage';
+import { ApiClient } from './src/lib/apiClient';
 import { ferioColors, ferioRadius, ferioSpacing } from './src/theme/tokens';
 
 const AMENITY_TAGS = ['All', 'Women Space', 'Air Conditioned', 'Parking', 'Following'];
@@ -26,30 +28,40 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('All');
   const [viewportMode, setViewportMode] = useState<ViewportMode>('list');
-  const [followedIds, setFollowedIds] = useState<string[]>(['mosque-dhaka-baitul-mukarram']);
+  const [followedIds, setFollowedIds] = useState<string[]>(() =>
+    PreferencesStorage.getFollowedMosqueIds()
+  );
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [autoSilentSettings, setAutoSilentSettings] = useState<PrayerAutoSilentSettings>({
-    isEnabled: true,
-    durationMinutes: 10,
-    leadOffsetMinutes: 0,
-    enabledPrayers: {
-      fajr: true,
-      zuhr: true,
-      asr: true,
-      maghrib: true,
-      isha: true,
-      jumuah: true,
-    },
-    hasDndPermission: true,
-    activeSilenceExpiry: null,
+  const [autoSilentSettings, setAutoSilentSettings] = useState<PrayerAutoSilentSettings>(() => {
+    const saved = PreferencesStorage.getAutoSilentSettings();
+    return (
+      saved ?? {
+        isEnabled: true,
+        durationMinutes: 10,
+        leadOffsetMinutes: 0,
+        enabledPrayers: {
+          fajr: true,
+          zuhr: true,
+          asr: true,
+          maghrib: true,
+          isha: true,
+          jumuah: true,
+        },
+        hasDndPermission: true,
+        activeSilenceExpiry: null,
+      }
+    );
   });
 
   const toggleFollow = (id: string) => {
-    setFollowedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    setFollowedIds((prev) => {
+      const updated = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
+      PreferencesStorage.setFollowedMosqueIds(updated);
+      ApiClient.toggleFollowMosque(id).catch(() => {});
+      return updated;
+    });
   };
 
   const filteredMosques = useMemo(() => {
@@ -186,7 +198,11 @@ export default function App() {
         onClose={() => setIsModalOpen(false)}
         settings={autoSilentSettings}
         onUpdateSettings={(updated) =>
-          setAutoSilentSettings((prev) => ({ ...prev, ...updated }))
+          setAutoSilentSettings((prev) => {
+            const next = { ...prev, ...updated };
+            PreferencesStorage.setAutoSilentSettings(next);
+            return next;
+          })
         }
       />
 
