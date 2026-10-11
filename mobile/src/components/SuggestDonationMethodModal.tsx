@@ -11,8 +11,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { MosqueDonationMethod } from '../types/mosque';
 import { ApiClient } from '../lib/apiClient';
+
 
 interface SuggestDonationMethodModalProps {
   visible?: boolean;
@@ -80,9 +83,13 @@ export const SuggestDonationMethodModal: React.FC<SuggestDonationMethodModalProp
     }
   };
 
-  const handleCopy = (text: string, id: string) => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).catch(() => {});
+  const handleCopy = async (text: string, id: string) => {
+    try {
+      await Clipboard.setStringAsync(text);
+    } catch {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {});
+      }
     }
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -161,7 +168,7 @@ export const SuggestDonationMethodModal: React.FC<SuggestDonationMethodModalProp
           <View style={styles.header}>
             <View style={styles.headerTitleGroup}>
               <View style={styles.iconBadge}>
-                <Text style={styles.iconBadgeText}>💳</Text>
+                <Feather name="credit-card" size={16} color="#059669" />
               </View>
               <View style={styles.headerTextCol}>
                 <Text style={styles.title}>
@@ -173,7 +180,7 @@ export const SuggestDonationMethodModal: React.FC<SuggestDonationMethodModalProp
               </View>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn} accessibilityLabel="Close modal">
-              <Text style={styles.closeBtnText}>✕</Text>
+              <Ionicons name="close" size={18} color="#6e6e73" />
             </TouchableOpacity>
           </View>
 
@@ -186,7 +193,7 @@ export const SuggestDonationMethodModal: React.FC<SuggestDonationMethodModalProp
           >
             {/* Security Banner matching web */}
             <View style={styles.securityBanner}>
-              <Text style={styles.securityIcon}>🛡️</Text>
+              <Feather name="shield" size={18} color="#059669" style={{ marginTop: 2, marginRight: 8 }} />
               <View style={styles.securityTextGroup}>
                 <Text style={styles.securityTitle}>
                   {isBangla ? 'অফিসিয়াল মসজিদ অ্যাকাউন্ট' : 'Official Mosque Accounts'}
