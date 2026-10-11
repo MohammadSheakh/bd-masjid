@@ -1,17 +1,13 @@
 /**
- * OEM Battery Management Service conforming to ADR-037
- * Detects aggressive OEM background killers (Xiaomi HyperOS, Samsung OneUI, Realme ColorOS)
- * and provides brand-specific mitigation steps and settings launcher.
+ * OEM Battery Optimization Mitigation Engine (ADR-037, PRD Screen 15)
+ * Detects aggressive Android OEM task killers (Xiaomi, Samsung, Realme, Oppo, Vivo)
+ * and provides brand-specific step-by-step mitigation instructions with deep links.
  */
-import { Platform, Linking } from 'react-native';
 
-export type DeviceBrand =
-  | 'XIAOMI'
-  | 'SAMSUNG'
-  | 'REALME_OPPO'
-  | 'VIVO'
-  | 'HUAWEI'
-  | 'GENERIC';
+import { Platform, Linking } from 'react-native';
+import { PreferencesStorage } from '../lib/storage';
+
+export type DeviceBrand = 'xiaomi' | 'samsung' | 'realme' | 'vivo' | 'generic' | 'ios';
 
 export interface OemGuidance {
   brand: DeviceBrand;
@@ -20,113 +16,134 @@ export interface OemGuidance {
   warningNote: string;
   steps: string[];
   actionLabel: string;
+  riskLevel: 'HIGH' | 'MEDIUM' | 'LOW';
 }
+
+const OEM_GUIDANCE_CATALOG: Record<DeviceBrand, OemGuidance> = {
+  xiaomi: {
+    brand: 'xiaomi',
+    displayName: 'Xiaomi / Redmi / POCO',
+    osSkin: 'HyperOS / MIUI',
+    warningNote: 'Aggressive battery management may silence or kill Jamaat countdowns and automated silent mode while your screen is off.',
+    steps: [
+      'Tap "Configure in System Settings" below to open App Info.',
+      'Tap Battery Saver → Choose "No restrictions".',
+      'Enable "Autostart" in App Permissions to guarantee timely prayer alarms.',
+    ],
+    actionLabel: 'Configure in HyperOS / MIUI Settings',
+    riskLevel: 'HIGH',
+  },
+  samsung: {
+    brand: 'samsung',
+    displayName: 'Samsung Galaxy',
+    osSkin: 'OneUI / Device Care',
+    warningNote: 'OneUI puts background apps to deep sleep, preventing exact alarms and mosque notification updates.',
+    steps: [
+      'Tap "Configure in System Settings" below to open App Info.',
+      'Tap Battery → Select "Unrestricted" background usage.',
+      'Ensure BD Masjid is NOT listed in "Sleeping apps" or "Deep sleeping apps".',
+    ],
+    actionLabel: 'Configure in OneUI Battery Settings',
+    riskLevel: 'HIGH',
+  },
+  realme: {
+    brand: 'realme',
+    displayName: 'Realme / Oppo / OnePlus',
+    osSkin: 'ColorOS / OxygenOS',
+    warningNote: 'ColorOS deep optimization suspends exact alarms when the phone remains idle during night or work hours.',
+    steps: [
+      'Tap "Configure in System Settings" below to open App Info.',
+      'Enable "Allow background activity" and "Allow auto-launch".',
+      'Disable "Deep cleanup / Optimization" for BD Masjid.',
+    ],
+    actionLabel: 'Configure in ColorOS Battery Settings',
+    riskLevel: 'HIGH',
+  },
+  vivo: {
+    brand: 'vivo',
+    displayName: 'Vivo / iQOO',
+    osSkin: 'Funtouch OS / OriginOS',
+    warningNote: 'Funtouch OS restricts high background power apps, which can delay pre-Jamaat reminders.',
+    steps: [
+      'Tap "Configure in System Settings" below to open App Info.',
+      'Navigate to Battery Management → Set to "High background power consumption".',
+      'Ensure "Autostart" permission is granted.',
+    ],
+    actionLabel: 'Configure in Funtouch OS Settings',
+    riskLevel: 'MEDIUM',
+  },
+  generic: {
+    brand: 'generic',
+    displayName: 'Android Device',
+    osSkin: 'Stock Android',
+    warningNote: 'Standard Android Doze mode can delay notifications if battery optimization is enabled.',
+    steps: [
+      'Tap "Configure in System Settings" below to open App Info.',
+      'Tap Battery → Select "Unrestricted" to allow timely alarms.',
+    ],
+    actionLabel: 'Configure in App Settings',
+    riskLevel: 'LOW',
+  },
+  ios: {
+    brand: 'ios',
+    displayName: 'Apple iPhone',
+    osSkin: 'iOS',
+    warningNote: 'iOS handles background alarms strictly via native notifications and focus modes.',
+    steps: [
+      'Ensure notifications are allowed in iOS Settings.',
+      'For automated silence, use iOS Focus or the Action button / mute switch.',
+    ],
+    actionLabel: 'Open iOS Settings',
+    riskLevel: 'LOW',
+  },
+};
 
 export function detectDeviceBrand(): DeviceBrand {
-  if (Platform.OS !== 'android') {
-    return 'GENERIC';
-  }
+  if (Platform.OS === 'ios') return 'ios';
+  const constants = (Platform.constants || {}) as Record<string, any>;
+  const brand = String(constants.Brand || constants.Manufacturer || '').toLowerCase();
 
-  const brand = String((Platform.constants as Record<string, unknown>)?.Brand || '').toLowerCase();
-  const manufacturer = String((Platform.constants as Record<string, unknown>)?.Manufacturer || '').toLowerCase();
-
-  const combined = `${brand} ${manufacturer}`;
-
-  if (combined.includes('xiaomi') || combined.includes('redmi') || combined.includes('poco')) {
-    return 'XIAOMI';
+  if (brand.includes('xiaomi') || brand.includes('redmi') || brand.includes('poco')) {
+    return 'xiaomi';
   }
-  if (combined.includes('samsung')) {
-    return 'SAMSUNG';
+  if (brand.includes('samsung')) {
+    return 'samsung';
   }
-  if (combined.includes('realme') || combined.includes('oppo') || combined.includes('oneplus')) {
-    return 'REALME_OPPO';
+  if (brand.includes('realme') || brand.includes('oppo') || brand.includes('oneplus')) {
+    return 'realme';
   }
-  if (combined.includes('vivo') || combined.includes('iqoo')) {
-    return 'VIVO';
+  if (brand.includes('vivo') || brand.includes('iqoo')) {
+    return 'vivo';
   }
-  if (combined.includes('huawei') || combined.includes('honor')) {
-    return 'HUAWEI';
-  }
-  return 'GENERIC';
+  return 'generic';
 }
 
-export function getOemGuidance(brand: DeviceBrand): OemGuidance {
-  switch (brand) {
-    case 'XIAOMI':
-      return {
-        brand,
-        displayName: 'Xiaomi / Redmi / Poco',
-        osSkin: 'HyperOS / MIUI',
-        warningNote:
-          'MIUI and HyperOS kill background alarm receivers unless Autostart is permitted and battery saving is disabled.',
-        steps: [
-          'Enable "Autostart" in App Info settings',
-          'Set Battery Saver to "No restrictions"',
-          'Lock BD Masjid in the recent apps task switcher',
-        ],
-        actionLabel: 'Open Xiaomi App Settings',
-      };
-    case 'SAMSUNG':
-      return {
-        brand,
-        displayName: 'Samsung Galaxy',
-        osSkin: 'OneUI / Device Care',
-        warningNote:
-          'Samsung Device Care puts idle apps into Deep Sleep, delaying exact Jammat auto-silent triggers.',
-        steps: [
-          'Open Battery settings in App Info',
-          'Change battery usage from "Optimized" to "Unrestricted"',
-          'Add BD Masjid to "Never sleeping apps" in Device Care',
-        ],
-        actionLabel: 'Open Samsung Battery Settings',
-      };
-    case 'REALME_OPPO':
-      return {
-        brand,
-        displayName: 'Realme / Oppo / OnePlus',
-        osSkin: 'ColorOS / OxygenOS',
-        warningNote:
-          'ColorOS freezes background alarms aggressively during screen-off sleep.',
-        steps: [
-          'Enable "Allow background activity"',
-          'Enable "Allow auto-launch"',
-          'Disable "Deep optimization / Sleep standby"',
-        ],
-        actionLabel: 'Open Background Settings',
-      };
-    case 'VIVO':
-      return {
-        brand,
-        displayName: 'Vivo / iQOO',
-        osSkin: 'FuntouchOS / OriginOS',
-        warningNote:
-          'FuntouchOS restricts high background power usage unless explicitly authorized.',
-        steps: [
-          'Set background power consumption to "High background power"',
-          'Enable "Autostart" permission',
-        ],
-        actionLabel: 'Open Vivo App Settings',
-      };
-    default:
-      return {
-        brand,
-        displayName: 'Android Device',
-        osSkin: 'Stock Android',
-        warningNote:
-          'Disable standard battery optimization to guarantee prayer Auto-Silent alarms trigger on time while idle.',
-        steps: [
-          'Open App Info > Battery',
-          'Select "Unrestricted" battery usage',
-        ],
-        actionLabel: 'Open App Settings',
-      };
-  }
+export function getOemGuidance(brandKey?: string): OemGuidance {
+  const brand = (brandKey as DeviceBrand) || detectDeviceBrand();
+  return OEM_GUIDANCE_CATALOG[brand] || OEM_GUIDANCE_CATALOG.generic;
 }
 
 export async function openOemBatterySettings(): Promise<void> {
   try {
     await Linking.openSettings();
-  } catch {
-    // Graceful fallback
-  }
+  } catch {}
 }
+
+export const OemBatteryService = {
+  detectDeviceBrand,
+  getOemGuidance,
+  openOemBatterySettings,
+
+  shouldShowWizard(): boolean {
+    if (Platform.OS !== 'android') return false;
+    return !PreferencesStorage.isOemWizardDismissed();
+  },
+
+  isDismissed(): boolean {
+    return PreferencesStorage.isOemWizardDismissed();
+  },
+
+  dismissWizard(): void {
+    PreferencesStorage.setOemWizardDismissed();
+  },
+};

@@ -51,6 +51,14 @@ export interface AttendanceSummary {
   userStatus: AttendanceStatus;
 }
 
+export interface AttendedMosqueItem {
+  mosqueId: string;
+  mosqueName: string;
+  city?: string;
+  status: AttendanceStatus;
+  updatedAt: string;
+}
+
 export interface MosqueStaffMember {
   id: string;
   mosqueId?: string;
@@ -236,3 +244,47 @@ export interface PaginatedNotifications {
   totalPages: number;
   unreadCount: number;
 }
+
+export type SuggestionCategory =
+  | 'SUGGESTION'
+  | 'COMPLAINT'
+  | 'IMPROVEMENT'
+  | 'MAINTENANCE';
+
+export type SuggestionUrgency = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
+export type SuggestionVisibility = 'COMMITTEE_ONLY' | 'PUBLIC';
+
+export interface MosqueSuggestionItem {
+  id: string;
+  mosqueId: string;
+  type: SuggestionCategory;
+  urgency: SuggestionUrgency;
+  visibility: SuggestionVisibility;
+  targetRoles: string[];
+  submitterName?: string | null;
+  description?: string | null;
+  status: 'OPEN' | 'UNDER_REVIEW' | 'RESOLVED' | 'REJECTED';
+  resolutionNotes?: string | null;
+  reviewedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCommunitySuggestionPayload {
+  type: SuggestionCategory;
+  urgency: SuggestionUrgency;
+  visibility: SuggestionVisibility;
+  targetRoles: string[];
+  submitterName?: string;
+  submitterPhone?: string;
+  description: string;
+}
+
+export interface DuplicateCandidate {
+  mosqueId: string;
+  name: string;
+  distanceMeters: number;
+}
+
+

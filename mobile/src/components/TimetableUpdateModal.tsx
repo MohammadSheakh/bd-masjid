@@ -14,6 +14,8 @@ import { PrayerSchedule } from '../types/mosque';
 import { formatTo12Hour } from '../lib/time';
 import { ApiClient } from '../lib/apiClient';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
+import { ContributorAttributionBanner } from './ContributorAttributionBanner';
+import { AuthService } from '../services/authService';
 
 type WaqtKey = 'fajrJamaat' | 'zuhrJamaat' | 'asrJamaat' | 'maghribJamaat' | 'ishaJamaat' | 'jumuahJamaat';
 
@@ -38,6 +40,7 @@ interface TimetableUpdateModalProps {
   currentSchedule?: PrayerSchedule | null;
   onClose: () => void;
   onScheduleUpdated?: (updatedSchedule: Partial<PrayerSchedule>) => void;
+  onOpenAuthModal?: () => void;
 }
 
 export const TimetableUpdateModal: React.FC<TimetableUpdateModalProps> = ({
@@ -47,6 +50,7 @@ export const TimetableUpdateModal: React.FC<TimetableUpdateModalProps> = ({
   currentSchedule,
   onClose,
   onScheduleUpdated,
+  onOpenAuthModal,
 }) => {
   const [activeTab, setActiveTab] = useState<'TIMETABLE' | 'FEEDBACK'>('TIMETABLE');
   const [selectedWaqt, setSelectedWaqt] = useState<WaqtKey>('asrJamaat');
@@ -71,8 +75,12 @@ export const TimetableUpdateModal: React.FC<TimetableUpdateModalProps> = ({
     onScheduleUpdated?.(partialUpdate);
     setSubmittedStatus('✓ Jamaat time updated immediately');
 
-    // Async background dispatch
-    ApiClient.updatePrayerSchedule(mosqueId, partialUpdate, reason.trim()).catch(() => {});
+    // Async background dispatch with contributor provenance
+    const activeUser = AuthService.getUserSync();
+    const attributionNote = activeUser
+      ? `${reason.trim() ? reason.trim() + ' ' : ''}(Updated by ${activeUser.name})`
+      : reason.trim();
+    ApiClient.updatePrayerSchedule(mosqueId, partialUpdate, attributionNote).catch(() => {});
 
     setTimeout(() => {
       setSubmittedStatus(null);
@@ -87,11 +95,13 @@ export const TimetableUpdateModal: React.FC<TimetableUpdateModalProps> = ({
 
     setSubmittedStatus('✓ Feedback submitted to mosque committee');
 
+    const activeUser = AuthService.getUserSync();
     ApiClient.submitSuggestion(mosqueId, {
       type: feedbackCategory,
       details: feedbackDetails.trim(),
       targetRoles: [targetRole],
-    }).catch(() => {});
+      contributorId: activeUser?.id,
+    } as any).catch(() => {});
 
     setTimeout(() => {
       setSubmittedStatus(null);
@@ -139,6 +149,9 @@ export const TimetableUpdateModal: React.FC<TimetableUpdateModalProps> = ({
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
+            {/* Contributor Attribution Banner */}
+            <ContributorAttributionBanner onOpenAuthModal={onOpenAuthModal} />
+
             {submittedStatus ? (
               <View style={styles.successToast}>
                 <Text style={styles.successToastText}>{submittedStatus}</Text>

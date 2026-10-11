@@ -21,6 +21,7 @@ import {
   NOTIFICATION_CATEGORIES,
 } from '../services/notificationInboxService';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
+import { PushSettingsModal } from './PushSettingsModal';
 
 interface NotificationInboxModalProps {
   visible: boolean;
@@ -39,6 +40,7 @@ export const NotificationInboxModal: React.FC<NotificationInboxModalProps> = ({
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isPushSettingsOpen, setIsPushSettingsOpen] = useState<boolean>(false);
 
   const loadData = useCallback(async (cat: NotificationCategoryFilter) => {
     setIsLoading(true);
@@ -114,6 +116,14 @@ export const NotificationInboxModal: React.FC<NotificationInboxModalProps> = ({
                   </Text>
                 </Pressable>
               )}
+              <Pressable
+                onPress={() => setIsPushSettingsOpen(true)}
+                style={styles.settingsButton}
+                hitSlop={8}
+                accessibilityLabel="Open push notification settings"
+              >
+                <Text style={styles.settingsIcon}>⚙️</Text>
+              </Pressable>
               <Pressable
                 onPress={onClose}
                 style={styles.closeButton}
@@ -215,6 +225,13 @@ export const NotificationInboxModal: React.FC<NotificationInboxModalProps> = ({
           )}
         </View>
       </View>
+
+      {/* Push Notification Settings Modal (ADR-055) */}
+      <PushSettingsModal
+        visible={isPushSettingsOpen}
+        onClose={() => setIsPushSettingsOpen(false)}
+        isBangla={isBangla}
+      />
     </Modal>
   );
 };
@@ -278,6 +295,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: ferioColors.accent,
+  },
+  settingsButton: {
+    width: 32,
+    height: 32,
+    borderRadius: ferioRadius.full,
+    backgroundColor: ferioColors.mutedBackground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsIcon: {
+    fontSize: 14,
   },
   closeButton: {
     width: 32,

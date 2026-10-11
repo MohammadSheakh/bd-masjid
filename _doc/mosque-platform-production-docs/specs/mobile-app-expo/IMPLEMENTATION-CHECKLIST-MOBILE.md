@@ -44,33 +44,33 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
   - [x] Calculate next upcoming Jamaat dynamically across Fajr, Zuhr, Asr, Maghrib, and Isha.
   - [x] Style with dark Ferio surface (`#111114`), white typography, and subtle emerald accent pill.
 
-- [ ] **2.2. Search & Filter Bar**
-  - [ ] Implement debounced search input with Lucide icons (`lucide-react-native`).
-  - [ ] Implement horizontal scrolling filter pill bar for cities (`All`, `Dhaka`, `Chattogram`, `Sylhet`).
-  - [ ] Implement toggle pills for amenities (*Women's Area*, *AC*, *Wheelchair*, *Parking*, *Following*).
+- [x] **2.2. Search & Filter Bar**
+  - [x] Implement debounced search input with Lucide icons (`lucide-react-native`).
+  - [x] Implement horizontal scrolling filter pill bar for cities (`All`, `Dhaka`, `Chattogram`, `Sylhet`).
+  - [x] Implement toggle pills for amenities (*Women's Area*, *AC*, *Wheelchair*, *Parking*, *Following*).
 
-- [ ] **2.3. High-Performance Mosque Feed (`FlashList`)**
-  - [ ] Install and configure `@shopify/flash-list`.
-  - [ ] Implement `MosqueCard.tsx` matching web layout:
+- [x] **2.3. High-Performance Mosque Feed (`FlashList`)**
+  - [x] Install and configure `@shopify/flash-list`.
+  - [x] Implement `MosqueCard.tsx` matching web layout:
     - Header: Mosque name, distance badge, and follow icon toggle.
     - Badges: Verified timetable / Freshness status (`FRESH`, `STALE`, `VERY_STALE`), Taraweeh indicator.
     - 5-Column Prayer Timetable Grid (Fajr, Zuhr, Asr, Maghrib, Isha).
     - Attendance summary count display.
-  - [ ] Provide `estimatedItemSize: 180` and `drawDistance: 350` to `FlashList` for zero-flicker recycling.
-  - [ ] Implement empty state and skeleton loading states matching web.
+  - [x] Provide `estimatedItemSize: 180` and `drawDistance: 350` to `FlashList` for zero-flicker recycling.
+  - [x] Implement empty state and skeleton loading states matching web.
 
-- [ ] **2.4. Floating Bottom Viewport Toggle**
-  - [ ] Implement floating bottom pill `[List (N) | Map]` centered with `bottom-5`.
-  - [ ] Smooth cross-fade or state switch between `FlashList` feed and map viewport.
+- [x] **2.4. Floating Bottom Viewport Toggle**
+  - [x] Implement floating bottom pill `[List (N) | Map]` centered with `bottom-5`.
+  - [x] Smooth cross-fade or state switch between `FlashList` feed and map viewport.
 
 ---
 
 ## Phase 3: OpenStreetMap & Geospatial Features
 
-- [ ] **3.1. Native OpenStreetMap Engine**
-  - [ ] Integrate `@maplibre/maplibre-react-native` with custom Expo Config Plugin.
-  - [ ] Configure OpenStreetMap raster tile source (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`).
-  - [ ] Configure local tile caching to prevent excessive re-fetching on flaky mobile networks.
+- [x] **3.1. Native OpenStreetMap Engine**
+  - [x] Integrate `@maplibre/maplibre-react-native` with custom Expo Config Plugin.
+  - [x] Configure OpenStreetMap raster tile source (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`).
+  - [x] Configure local tile caching to prevent excessive re-fetching on flaky mobile networks.
 
 - [x] **3.2. Custom Circular Mosque Pins**
   - [x] Render custom circular marker pins matching `.custom-mosque-pin`:
@@ -318,13 +318,260 @@ This checklist tracks production-grade execution for the BD Masjid cross-platfor
 - [x] **19.1. Auth Domain Models & ApiClient Transport**
   - [x] Add `UserProfile`, `AuthSession`, `LoginPayload`, and `RegisterPayload` to `types/auth.ts`.
   - [x] Add `loginUser`, `registerUser`, `fetchCurrentUserSession`, and `logoutUser` in `ApiClient` with fallback mock identities.
-- [ ] **19.2. Fast Synchronous AuthService with Token Encryption**
-  - [ ] Implement `authService.ts` with synchronous profile cache, session hydration on boot, and pub/sub listener dispatch.
-  - [ ] Wire hardware token encryption via `SecureTokenStorage`.
-- [ ] **19.3. Ferio AuthSessionModal Sheet**
-  - [ ] Create `AuthSessionModal.tsx` with Sign In / Register tabs, authenticated user profile card, verified badge, and sign-out action.
-- [ ] **19.4. Top Navbar Profile Pill & App Integration**
-  - [ ] Add responsive profile avatar/name pill in `App.tsx` top navbar.
-  - [ ] Wire `AuthSessionModal` state and trigger.
-  - [ ] Run benchmark gate and TypeScript compilation.
+- [x] **19.2. Fast Synchronous AuthService with Token Encryption**
+  - [x] Implement `authService.ts` with synchronous profile cache, session hydration on boot, and pub/sub listener dispatch.
+  - [x] Wire hardware token encryption via `SecureTokenStorage`.
+- [x] **19.3. Ferio AuthSessionModal Sheet**
+  - [x] Create `AuthSessionModal.tsx` with Sign In / Register tabs, authenticated user profile card, verified badge, and sign-out action.
+- [x] **19.4. Top Navbar Profile Pill & App Integration**
+  - [x] Add responsive profile avatar/name pill in `App.tsx` top navbar.
+  - [x] Wire `AuthSessionModal` state and trigger.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 20: OEM Battery Killer Mitigation Wizard (ADR-037 & Screen 15)
+
+- [x] **20.1. OEM Manufacturer Detection Engine & Brand Profiles**
+  - [x] Implement `oemBatteryService.ts` detecting Xiaomi/Redmi (HyperOS/MIUI), Samsung (OneUI), Realme/Oppo (ColorOS), Vivo, and stock Android.
+  - [x] Provide manufacturer-specific instructions, brand tokens, and 1-tap settings intent launcher.
+- [x] **20.2. Ferio OemBatteryWizardModal Sheet**
+  - [x] Create `OemBatteryWizardModal.tsx` with manufacturer badge, step-by-step checklist, "Open Battery Settings" button, and "Don't Show Again" dismiss action.
+- [x] **20.3. Auto-Silent & App Integration**
+  - [x] Wire `OemBatteryWizardModal` into `App.tsx` and `AutoSilentModal.tsx` triggerable on auto-silent enable or info trigger.
+  - [x] Respect `PreferencesStorage.isOemWizardDismissed()`.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 21: Remote Push Notification Device Token Sync (ADR-055 & Backend Parity)
+
+- [x] **21.1. Device Registration Contract & ApiClient Integration**
+  - [x] Add `DeviceType`, `RegisterDevicePayload`, and `UserDevice` to `types/device.ts`.
+  - [x] Add `registerUserDevice` and `fetchUserDevices` in `ApiClient` (`POST /users/devices/register`, `GET /users/devices`).
+- [x] **21.2. Dedicated PushDeviceService with Automatic Sync**
+  - [x] Implement `pushDeviceService.ts` managing hardware token generation, device fingerprinting, and automatic session synchronization on boot / login.
+- [x] **21.3. Ferio PushSettingsModal Sheet**
+  - [x] Create `PushSettingsModal.tsx` with master toggle, active device card, live sync badge, and event category checkboxes.
+- [x] **21.4. App Integration & Performance Verification**
+  - [x] Wire `PushSettingsModal` into `App.tsx` top navbar action or settings sheet.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 22: Contributor Attribution & Submission Provenance (ADR-056)
+
+- [x] **22.1. Ferio ContributorAttributionBanner Component**
+  - [x] Implement `ContributorAttributionBanner.tsx` showing synchronous session status (Verified Contributor vs Anonymous Musalli) with 1-tap sign-in trigger.
+- [x] **22.2. Wire Attribution into AddMosqueSheet**
+  - [x] Embed `ContributorAttributionBanner` in `AddMosqueSheet.tsx` and pass `contributorId` & `contributorName` in payload.
+- [x] **22.3. Wire Attribution into TimetableUpdateModal & SuggestFacilitiesModal**
+  - [x] Embed `ContributorAttributionBanner` in `TimetableUpdateModal.tsx` and attach `updatedBy` provenance.
+  - [x] Embed `ContributorAttributionBanner` in `SuggestFacilitiesModal.tsx` and attach `contributorId` in suggestion payload.
+- [x] **22.4. Wire Attribution into ReportIssueModal & Performance Verification**
+  - [x] Embed `ContributorAttributionBanner` in `ReportIssueModal.tsx` and prefill contact email.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 23: Offline Mutation Outbox & Auto-Sync Engine (ADR-057)
+
+- [x] **23.1. Outbox Domain Models & Storage Contracts**
+  - [x] Define `MutationType`, `OutboxItem`, and `OutboxStatus` in `types/outbox.ts`.
+- [x] **23.2. Dedicated OfflineOutboxService with FIFO Drain & Exponential Backoff**
+  - [x] Implement `offlineOutboxService.ts` with persistent storage, synchronous count mirroring, and event dispatcher.
+- [x] **23.3. ApiClient Mutation Fallback Queuing**
+  - [x] Automatically enqueue failed write requests (`PUT /attendance`, `PUT /prayer-schedule`, `POST /mosques`, `POST /suggestions`, `POST /reports`) into outbox when offline or network timeout occurs.
+- [x] **23.4. Ferio OutboxSyncBadge, Reconnection Drain & Performance Verification**
+  - [x] Create `OutboxSyncBadge.tsx` displaying pending mutation counter and manual sync action.
+  - [x] Wire automatic drain on app boot and network reconnection in `App.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 24: Community Moderator & Scout Review Sheet (ADR-058)
+
+- [x] **24.1. Moderation Domain Models & ApiClient Transport**
+  - [x] Add `ModerationType`, `ModerationAction`, and `ModerationQueueItem` to `types/moderation.ts`.
+  - [x] Add `fetchModerationQueue` and `resolveModerationItem` to `ApiClient`.
+- [x] **24.2. Dedicated ModeratorService with RBAC Role Gating**
+  - [x] Implement `moderatorService.ts` checking `MODERATOR` / `ADMIN` role, pending review count, and optimistic triage dispatch.
+- [x] **24.3. Ferio ModeratorReviewModal Sheet**
+  - [x] Create `ModeratorReviewModal.tsx` with filter pills, pending mosque cards, coordinate preview, duplicate distance indicator, and Approve / Reject buttons.
+- [x] **24.4. Top Navbar Mod Pill Integration & Performance Gate**
+  - [x] Conditionally render `🛡️ Mod (X)` pill in `App.tsx` top navbar when authenticated as moderator.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 25: Low-End Hardware Diagnostics & Field Ops Telemetry Panel (ADR-059)
+
+- [x] **25.1. Hardware Diagnostics Domain Contracts**
+  - [x] Define `DeviceHardwareMetrics` and `SanitizedDiagnosticReport` in `types/diagnostics.ts`.
+- [x] **25.2. Live DiagnosticsService with Frame Loop & Memory Profiler**
+  - [x] Implement `diagnosticsService.ts` measuring live FPS/frame time, heap footprint, network latency, and report generation.
+- [x] **25.3. Ferio DiagnosticsTelemetryModal Sheet**
+  - [x] Create `DiagnosticsTelemetryModal.tsx` with live FPS gauge badge, progress bars, hardware specs grid, and 1-tap clipboard report copy.
+- [x] **25.4. Long-Press Header Trigger Integration & Performance Gate**
+  - [x] Wire gestural trigger on header title in `App.tsx` and run benchmark harness verification.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 26: Contributor Activity & Scout Reputation Console (ADR-060)
+
+- [x] **26.1. Contributor Reputation Domain Contracts & ApiClient Transport**
+  - [x] Add `ScoutTier`, `ContributorReputationSummary`, and `ContributorActivityItem` to `types/contributor.ts`.
+  - [x] Add `fetchContributorReputation` and `fetchContributorHistory` to `ApiClient`.
+- [x] **26.2. Dedicated ContributorService with Synchronous Cache**
+  - [x] Implement `contributorService.ts` providing synchronous reputation state and optimistic scout point bonuses.
+- [x] **26.3. Ferio ContributorActivityModal Sheet**
+  - [x] Create `ContributorActivityModal.tsx` with gold scout tier badge, stat breakdown cards, activity timeline, and status pills.
+- [x] **26.4. Profile Integration & Performance Verification**
+  - [x] Wire trigger in `AuthSessionModal.tsx` to launch `ContributorActivityModal`.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 27: Ramadan & Iftar / Sehri Fasting Countdown & Division Timetable Hub (ADR-061)
+
+- [x] **27.1. Ramadan Domain Contracts & Division Offset Taxonomy**
+  - [x] Define `BangladeshiDivision`, `DivisionOffset`, `FastingTarget`, and `RamadanDaySchedule` in `types/ramadan.ts`.
+  - [x] Add canonical 8-division offset matrix and Dhaka baseline data in `data/ramadanFixtures.ts`.
+- [x] **27.2. Dedicated RamadanService with Synchronous Real-time Fasting Engine**
+  - [x] Implement `ramadanService.ts` providing synchronous division offsets, dynamic Sehri/Iftar countdown, and persistence in `PreferencesStorage`.
+- [x] **27.3. Ferio RamadanFastingModal Sheet & Fasting Duas Carousel**
+  - [x] Create `RamadanFastingModal.tsx` with live countdown gauge, 8-division switcher, Sehri/Iftar Duas with Bengali phonetics and meaning, and 30-day schedule view.
+- [x] **27.4. Top Navbar Fasting Pill Integration & Performance Gate**
+  - [x] Wire `🌙 রোজা / Fasting` quick launcher pill in `App.tsx` top action bar.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 28: Division-Level Offline Vector Map Tile Pre-Caching Engine (ADR-062)
+
+- [x] **28.1. Offline Map Region Contracts & Bounding Box Taxonomy**
+  - [x] Define `OfflineMapRegion`, `RegionBoundingBox`, and `RegionDownloadStatus` in `types/offlineMap.ts`.
+  - [x] Add canonical 8-division coordinate bounding boxes and tile size metrics in `data/offlineMapFixtures.ts`.
+- [x] **28.2. Dedicated OfflineMapRegionService with Storage & Chunked Download Simulation**
+  - [x] Implement `offlineMapRegionService.ts` providing synchronous region cache inspection, storage usage budget tracking (150 MB max), and download state management.
+- [x] **28.3. Ferio OfflineMapRegionsModal Sheet & Storage Gauge**
+  - [x] Create `OfflineMapRegionsModal.tsx` with total storage quota bar, division download cards, progress indicators, and 1-tap delete actions.
+- [x] **28.4. Map View Trigger Integration & Performance Verification**
+  - [x] Wire offline map cache management trigger into `MosqueMapView.tsx` or `App.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 29: Live GPS Proximity Radar & Nearest Mosque Sorting Engine (ADR-063)
+
+- [x] **29.1. Proximity Domain Contracts & Geodesic Haversine Math**
+  - [x] Define `ProximityDistanceInfo`, `GeoCoordinates`, and `ProximitySortMode` in `types/proximity.ts`.
+  - [x] Implement pure Haversine distance calculator with localized meters/km string formatters.
+- [x] **29.2. Dedicated LocationRadarService with Distance Caching**
+  - [x] Implement `locationRadarService.ts` maintaining memoized distance cache, coordinate threshold gating, and fast array comparator.
+- [x] **29.3. Ferio MosqueCard Proximity Distance Badge**
+  - [x] Add emerald walking distance pill (`📍 350m` / `📍 ৩৫০ মি.`) to `MosqueCard.tsx` metadata row.
+- [x] **29.4. Filter Bar "Nearest" Sorting Toggle & Performance Benchmark Gate**
+  - [x] Add `📍 Nearest / নিকটবর্তী` toggle filter chip in `App.tsx` sorting mosques by proximity.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 30: Mosque Leadership Role Claim & Staff Verification Sheet (ADR-064)
+
+- [x] **30.1. Role Claim Domain Contracts & ApiClient Transport**
+  - [x] Define `MosqueStaffRole` and `CreateRoleClaimPayload` in `types/community.ts`.
+  - [x] Add `submitRoleClaim` to `ApiClient` (`POST /api/v1/community/:id/claims`) with offline outbox fallback.
+- [x] **30.2. Ferio RoleClaimModal Sheet**
+  - [x] Create `RoleClaimModal.tsx` with role pill selector, applicant name/phone inputs, appointment evidence details, and submission loader.
+- [x] **30.3. Wire Role Claim Trigger into Mosque Detail Sheet & Performance Gate**
+  - [x] Add "Claim Leadership Role" trigger in `LeadershipRosterCard.tsx` / `MosqueDetailSheet.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 31: Community Announcements & Janazah / Emergency Bulletin Feed (ADR-065)
+
+- [x] **31.1. Announcement Domain Contracts & ApiClient Transport**
+  - [x] Define `AnnouncementCategory`, `MosqueAnnouncement`, `FeedAnnouncementsParams`, and `CreateAnnouncementPayload` in `types/announcement.ts`.
+  - [x] Add `getAnnouncementsFeed`, `getMosqueAnnouncements`, and `createAnnouncement` to `ApiClient`.
+- [x] **31.2. Ferio AnnouncementCard Component**
+  - [x] Create `AnnouncementCard.tsx` with category badges (`🚨 Emergency`, `⚰️ Janazah`, `🕌 Jumu'ah`, etc.), pinned indicator, and expandable content.
+- [x] **31.3. Ferio AnnouncementsFeedModal Sheet**
+  - [x] Create `AnnouncementsFeedModal.tsx` with category filter pills, pull-to-refresh, spatial radius query, and FlashList feed rendering.
+- [x] **31.4. Ferio CreateAnnouncementModal Sheet**
+  - [x] Create `CreateAnnouncementModal.tsx` with role validation, title, content, expiration date picker, and offline outbox queuing.
+- [x] **31.5. Wire Announcements Feed into App Filter Chips & Mosque Detail Sheet**
+  - [x] Add `📢 Announcements / বিজ্ঞপ্তি` trigger to App navigation/filter pills and Mosque detail sheet.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 32: Musalli Attendance Status & Regular Congregation Hub (ADR-066)
+
+- [x] **32.1. Attendance Summary & My-Mosques ApiClient Transport**
+  - [x] Define `AttendedMosqueItem` contract and add `getAttendanceSummary` and `getMyAttendedMosques` to `ApiClient`.
+- [x] **32.2. Enhance AttendanceAffiliationCard with Bilingual Tokens & Live Headcount**
+  - [x] Add bilingual label support (`আমার নিয়মিত মসজিদ` / `Regular Attendee`), headcount pill, and live sync on mount.
+- [x] **32.3. Ferio MyAttendedMosquesModal Sheet**
+  - [x] Create `MyAttendedMosquesModal.tsx` listing all user-affiliated congregations with regular/occasional tags, direct sheet jump, and 1-tap unregister.
+- [x] **32.4. Wire My Attended Mosques Hub into App & Performance Gate**
+  - [x] Add trigger to App profile/header and MosqueDetailSheet.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 33: Crowdsourced Donation Method Submission Sheet (ADR-067)
+
+- [x] **33.1. Donation Channel Submission Contracts & ApiClient Transport**
+  - [x] Define `DonationChannelType`, `DonationChannelAccountType`, `DonationPurpose`, and `CreateDonationPayload` in `types/donation.ts`.
+  - [x] Add `submitDonationChannel` to `ApiClient` (`POST /api/v1/mosques/:id/donations`) with offline outbox fallback.
+- [x] **33.2. Ferio SuggestDonationMethodModal Sheet**
+  - [x] Create `SuggestDonationMethodModal.tsx` with brand pill selector (bKash, Nagad, Rocket, Upay, Bank), dynamic bank fields, purpose tags, and submission loader.
+- [x] **33.3. Wire Suggestion Trigger into DonationChannelsCard & Mosque Detail Sheet**
+  - [x] Add `+ Add Donation Channel / অনুদান মাধ্যম যোগ করুন` trigger to `DonationChannelsCard.tsx` and `MosqueDetailSheet.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 34: Prayer Schedule Revision History & Audit Timeline Sheet (ADR-068)
+
+- [x] **34.1. Prayer Schedule Revision History Domain Contracts & ApiClient Transport**
+  - [x] Define `PrayerScheduleSnapshot`, `PrayerScheduleHistoryItem`, and `PrayerScheduleHistoryResponse` in `types/prayerScheduleAudit.ts`.
+  - [x] Add `getPrayerScheduleHistory` to `ApiClient` (`GET /api/v1/mosques/:id/prayer-schedule/history`) with cache support.
+- [x] **34.2. Schedule Diff Calculation Engine & Ferio PrayerScheduleAuditModal Sheet**
+  - [x] Implement `scheduleDiff.ts` helper computing waqt-by-waqt time deltas (`+15m`, `-10m`, formatted times).
+  - [x] Create `PrayerScheduleAuditModal.tsx` rendering chronological change timeline cards, visual diff pills, editor attribution, and "Report Discrepancy" action.
+- [x] **34.3. Wire Revision History Trigger into Timetable Card & MosqueDetailSheet**
+  - [x] Add `🕒 History / ইতিহাস` trigger button to timetable section in `MosqueDetailSheet.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 35: Mosque Committee Official Verification & Proof Document Submission Sheet (ADR-069)
+
+- [x] **35.1. Verification Domain Contracts & ApiClient Document Transport**
+  - [x] Define `VerificationDocumentType`, `VerificationClaimStatus`, and `SubmitVerificationPayload` in `types/verification.ts`.
+  - [x] Add `uploadVerificationProof`, `submitCommitteeVerification`, and `getMosqueVerificationClaims` to `ApiClient`.
+- [x] **35.2. Ferio CommitteeVerificationModal Sheet**
+  - [x] Create `CommitteeVerificationModal.tsx` with document type selector, document attachment preview card, live claim status tracker, and submission loader.
+- [x] **35.3. Wire Verification Sheet into LeadershipRosterCard & MosqueDetailSheet**
+  - [x] Add verification trigger to `LeadershipRosterCard.tsx` and wire modal into `MosqueDetailSheet.tsx`.
+  - [x] Run benchmark gate and TypeScript compilation.
+
+---
+
+## Phase 36: Mobile App Enterprise Containerization & Unified Docker Compose (ADR-070)
+
+- [x] **36.1. Build Context Optimization & Multi-Stage Dockerfile**
+  - [x] Create `mobile/.dockerignore` filtering non-production context (`.git`, `node_modules`, `.expo`, logs).
+  - [x] Implement production-grade multi-stage `mobile/Dockerfile` with `base`, `dev` (Metro on 8081), `builder`, and `production` (Nginx Alpine on 8082) targets.
+- [x] **36.2. Hardened Nginx Reverse Proxy & Static Distribution Config**
+  - [x] Create `mobile/nginx.conf` with gzip compression, security headers, and SPA routing fallback.
+- [x] **36.3. Root docker-compose.yml Integration & Healthcheck Verification**
+  - [x] Add `mobile` service to root `docker-compose.yml` with port 8082 web distribution, port 8081 Metro bundler, backend health dependency, and HTTP probe.
+  - [x] Verify `docker compose config` syntax across backend, frontend, redis, cloudflared, and mobile.
+
+
 

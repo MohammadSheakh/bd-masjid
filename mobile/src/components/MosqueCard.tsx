@@ -1,112 +1,185 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { Mosque } from '../types/mosque';
 import { formatTo12Hour } from '../lib/time';
+import { LocationRadarService } from '../services/locationRadarService';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 
 interface MosqueCardProps {
   mosque: Mosque;
+  isSelected?: boolean;
   isFollowed?: boolean;
+  isBookmarked?: boolean;
   onToggleFollow?: (mosqueId: string) => void;
+  onToggleBookmark?: (mosqueId: string) => void;
   onPress?: (mosque: Mosque) => void;
+  onSelect?: (mosque: Mosque) => void;
 }
 
 export const MosqueCard: React.FC<MosqueCardProps> = ({
   mosque,
-  isFollowed = false,
+  isSelected = false,
+  isFollowed,
+  isBookmarked,
   onToggleFollow,
+  onToggleBookmark,
   onPress,
+  onSelect,
 }) => {
   const schedule = mosque.prayerSchedule;
+  const isMarked = isBookmarked ?? isFollowed ?? false;
+  const handleToggle = onToggleBookmark ?? onToggleFollow;
+  const handleSelect = onSelect ?? onPress;
 
-  const prayers = [
-    { name: 'Fajr', time: schedule?.fajrJamaat },
-    { name: 'Zuhr', time: schedule?.zuhrJamaat },
-    { name: 'Asr', time: schedule?.asrJamaat },
-    { name: 'Maghr', time: schedule?.maghribJamaat },
-    { name: 'Isha', time: schedule?.ishaJamaat },
-  ];
+  // Format distance matching web logic
+  const formatDistance = (meters?: number) => {
+    if (meters === undefined || meters === null) return null;
+    if (meters < 1000) return `${Math.round(meters)} m`;
+    return `${(meters / 1000).toFixed(1)} km`;
+  };
 
+  const proximity = LocationRadarService.getDistanceToMosqueSync(mosque);
   const distanceText =
     mosque.distanceMeters !== undefined
-      ? mosque.distanceMeters >= 1000
-        ? `${(mosque.distanceMeters / 1000).toFixed(1)} km`
-        : `${Math.round(mosque.distanceMeters)} m`
-      : null;
+      ? formatDistance(mosque.distanceMeters)
+      : proximity.formattedEnglish;
+
+  // Dynamic freshness badge matching web config
+  const freshness = mosque.freshness || { level: 'FRESH', daysAgo: 0 };
+  const freshnessConfig = {
+    FRESH: {
+      label: 'Verified Timetable',
+      bg: '#ecfdf5',
+      text: '#047857',
+      border: '#a7f3d0',
+    },
+    STALE: {
+      label: `${freshness.daysAgo}d ago (Review needed)`,
+      bg: '#fffbeb',
+      text: '#b45309',
+      border: '#fde68a',
+    },
+    VERY_STALE: {
+      label: 'Needs update',
+      bg: '#fff1f2',
+      text: '#be123c',
+      border: '#fecdd3',
+    },
+  }[freshness.level || 'FRESH'];
+
+  const prayers = [
+    { name: 'Fajr', time: formatTo12Hour(schedule?.fajrJamaat) },
+    { name: 'Zuhr', time: formatTo12Hour(schedule?.zuhrJamaat) },
+    { name: 'Asr', time: formatTo12Hour(schedule?.asrJamaat) },
+    { name: 'Maghrib', time: formatTo12Hour(schedule?.maghribJamaat) },
+    { name: 'Isha', time: formatTo12Hour(schedule?.ishaJamaat) },
+  ];
 
   return (
     <Pressable
-      onPress={() => onPress?.(mosque)}
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-      accessibilityRole="button"
+      onPress={() => handleSelect?.(mosque)}
+      style={({ pressed }) => [
+        styles.card,
+        isSelected && styles.cardSelected,
+        pressed && styles.cardPressed,
+      ]}
       accessibilityLabel={`Mosque ${mosque.name}`}
     >
-      {/* Top Header: Name, Distance, Follow Button */}
+      {/* Top Header: Name, Distance & Bookmark */}
       <View style={styles.topRow}>
         <View style={styles.nameBlock}>
-          <Text style={styles.mosqueName} numberOfLines={1}>
-            {mosque.name}
-          </Text>
-          <Text style={styles.addressText} numberOfLines={1}>
-            {mosque.address || `${mosque.city || 'Bangladesh'}`}
-            {distanceText ? ` • ${distanceText}` : ''}
-          </Text>
-        </View>
-
-        <Pressable
-          onPress={(e) => {
-            e.stopPropagation();
-            onToggleFollow?.(mosque.id);
-          }}
-          style={({ pressed }) => [
-            styles.followBtn,
-            isFollowed && styles.followBtnActive,
-            pressed && styles.followBtnPressed,
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel={isFollowed ? 'Unfollow Mosque' : 'Follow Mosque'}
-        >
-          <Text style={[styles.followBtnText, isFollowed && styles.followBtnTextActive]}>
-            {isFollowed ? 'Following' : '+ Follow'}
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* Verified Status & Freshness Badge */}
-      <View style={styles.metaRow}>
-        <View style={styles.verifiedBadge}>
-          <Text style={styles.verifiedText}>Verified Timetable</Text>
-        </View>
-        {mosque.attendanceSummary && (
-          <View style={styles.attendanceBadge}>
-            <Text style={styles.attendanceBadgeText}>
-              👥 {mosque.attendanceSummary.regularCount} reg • {mosque.attendanceSummary.occasionalCount} occ
+          <View style={styles.titleRow}>
+            <Text style={styles.mosqueName} numberOfLines={1}>
+              {mosque.name}
+            </Text>
+            {mosque.isListed === false && (
+              <View style={styles.unlistedBadge}>
+                <Text style={styles.unlistedText}>Unlisted</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.addressRow}>
+            <Feather name="map-pin" size={11} color="#9ca3af" style={styles.pinIcon} />
+            <Text style={styles.addressText} numberOfLines={1}>
+              {mosque.address || `${mosque.city || 'Bangladesh'}`}
             </Text>
           </View>
-        )}
-        {mosque.hasAirConditioning && (
-          <View style={styles.amenityBadge}>
-            <Text style={styles.amenityText}>AC</Text>
-          </View>
-        )}
-        {mosque.hasSeparateWomenSpace && (
-          <View style={styles.amenityBadge}>
-            <Text style={styles.amenityText}>Women Space</Text>
-          </View>
-        )}
-        {mosque.hasParking && (
-          <View style={styles.amenityBadge}>
-            <Text style={styles.amenityText}>Parking</Text>
-          </View>
-        )}
+        </View>
+
+        <View style={styles.headerActions}>
+          {distanceText ? (
+            <View style={styles.distanceBadge}>
+              <Text style={styles.distanceText}>{distanceText}</Text>
+            </View>
+          ) : null}
+
+          {handleToggle && (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation();
+                handleToggle(mosque.id);
+              }}
+              style={({ pressed }) => [
+                styles.bookmarkBtn,
+                isMarked && styles.bookmarkBtnActive,
+                pressed && styles.bookmarkBtnPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={isMarked ? 'Unfollow mosque' : 'Follow mosque'}
+            >
+              <Feather
+                name="bookmark"
+                size={15}
+                color={isMarked ? '#047857' : '#9ca3af'}
+              />
+            </Pressable>
+          )}
+        </View>
       </View>
 
-      {/* 5-Column Prayer Schedule Grid */}
+      {/* Freshness Badge, Ramadan notice & Attendees */}
+      <View style={styles.metaRow}>
+        <View style={styles.metaLeft}>
+          <View
+            style={[
+              styles.freshnessBadge,
+              { backgroundColor: freshnessConfig.bg, borderColor: freshnessConfig.border },
+            ]}
+          >
+            <Feather name="clock" size={11} color={freshnessConfig.text} />
+            <Text style={[styles.freshnessText, { color: freshnessConfig.text }]}>
+              {freshnessConfig.label}
+            </Text>
+          </View>
+
+          {schedule?.taraweehJamaat ? (
+            <View style={styles.taraweehBadge}>
+              <Feather name="moon" size={11} color="#047857" />
+              <Text style={styles.taraweehText}>
+                Taraweeh {formatTo12Hour(schedule.taraweehJamaat)}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        {mosque.attendanceSummary ? (
+          <View style={styles.attendanceRow}>
+            <Feather name="users" size={11} color="#9ca3af" />
+            <Text style={styles.attendanceText}>
+              {mosque.attendanceSummary.regularCount} regular •{' '}
+              {mosque.attendanceSummary.occasionalCount} occasional
+            </Text>
+          </View>
+        ) : null}
+      </View>
+
+      {/* Prayer Jamaat Timetable Grid */}
       <View style={styles.scheduleGrid}>
         {prayers.map((p) => (
           <View key={p.name} style={styles.scheduleCell}>
             <Text style={styles.cellWaqt}>{p.name}</Text>
-            <Text style={styles.cellTime}>{formatTo12Hour(p.time, '—')}</Text>
+            <Text style={styles.cellTime}>{p.time}</Text>
           </View>
         ))}
       </View>
@@ -122,126 +195,180 @@ const styles = StyleSheet.create({
     marginHorizontal: ferioSpacing.lg,
     marginVertical: ferioSpacing.xs,
     borderWidth: 1,
-    borderColor: ferioColors.border,
+    borderColor: '#e8e8ea',
+  },
+  cardSelected: {
+    borderColor: '#111114',
+    borderWidth: 1.5,
   },
   cardPressed: {
     opacity: 0.95,
-    borderColor: '#d4d4d8',
+    borderColor: '#a1a1aa',
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: ferioSpacing.sm,
+    gap: ferioSpacing.sm,
+    marginBottom: ferioSpacing.xs + 2,
   },
   nameBlock: {
     flex: 1,
-    marginRight: ferioSpacing.sm,
+    minWidth: 0,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
   },
   mosqueName: {
     fontSize: 15,
     fontWeight: '700',
-    color: ferioColors.primary,
+    color: '#111114',
     letterSpacing: -0.2,
+  },
+  unlistedBadge: {
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  unlistedText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  pinIcon: {
+    marginRight: 3,
   },
   addressText: {
     fontSize: 12,
-    color: ferioColors.muted,
-    marginTop: 2,
+    color: '#6e6e73',
+    flex: 1,
   },
-  followBtn: {
-    paddingHorizontal: ferioSpacing.sm + 2,
-    paddingVertical: ferioSpacing.xs - 1,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 0,
+  },
+  distanceBadge: {
+    backgroundColor: '#f4f4f5',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: ferioRadius.full,
-    backgroundColor: ferioColors.canvas,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
   },
-  followBtnActive: {
-    backgroundColor: ferioColors.primary,
-    borderColor: ferioColors.primary,
-  },
-  followBtnPressed: {
-    opacity: 0.75,
-  },
-  followBtnText: {
+  distanceText: {
     fontSize: 11,
     fontWeight: '600',
-    color: ferioColors.primary,
+    color: '#111114',
   },
-  followBtnTextActive: {
-    color: ferioColors.primaryForeground,
+  bookmarkBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#f4f4f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bookmarkBtnActive: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+  },
+  bookmarkBtnPressed: {
+    opacity: 0.75,
   },
   metaRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     flexWrap: 'wrap',
     gap: ferioSpacing.xs,
     marginBottom: ferioSpacing.sm,
   },
-  verifiedBadge: {
-    backgroundColor: '#ecfdf5',
-    paddingHorizontal: ferioSpacing.sm,
-    paddingVertical: 2,
+  metaLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  freshnessBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
     borderRadius: ferioRadius.full,
+    borderWidth: 1,
+  },
+  freshnessText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  taraweehBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#ecfdf5',
     borderWidth: 1,
     borderColor: '#a7f3d0',
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: ferioRadius.full,
   },
-  verifiedText: {
-    color: ferioColors.accent,
+  taraweehText: {
     fontSize: 10,
     fontWeight: '600',
+    color: '#065f46',
   },
-  attendanceBadge: {
-    backgroundColor: '#f4f4f5',
-    paddingHorizontal: ferioSpacing.sm,
-    paddingVertical: 2,
-    borderRadius: ferioRadius.full,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
+  attendanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  attendanceBadgeText: {
+  attendanceText: {
     fontSize: 10,
-    fontWeight: '600',
-    color: ferioColors.primary,
-  },
-  amenityBadge: {
-    backgroundColor: ferioColors.canvas,
-    paddingHorizontal: ferioSpacing.xs + 2,
-    paddingVertical: 2,
-    borderRadius: ferioRadius.full,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
-  },
-  amenityText: {
-    color: ferioColors.muted,
-    fontSize: 10,
-    fontWeight: '500',
+    color: '#6e6e73',
   },
   scheduleGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: ferioColors.canvas,
-    borderRadius: ferioRadius.lg,
-    paddingVertical: ferioSpacing.xs + 2,
-    paddingHorizontal: ferioSpacing.xs,
-    borderWidth: 1,
-    borderColor: ferioColors.border,
+    gap: 6,
+    paddingTop: ferioSpacing.xs + 2,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f2',
   },
   scheduleCell: {
     flex: 1,
     alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+    borderRadius: ferioRadius.md,
+    backgroundColor: '#fafafa',
+    borderWidth: 1,
+    borderColor: '#f0f0f2',
   },
   cellWaqt: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
-    color: ferioColors.muted,
-    marginBottom: 2,
+    color: '#6e6e73',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
   },
   cellTime: {
     fontSize: 11,
     fontWeight: '700',
-    color: ferioColors.primary,
+    color: '#111114',
     fontVariant: ['tabular-nums'],
   },
 });
+

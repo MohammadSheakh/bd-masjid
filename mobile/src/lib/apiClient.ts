@@ -5,22 +5,55 @@
  * - Resilient offline fallback to structured Bangladeshi fixtures
  */
 import { Platform } from 'react-native';
-import { AttendanceStatus, AttendanceSummary, Mosque, MosqueAnnouncement, MosqueReportPayload, MosqueStaffMember, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
+import { AttendanceStatus, AttendanceSummary, AttendedMosqueItem, CreateCommunitySuggestionPayload, DuplicateCandidate, Mosque, MosqueAnnouncement, MosqueDonationMethod, MosqueReportPayload, MosqueStaffMember, MosqueSuggestionItem, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
 import { AuthResponse, LoginPayload, RegisterPayload, UserProfile } from '../types/auth';
+import { RegisterDevicePayload, UserDevice } from '../types/device';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
 import { BANGLADESH_NOTIFICATION_FIXTURES } from '../data/notificationFixtures';
 import { PreferencesStorage, SecureTokenStorage } from './storage';
 import { FacilityService, SuggestedFacilitiesPayload } from '../services/facilityService';
+import { OfflineOutboxService } from '../services/offlineOutboxService';
+import { OutboxMutationType } from '../types/outbox';
+import { ModerationAction, ModerationQueueItem, ResolveModerationPayload } from '../types/moderation';
+import { ContributorActivityItem, ContributorReputationSummary } from '../types/contributor';
+import { CreateRoleClaimPayload, RoleClaimResponse } from '../types/community';
+import {
+  AnnouncementsFeedResponse,
+  CreateAnnouncementPayload,
+  FeedAnnouncementsParams,
+  MosqueAnnouncement as DomainAnnouncement,
+} from '../types/announcement';
+import { CreateDonationPayload, DonationSubmissionResponse } from '../types/donation';
+import { PrayerScheduleHistoryResponse } from '../types/prayerScheduleAudit';
+import {
+  SubmitVerificationPayload,
+  VerificationProofUploadResponse,
+  VerificationClaimItem,
+} from '../types/verification';
 
 export function getApiBaseUrl(): string {
+  // If running in browser/web, intelligently route to local backend or host
+  if (typeof window !== 'undefined' && window.location) {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:6733/api/v1';
+    }
+    if (window.location.protocol === 'https:') {
+      return process.env.EXPO_PUBLIC_API_URL || 'https://apiferio.sheakh.qzz.io/api/v1';
+    }
+    if (window.location.hostname) {
+      return `http://${window.location.hostname}:6733/api/v1`;
+    }
+  }
+
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
   // Android emulator routes host machine loopback to 10.0.2.2
   if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:4000/api/v1';
+    return 'http://10.0.2.2:6733/api/v1';
   }
-  return 'http://localhost:4000/api/v1';
+  // Physical mobile devices on same Wi-Fi LAN
+  return 'http://192.168.0.110:6733/api/v1';
 }
 
 let isCurrentlyOffline = false;
@@ -54,14 +87,43 @@ async function fetchWithFallback<T>(
 
     const res = await fetch(url, { ...options, headers });
     if (!res.ok) {
+      if (res.status === 404) {
+        notifyOfflineStatus(false);
+        return fallbackData;
+      }
       throw new Error(`API error ${res.status}: ${res.statusText}`);
     }
     const data = await res.json();
     notifyOfflineStatus(false);
     return (data.data ?? data) as T;
   } catch (error) {
-    // Graceful offline fallback: flag offline status and return fixture
-    notifyOfflineStatus(true);
+    const isNetworkError =
+      (typeof navigator !== 'undefined' && !navigator.onLine) ||
+      (error instanceof TypeError) ||
+      (error instanceof Error && error.message.toLowerCase().includes('fetch'));
+    if (isNetworkError) {
+      notifyOfflineStatus(true);
+    }
+
+    // If this was a mutation (POST/PUT/DELETE/PATCH), queue in offline outbox for automatic sync
+    if (options.method && options.method !== 'GET') {
+      let mutationType: OutboxMutationType = 'REPORT_ISSUE';
+      if (endpoint.includes('/attendance')) mutationType = 'ATTENDANCE';
+      else if (endpoint.includes('/prayer-schedule')) mutationType = 'TIMETABLE_UPDATE';
+      else if (endpoint === '/mosques') mutationType = 'CREATE_MOSQUE';
+      else if (endpoint.includes('/suggestions')) mutationType = 'SUGGEST_FACILITY';
+
+      try {
+        const payload = options.body ? JSON.parse(options.body as string) : null;
+        OfflineOutboxService.enqueueMutation(
+          mutationType,
+          endpoint,
+          options.method as any,
+          payload
+        ).catch(() => {});
+      } catch {}
+    }
+
     return fallbackData;
   }
 }
@@ -75,10 +137,23 @@ export const ApiClient = {
     );
   },
 
-  async searchMosques(query: string = '', city?: string): Promise<Mosque[]> {
+  async searchMosques(
+    query: string = '',
+    city?: string,
+    filters?: {
+      hasSeparateWomenSpace?: boolean;
+      hasAirConditioning?: boolean;
+      hasParking?: boolean;
+      hasWheelchairAccess?: boolean;
+    }
+  ): Promise<Mosque[]> {
     const params = new URLSearchParams();
-    if (query) params.append('q', query);
-    if (city) params.append('city', city);
+    if (query) params.append('search', query);
+    if (city && city !== 'All') params.append('city', city);
+    if (filters?.hasSeparateWomenSpace) params.append('hasSeparateWomenSpace', 'true');
+    if (filters?.hasAirConditioning) params.append('hasAirConditioning', 'true');
+    if (filters?.hasParking) params.append('hasParking', 'true');
+    if (filters?.hasWheelchairAccess) params.append('hasWheelchairAccess', 'true');
 
     const fallback = BANGLADESH_MOSQUES_FIXTURES.filter((m) => {
       const matchQ = !query || m.name.toLowerCase().includes(query.toLowerCase());
@@ -86,11 +161,19 @@ export const ApiClient = {
       return matchQ && matchC;
     });
 
-    return fetchWithFallback<Mosque[]>(
-      `/mosques/search?${params.toString()}`,
-      { method: 'GET' },
-      fallback
-    );
+    try {
+      const res = await fetchWithFallback<any>(
+        `/mosques?${params.toString()}`,
+        { method: 'GET' },
+        { items: fallback }
+      );
+      if (Array.isArray(res)) return res;
+      if (Array.isArray(res?.items)) return res.items;
+      if (Array.isArray(res?.data?.items)) return res.data.items;
+      return fallback;
+    } catch {
+      return fallback;
+    }
   },
 
   async getMosqueById(id: string): Promise<Mosque | null> {
@@ -102,9 +185,67 @@ export const ApiClient = {
     );
   },
 
+  async reverseGeocode(
+    lat: number,
+    lng: number
+  ): Promise<{ city?: string; road?: string; suburb?: string; formattedAddress?: string }> {
+    return fetchWithFallback(
+      `/mosques/reverse-geocode?latitude=${lat}&longitude=${lng}`,
+      { method: 'GET' },
+      {}
+    );
+  },
+
+  async getFollowedMosques(): Promise<Mosque[]> {
+    const followedMap = new Map<string, Mosque>();
+
+    // 1. If authenticated, fetch from server /users/me/bookmarks
+    try {
+      const token = await SecureTokenStorage.getAccessToken();
+      if (token) {
+        const res = await fetch(`${getApiBaseUrl()}/users/me/bookmarks`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const items = json.data ?? json ?? [];
+          if (Array.isArray(items)) {
+            for (const item of items) {
+              const m = item.mosque || item;
+              if (m && m.id) followedMap.set(m.id, m);
+            }
+          }
+        }
+      }
+    } catch {
+      // Continue to local hydration
+    }
+
+    // 2. Hydrate local bookmarks/followed IDs from PreferencesStorage
+    const localIds = PreferencesStorage.getFollowedMosqueIds();
+    const missingIds = localIds.filter((id) => !followedMap.has(id));
+
+    if (missingIds.length > 0) {
+      const results = await Promise.allSettled(
+        missingIds.map((id) => ApiClient.getMosqueById(id))
+      );
+      for (const r of results) {
+        if (r.status === 'fulfilled' && r.value) {
+          followedMap.set(r.value.id, r.value);
+        }
+      }
+    }
+
+    return Array.from(followedMap.values());
+  },
+
   async toggleFollowMosque(id: string): Promise<{ success: boolean; isFollowed: boolean }> {
     return fetchWithFallback<{ success: boolean; isFollowed: boolean }>(
-      `/mosques/${id}/follow`,
+      `/mosques/${id}/bookmark`,
       { method: 'POST' },
       { success: true, isFollowed: true }
     );
@@ -130,6 +271,38 @@ export const ApiClient = {
     };
 
     return fetchWithFallback<AttendanceSummary>(endpoint, options, fallback);
+  },
+
+  async getAttendanceSummary(mosqueId: string): Promise<AttendanceSummary> {
+    const userStatus = PreferencesStorage.getUserAttendance(mosqueId);
+    const fallback: AttendanceSummary = {
+      regularCount: userStatus === 'REGULAR' ? 42 : 41,
+      occasionalCount: userStatus === 'OCCASIONAL' ? 19 : 18,
+      userStatus,
+    };
+    return fetchWithFallback<AttendanceSummary>(
+      `/mosques/${mosqueId}/attendance-summary`,
+      { method: 'GET' },
+      fallback
+    );
+  },
+
+  async getMyAttendedMosques(): Promise<AttendedMosqueItem[]> {
+    const fallbackItems: AttendedMosqueItem[] = BANGLADESH_MOSQUES_FIXTURES
+      .filter((m) => PreferencesStorage.getUserAttendance(m.id) !== 'NONE')
+      .map((m) => ({
+        mosqueId: m.id,
+        mosqueName: m.name,
+        city: m.city || 'Dhaka',
+        status: PreferencesStorage.getUserAttendance(m.id),
+        updatedAt: new Date().toISOString(),
+      }));
+
+    return fetchWithFallback<AttendedMosqueItem[]>(
+      '/attendance/my-mosques',
+      { method: 'GET' },
+      fallbackItems
+    );
   },
 
   async updatePrayerSchedule(
@@ -180,33 +353,38 @@ export const ApiClient = {
   },
 
   async createMosque(
-    payload: Partial<Mosque>
-  ): Promise<{ success: boolean; mosque: Mosque }> {
-    const fallbackMosque: Mosque = {
-      id: `mosque-${Date.now()}`,
-      name: payload.name || 'New Community Mosque',
-      latitude: payload.latitude || 23.8103,
-      longitude: payload.longitude || 90.4125,
-      address: payload.address || '',
-      city: payload.city || 'Dhaka',
-      country: 'Bangladesh',
-      operationalStatus: 'OPEN',
-      verificationStatus: 'PENDING_VERIFICATION',
-      prayerSchedule: payload.prayerSchedule,
-      hasAirConditioning: payload.hasAirConditioning,
-      hasSeparateWomenSpace: payload.hasSeparateWomenSpace,
-      hasParking: payload.hasParking,
-      hasWheelchairAccess: payload.hasWheelchairAccess,
-    };
+    payload: any
+  ): Promise<{ success: boolean; mosque?: Mosque; error?: string; candidates?: any[] }> {
+    try {
+      const token = await SecureTokenStorage.getAccessToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
 
-    return fetchWithFallback<{ success: boolean; mosque: Mosque }>(
-      '/mosques',
-      {
+      const res = await fetch(`${getApiBaseUrl()}/mosques`, {
         method: 'POST',
+        headers,
         body: JSON.stringify(payload),
-      },
-      { success: true, mosque: fallbackMosque }
-    );
+      });
+
+      const json = await res.json();
+      if (res.status === 409) {
+        return {
+          success: false,
+          error: json.message || 'Possible duplicate mosque exists nearby.',
+          candidates: json.candidates || [],
+        };
+      }
+      if (!res.ok) {
+        return { success: false, error: json.message || 'Failed to submit mosque.' };
+      }
+      const created = (json.data || json) as Mosque;
+      return { success: true, mosque: created };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error' };
+    }
   },
 
   async getMosqueAnnouncements(
@@ -219,6 +397,65 @@ export const ApiClient = {
       `/mosques/${mosqueId}/announcements`,
       { method: 'GET' },
       fallbackAnnouncements
+    );
+  },
+
+  async getAnnouncementsFeed(
+    params: FeedAnnouncementsParams = {}
+  ): Promise<AnnouncementsFeedResponse> {
+    const query = new URLSearchParams();
+    if (params.lat !== undefined) query.append('lat', params.lat.toString());
+    if (params.lng !== undefined) query.append('lng', params.lng.toString());
+    if (params.radiusKm !== undefined) query.append('radiusKm', params.radiusKm.toString());
+    if (params.category) query.append('category', params.category);
+    if (params.emergencyOnly) query.append('emergencyOnly', 'true');
+    if (params.bookmarkedOnly) query.append('bookmarkedOnly', 'true');
+    if (params.limit !== undefined) query.append('limit', params.limit.toString());
+    if (params.offset !== undefined) query.append('offset', params.offset.toString());
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+
+    const fallbackData: DomainAnnouncement[] = BANGLADESH_MOSQUES_FIXTURES.flatMap((m) =>
+      (m.announcements || []).map((a) => ({
+        id: a.id,
+        mosqueId: m.id,
+        mosqueName: m.name,
+        city: m.city || 'Dhaka',
+        title: a.title,
+        content: a.body || '',
+        category: (a.category as any) || 'GENERAL',
+        isPinned: a.priority === 'URGENT',
+        createdAt: a.createdAt,
+      }))
+    );
+
+    return fetchWithFallback<AnnouncementsFeedResponse>(
+      `/announcements/feed${queryString}`,
+      { method: 'GET' },
+      {
+        success: true,
+        data: fallbackData,
+        total: fallbackData.length,
+        limit: params.limit || 20,
+        offset: params.offset || 0,
+      }
+    );
+  },
+
+  async createAnnouncement(
+    mosqueId: string,
+    payload: CreateAnnouncementPayload
+  ): Promise<{ success: boolean; message: string; data?: any }> {
+    return fetchWithFallback<{ success: boolean; message: string; data?: any }>(
+      `/mosques/${mosqueId}/announcements`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      {
+        success: true,
+        message: 'Announcement posted successfully.',
+      }
     );
   },
 
@@ -435,4 +672,454 @@ export const ApiClient = {
       await SecureTokenStorage.clearTokens();
     }
   },
+
+  async registerUserDevice(payload: RegisterDevicePayload): Promise<UserDevice> {
+    const fallbackDevice: UserDevice = {
+      id: 'device-bd-masjid-local',
+      fcmToken: payload.fcmToken,
+      deviceType: payload.deviceType,
+      deviceName: payload.deviceName || 'Android Mobile Device',
+      deviceOsVersion: payload.deviceOsVersion || 'Android 14',
+      appVersion: payload.appVersion || '1.0.0',
+      isPushEnabled: true,
+      lastActiveAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    return fetchWithFallback<UserDevice>(
+      '/users/devices/register',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      fallbackDevice
+    );
+  },
+
+  async fetchUserDevices(): Promise<UserDevice[]> {
+    const fallbackDevice: UserDevice = {
+      id: 'device-bd-masjid-local',
+      fcmToken: 'fcm-token-preview-cached',
+      deviceType: Platform.OS === 'ios' ? 'ios' : 'android',
+      deviceName: Platform.OS === 'ios' ? 'Apple iPhone' : 'Android Mobile Device',
+      isPushEnabled: true,
+      lastActiveAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    return fetchWithFallback<UserDevice[]>(
+      '/users/devices',
+      { method: 'GET' },
+      [fallbackDevice]
+    );
+  },
+
+  async fetchModerationQueue(): Promise<ModerationQueueItem[]> {
+    const fallbackQueue: ModerationQueueItem[] = [
+      {
+        id: 'mod-uttara-baitun-noor',
+        type: 'MOSQUE_VERIFICATION',
+        targetId: 'mosque-pending-1',
+        targetName: 'Baitun Noor Jame Masjid',
+        location: 'Sector 11, Uttara, Dhaka',
+        coordinates: { lat: 23.8732, lng: 90.3951 },
+        details: 'Newly constructed 3-story neighborhood mosque, 5 times jamaat with AC and female prayer section.',
+        contributorName: 'Tariqul Islam (Scout)',
+        contributorRole: 'CONTRIBUTOR',
+        createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+        status: 'PENDING',
+      },
+      {
+        id: 'mod-dhanmondi-duplicate',
+        type: 'DUPLICATE_FLAG',
+        targetId: 'mosque-pending-2',
+        targetName: 'Dhanmondi Central Masjid',
+        location: 'Road 27, Dhanmondi, Dhaka',
+        coordinates: { lat: 23.7461, lng: 90.3752 },
+        distanceMeters: 85,
+        duplicateWith: 'Masjid-ut-Taqwa Dhanmondi',
+        details: 'Proximity alert: Located 85m from listed Masjid-ut-Taqwa. Verify if duplicate or independent prayer space.',
+        contributorName: 'Rafiqul Hasan',
+        contributorRole: 'USER',
+        createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+        status: 'PENDING',
+      },
+      {
+        id: 'mod-gulshan-isha-timing',
+        type: 'ISSUE_REPORT',
+        targetId: 'mosque-dhaka-gulshan-society',
+        targetName: 'Gulshan Society Jame Masjid',
+        location: 'Gulshan 2, Dhaka',
+        details: 'Isha Jamaat time shifted from 8:30 PM to 8:45 PM for summer schedule.',
+        contributorName: 'Anonymous Musalli',
+        contributorRole: 'USER',
+        createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+        status: 'PENDING',
+      },
+    ];
+
+    return fetchWithFallback<ModerationQueueItem[]>(
+      '/moderation/queue',
+      { method: 'GET' },
+      fallbackQueue
+    );
+  },
+
+  async resolveModerationItem(
+    itemId: string,
+    action: ModerationAction,
+    notes?: string
+  ): Promise<{ success: boolean; message: string }> {
+    return fetchWithFallback<{ success: boolean; message: string }>(
+      `/moderation/queue/${itemId}/resolve`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ action, notes }),
+      },
+      { success: true, message: `Item ${action.toLowerCase()}d successfully` }
+    );
+  },
+
+  async fetchContributorReputation(userId?: string): Promise<ContributorReputationSummary> {
+    const fallbackSummary: ContributorReputationSummary = {
+      userId: userId || 'usr-scout-dhaka',
+      scoutPoints: 450,
+      scoutTier: 'GOLD',
+      verifiedMosquesCount: 12,
+      scheduleUpdatesCount: 34,
+      facilitySuggestionsCount: 19,
+      issueReportsCount: 7,
+      rankTitle: 'Chief Musalli Scout (ঢাকা)',
+      nextTierPoints: 600,
+    };
+    return fetchWithFallback<ContributorReputationSummary>(
+      userId ? `/contributors/${userId}/reputation` : '/contributors/me/reputation',
+      { method: 'GET' },
+      fallbackSummary
+    );
+  },
+
+  async fetchContributorHistory(userId?: string): Promise<ContributorActivityItem[]> {
+    const fallbackHistory: ContributorActivityItem[] = [
+      {
+        id: 'act-1',
+        type: 'MOSQUE_CREATED',
+        targetName: 'Baitul Mukarram National Mosque',
+        location: 'Paltan, Dhaka',
+        status: 'APPROVED',
+        pointsEarned: 100,
+        createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+      },
+      {
+        id: 'act-2',
+        type: 'SCHEDULE_UPDATED',
+        targetName: 'Gulshan Society Jame Masjid',
+        location: 'Gulshan 2, Dhaka',
+        status: 'APPROVED',
+        pointsEarned: 25,
+        createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+      },
+      {
+        id: 'act-3',
+        type: 'FACILITY_SUGGESTED',
+        targetName: 'Dhanmondi Eidgah Masjid',
+        location: 'Road 6, Dhanmondi',
+        status: 'PENDING',
+        pointsEarned: 10,
+        createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+      },
+      {
+        id: 'act-4',
+        type: 'REPORT_SUBMITTED',
+        targetName: 'Chawkbazar Shahi Masjid',
+        location: 'Old Dhaka',
+        status: 'APPROVED',
+        pointsEarned: 15,
+        createdAt: new Date(Date.now() - 86400000 * 12).toISOString(),
+      },
+    ];
+    return fetchWithFallback<ContributorActivityItem[]>(
+      userId ? `/contributors/${userId}/activity` : '/contributors/me/activity',
+      { method: 'GET' },
+      fallbackHistory
+    );
+  },
+
+  async submitRoleClaim(
+    mosqueId: string,
+    payload: CreateRoleClaimPayload
+  ): Promise<RoleClaimResponse> {
+    const token = await SecureTokenStorage.getAccessToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    const res = await fetch(`${getApiBaseUrl()}/mosques/${mosqueId}/role-claims`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.message || 'Failed to submit role claim');
+    }
+
+    return (json.data || json) as RoleClaimResponse;
+  },
+
+  async submitDonationChannel(
+    mosqueId: string,
+    payload: CreateDonationPayload
+  ): Promise<DonationSubmissionResponse> {
+    const fallbackResponse: DonationSubmissionResponse = {
+      id: `donation-${Date.now()}`,
+      success: true,
+      message: 'Donation channel draft submitted for multi-signatory committee review.',
+    };
+
+    return fetchWithFallback<DonationSubmissionResponse>(
+      `/mosques/${mosqueId}/donations`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      fallbackResponse
+    );
+  },
+
+  async fetchMosqueDonations(mosqueId: string): Promise<MosqueDonationMethod[]> {
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/mosques/${mosqueId}/donations`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || json || [];
+    } catch {
+      return [];
+    }
+  },
+
+  async createMosqueDonation(
+    mosqueId: string,
+    data: {
+      methodType: string;
+      accountType?: string;
+      accountNumber: string;
+      accountTitle?: string;
+      bankName?: string;
+      branchName?: string;
+      routingNumber?: string;
+      instructions?: string;
+    }
+  ): Promise<{ success: boolean; data?: MosqueDonationMethod; error?: string }> {
+    try {
+      const token = await SecureTokenStorage.getAccessToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${getApiBaseUrl()}/mosques/${mosqueId}/donations`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        return { success: false, error: json.message || 'Failed to submit donation method' };
+      }
+      return { success: true, data: json.data || json };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error' };
+    }
+  },
+
+  async getPrayerScheduleHistory(
+    mosqueId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PrayerScheduleHistoryResponse> {
+    const fallbackResponse: PrayerScheduleHistoryResponse = {
+      items: [
+        {
+          id: `hist-latest-${mosqueId}`,
+          mosqueId,
+          scheduleSnapshot: {
+            fajrJamaat: '05:30',
+            fajrStart: '04:45',
+            zuhrJamaat: '13:15',
+            zuhrStart: '12:00',
+            asrJamaat: '16:30',
+            asrStart: '15:15',
+            maghribJamaat: '18:05',
+            maghribStart: '18:00',
+            ishaJamaat: '19:45',
+            ishaStart: '19:15',
+            jumuahJamaat: '13:30',
+            effectiveDate: new Date().toISOString(),
+            freshnessLevel: 'HIGH',
+          },
+          changedById: 'user-lead-1',
+          changedBy: {
+            id: 'user-lead-1',
+            name: 'Khatib & Committee',
+          },
+          reason: 'Seasonal sunset & dawn shift adjustment',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      meta: {
+        page,
+        limit,
+        total: 1,
+        totalPages: 1,
+      },
+    };
+
+    return fetchWithFallback<PrayerScheduleHistoryResponse>(
+      `/mosques/${mosqueId}/prayer-schedule/history?page=${page}&limit=${limit}`,
+      { method: 'GET' },
+      fallbackResponse
+    );
+  },
+
+  async uploadVerificationProof(
+    imageUri: string,
+    filename: string = 'proof.jpg',
+    mimeType: string = 'image/jpeg'
+  ): Promise<VerificationProofUploadResponse> {
+    const fallbackResponse: VerificationProofUploadResponse = {
+      success: true,
+      url: imageUri,
+      filename,
+      size: 1024,
+      mimeType,
+    };
+
+    try {
+      const formData = new FormData();
+      formData.append('image', {
+        uri: imageUri,
+        name: filename,
+        type: mimeType,
+      } as any);
+
+      const token = await SecureTokenStorage.getAccessToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${getApiBaseUrl()}/community/upload-image`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        return fallbackResponse;
+      }
+      const json = await response.json();
+      return json.data ?? json;
+    } catch {
+      return fallbackResponse;
+    }
+  },
+
+  async submitCommitteeVerification(
+    mosqueId: string,
+    payload: SubmitVerificationPayload
+  ): Promise<RoleClaimResponse> {
+    const fallbackResponse: RoleClaimResponse = {
+      id: `claim-${Date.now()}`,
+      mosqueId,
+      role: payload.role,
+      status: 'PENDING',
+      message: 'Committee verification submitted with proof document.',
+    };
+
+    return fetchWithFallback<RoleClaimResponse>(
+      `/community/${mosqueId}/claims`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          role: payload.role,
+          phone: payload.phone,
+          documentUrl: payload.documentUrl,
+          declarationAccepted: true,
+        }),
+      },
+      fallbackResponse
+    );
+  },
+
+  async getMosqueVerificationClaims(
+    mosqueId: string
+  ): Promise<VerificationClaimItem[]> {
+    const fallbackResponse: VerificationClaimItem[] = [];
+
+    return fetchWithFallback<VerificationClaimItem[]>(
+      `/mosques/${mosqueId}/role-claims`,
+      { method: 'GET' },
+      fallbackResponse
+    );
+  },
+
+  async fetchPublicMosqueSuggestions(
+    mosqueId: string,
+    page = 1,
+    limit = 5
+  ): Promise<{ items: MosqueSuggestionItem[]; meta: any }> {
+    const fallbackResponse = { items: [], meta: { total: 0 } };
+    return fetchWithFallback<{ items: MosqueSuggestionItem[]; meta: any }>(
+      `/mosques/${mosqueId}/suggestions/public?page=${page}&limit=${limit}`,
+      { method: 'GET' },
+      fallbackResponse
+    );
+  },
+
+  async submitCommunitySuggestion(
+    mosqueId: string,
+    payload: CreateCommunitySuggestionPayload
+  ): Promise<{ success: boolean; data?: any }> {
+    const token = await SecureTokenStorage.getAccessToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    const res = await fetch(`${getApiBaseUrl()}/mosques/${mosqueId}/suggestions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.message || 'Failed to submit feedback');
+    }
+
+    return { success: true, data: json.data || json };
+  },
+
+  async checkProximityDuplicate(
+    latitude: number,
+    longitude: number
+  ): Promise<DuplicateCandidate[]> {
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/mosques/check-duplicate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude, longitude }),
+      });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data?.candidates || json.candidates || [];
+    } catch {
+      return [];
+    }
+  },
 };
+
+

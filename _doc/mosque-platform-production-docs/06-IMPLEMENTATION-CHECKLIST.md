@@ -298,3 +298,28 @@ Before first production release:
 - [x] tests cover risk
 - [x] relevant checks pass
 - [x] documentation updated
+
+## U. Mobile Interactive Full-Page Map & Database Synchronization
+
+- [x] smart API base URL resolution for mobile web browser runtime
+- [x] 404 response offline false alarm prevention
+- [x] database mosque discovery on initial mount (`loadInitialMosques`)
+- [x] full-screen interactive Leaflet 1.9.4 map component
+- [x] smooth multi-directional pan and zoom controls (`+`/`-`)
+- [x] custom mosque pins matching web app styles (`.custom-mosque-pin`)
+- [x] floating search bar and locate GPS overlay in full-page map mode
+- [x] mosque details bottom sheet parity with web app upon pin click
+
+## V. Mobile Popup Design Parity with Web Platform
+
+- [x] Mosque Details Popup (`MosqueDetailSheet.tsx`) visual & functional parity
+- [x] Mosque Suggestion & Complaint Modal (`MosqueSuggestionModal.tsx`) role-targeted feedback parity
+- [x] Public Community Feedback Feed & Freshness banner parity
+- [x] Add Mosque Popup (`AddMosqueSheet.tsx`) reverse geocoding & duplicate check parity
+- [x] Claim Role Popup (`RoleClaimModal.tsx`) exact form fields & photo upload parity
+- [x] Donate Popup (`SuggestDonationMethodModal.tsx`) payment channels & copy action parity
+- [x] Suggest Facilities Popup (`SuggestFacilitiesModal.tsx`) amenities selector parity
+
+
+
+

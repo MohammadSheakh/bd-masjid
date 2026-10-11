@@ -109,6 +109,35 @@ services:
     networks:
       - bd-masjid-network
 
+  mobile:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-https://apiferio.sheakh.qzz.io/api/v1}
+    container_name: bd-masjid-mobile
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "${METRO_PORT:-8081}:8081"
+    environment:
+      NODE_ENV: development
+      CI: "0"
+      REACT_NATIVE_PACKAGER_HOSTNAME: ${REACT_NATIVE_PACKAGER_HOSTNAME:-192.168.0.110}
+      INTERNAL_API_URL: http://backend:6733
+      EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-https://apiferio.sheakh.qzz.io/api/v1}
+      TZ: ${TZ:-Asia/Dhaka}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - bd-masjid-network
+
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: bd-masjid-cloudflared
@@ -123,6 +152,8 @@ services:
         condition: service_healthy
       backend:
         condition: service_healthy
+      mobile:
+        condition: service_started
 
 volumes:
   bd_masjid_redisdata:

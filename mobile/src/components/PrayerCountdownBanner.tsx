@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { PrayerSchedule, PrayerAutoSilentSettings } from '../types/mosque';
 import { getNextJamaatInfo, formatSecondsToCountdown, NextJamaatResult } from '../lib/time';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
@@ -56,8 +57,18 @@ export const PrayerCountdownBanner: React.FC<PrayerCountdownBannerProps> = ({
             accessibilityRole="button"
             accessibilityLabel="Configure Auto-Silent"
           >
-            <Text style={styles.silentBadgeText}>
-              {isInSilenceWindow ? '🔕 Auto-Silent Active' : '🔔 Auto-Silent Armed'}
+            <Feather
+              name={isInSilenceWindow ? 'bell-off' : 'bell'}
+              size={11}
+              color={isInSilenceWindow ? '#fb7185' : '#34d399'}
+            />
+            <Text
+              style={[
+                styles.silentBadgeText,
+                isInSilenceWindow && styles.silentBadgeTextActive,
+              ]}
+            >
+              {isInSilenceWindow ? 'Auto-Silent Active' : 'Auto-Silent Armed'}
             </Text>
           </Pressable>
         )}
@@ -80,6 +91,7 @@ export const PrayerCountdownBanner: React.FC<PrayerCountdownBannerProps> = ({
             onPress={onPressAutoSilentSettings}
             style={({ pressed }) => [styles.setupPill, pressed && styles.pressed]}
           >
+            <Feather name="bell" size={12} color={ferioColors.primary} style={{ marginRight: 4 }} />
             <Text style={styles.setupPillText}>Auto-Silent</Text>
           </Pressable>
         )}
@@ -128,6 +140,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   silentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: 'rgba(5, 150, 105, 0.18)',
     borderWidth: 1,
     borderColor: 'rgba(5, 150, 105, 0.35)',
@@ -139,6 +154,9 @@ const styles = StyleSheet.create({
     color: '#34d399',
     fontSize: 11,
     fontWeight: '600',
+  },
+  silentBadgeTextActive: {
+    color: '#fb7185',
   },
   mainRow: {
     flexDirection: 'row',
@@ -163,6 +181,8 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   setupPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: ferioColors.surface,
     paddingHorizontal: ferioSpacing.md,
     paddingVertical: ferioSpacing.xs,

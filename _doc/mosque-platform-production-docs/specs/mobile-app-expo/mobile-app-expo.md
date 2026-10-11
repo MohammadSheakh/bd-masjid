@@ -2,7 +2,7 @@
 id: F-040
 name: Cross-Platform Mobile Client (React Native & Expo SDK 52+)
 phase: 4
-status: planned
+status: completed
 depends_on:
   - F-001
   - F-002
@@ -122,13 +122,13 @@ The mobile client interacts exclusively with existing production endpoints:
 ## 5. Implementation Slices & Proof Matrix
 
 ### TK-MOB-01: Expo Prebuild Scaffolding, NativeWind v4 & Hardware Keystore Token Storage
-- **Status**: `[ ] Pending` | **Priority**: Critical
+- **Status**: `[x] Completed` | **Priority**: Critical
 - **Description**: Initialize the Expo SDK 52+ application with TypeScript, configure custom development client (`expo-dev-client`) and prebuild config plugins, set up NativeWind v4 with exact Ferio tokens, and configure `expo-secure-store` for hardware-encrypted JWT storage.
 - **Acceptance Criteria**:
-  - [ ] App boots cleanly on physical Android and iOS devices using `expo-dev-client`.
-  - [ ] Hermes engine and Bridgeless New Architecture active.
-  - [ ] `tailwind.config.js` configures palette: `#111114`, `#6e6e73`, `#e8e8ea`, `#fafafa`, and `#ffffff`.
-  - [ ] `expo-secure-store` provides encrypted access token getter/setter with zero plaintext exposure.
+  - [x] App boots cleanly on physical Android and iOS devices using `expo-dev-client`.
+  - [x] Hermes engine and Bridgeless New Architecture active.
+  - [x] `tailwind.config.js` configures palette: `#111114`, `#6e6e73`, `#e8e8ea`, `#fafafa`, and `#ffffff`.
+  - [x] `expo-secure-store` provides encrypted access token getter/setter with zero plaintext exposure.
 - **Target Files**:
   - `mobile/package.json`
   - `mobile/app.json` (config plugins)
@@ -136,13 +136,13 @@ The mobile client interacts exclusively with existing production endpoints:
   - `mobile/src/lib/secureStorage.ts`
 
 ### TK-MOB-02: TanStack Query v5 Network Layer, FlashList Virtualization & Live Countdown
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Implement TanStack Query v5 client with exponential backoff and offline persister, build `PrayerCountdownBanner` with 1-second interval ticker, and implement Shopify `FlashList` for `MosqueCard`.
 - **Acceptance Criteria**:
-  - [ ] TanStack Query retries failed queries up to 3 times with exponential backoff on flaky cellular networks.
-  - [ ] `PrayerCountdownBanner` renders real-time 1-second countdown to next prayer using `lib/time.ts`.
-  - [ ] Horizontal filter chips allow filtering by *Women's Area*, *AC*, *Wheelchair*, *Parking*, and *Following*.
-  - [ ] `FlashList` sustains 60 FPS scrolling on memory-constrained 2GB RAM test profiles.
+  - [x] TanStack Query retries failed queries up to 3 times with exponential backoff on flaky cellular networks.
+  - [x] `PrayerCountdownBanner` renders real-time 1-second countdown to next prayer using `lib/time.ts`.
+  - [x] Horizontal filter chips allow filtering by *Women's Area*, *AC*, *Wheelchair*, *Parking*, and *Following*.
+  - [x] `FlashList` sustains 60 FPS scrolling on memory-constrained 2GB RAM test profiles.
 - **Target Files**:
   - `mobile/src/lib/queryClient.ts`
   - `mobile/src/components/PrayerCountdownBanner.tsx`
@@ -150,66 +150,66 @@ The mobile client interacts exclusively with existing production endpoints:
   - `mobile/src/screens/HomeScreen.tsx`
 
 ### TK-MOB-03: OpenStreetMap Native MapLibre Engine, Custom Pin Hierarchy & Pin Drop Mode
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Configure `@maplibre/maplibre-react-native` with OpenStreetMap raster tiles, local tile caching, custom circular pins, and contributor pin-drop mode.
 - **Acceptance Criteria**:
-  - [ ] OpenStreetMap raster tiles render crisply without Google Maps SDK dependencies.
-  - [ ] Custom circular pins reflect followed (`#059669`) and standard (`#111114`) mosque states.
-  - [ ] Pin drop mode allows dropping a marker with latitude/longitude output for new mosque creation.
-  - [ ] Floating bottom toggle pill `[List (N) | Map]` toggles viewports smoothly.
+  - [x] OpenStreetMap raster tiles render crisply without Google Maps SDK dependencies.
+  - [x] Custom circular pins reflect followed (`#059669`) and standard (`#111114`) mosque states.
+  - [x] Pin drop mode allows dropping a marker with latitude/longitude output for new mosque creation.
+  - [x] Floating bottom toggle pill `[List (N) | Map]` toggles viewports smoothly.
 - **Target Files**:
   - `mobile/src/components/MosqueMap.tsx`
   - `mobile/src/components/ViewTogglePill.tsx`
 
 ### TK-MOB-04: Gesture-Driven Mosque Detail Bottom Sheet & Governance Modals
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Implement `@gorhom/bottom-sheet` featuring facilities, verified staff roster (ADR-024), official announcements (ADR-011), and verified donation channels (ADR-028).
 - **Acceptance Criteria**:
-  - [ ] Bottom sheet expands to 50% and 90% snap points smoothly via gesture drags.
-  - [ ] Displays verified staff members with photo and official role badges (ADR-024).
-  - [ ] Displays verified donation accounts with 1-tap copy and green tick leadership indicators (ADR-028).
-  - [ ] Community suggestion and problem reporting actions open accessible native sub-modals.
+  - [x] Bottom sheet expands to 50% and 90% snap points smoothly via gesture drags.
+  - [x] Displays verified staff members with photo and official role badges (ADR-024).
+  - [x] Displays verified donation accounts with 1-tap copy and green tick leadership indicators (ADR-028).
+  - [x] Community suggestion and problem reporting actions open accessible native sub-modals.
 - **Target Files**:
   - `mobile/src/components/MosqueDetailSheet.tsx`
   - `mobile/src/components/DonationChannelsList.tsx`
   - `mobile/src/components/ReportModal.tsx`
 
 ### TK-MOB-05: Tiered Offline Persistence (MMKV + SQLite) & Resilient Attendance Sync
-- **Status**: `[ ] Pending` | **Priority**: Medium
+- **Status**: `[x] Completed` | **Priority**: Medium
 - **Description**: Implement high-speed synchronous storage with `react-native-mmkv` and structured SQL caching with `expo-sqlite`, providing seamless offline viewing and idempotent mutation replay upon reconnection.
 - **Acceptance Criteria**:
-  - [ ] Followed mosques and full schedules persist across app restarts in SQLite.
-  - [ ] Offline banner displays automatically when network is unavailable, serving cached timetables.
-  - [ ] Attendance toggle mutations queue offline and sync idempotently on reconnect.
+  - [x] Followed mosques and full schedules persist across app restarts in SQLite.
+  - [x] Offline banner displays automatically when network is unavailable, serving cached timetables.
+  - [x] Attendance toggle mutations queue offline and sync idempotently on reconnect.
 - **Target Files**:
   - `mobile/src/lib/database.ts` (SQLite schema & queries)
   - `mobile/src/lib/kvStorage.ts` (MMKV instance)
   - `mobile/src/hooks/useFollowedMosques.ts`
 
 ### TK-MOB-06: Background Exact Jammat Alarms, OEM Battery Mitigation & Sentry Telemetry
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Integrate `@notifee/react-native` for exact Jammat reminders, implement OEM battery optimization bypass guidance, and integrate `@sentry/react-native` for sanitized crash reporting.
 - **Acceptance Criteria**:
-  - [ ] Requests required notification and exact alarm permissions on Android 12–15 and iOS.
-  - [ ] Detects OEM battery savers (Xiaomi, Oppo, Samsung) and presents educational whitelist modal.
-  - [ ] Alarms trigger precisely 10 minutes prior to Jamaat start with custom sound/vibration.
-  - [ ] Sentry captures fatal crashes and non-fatal exceptions with sanitized breadcrumbs.
+  - [x] Requests required notification and exact alarm permissions on Android 12–15 and iOS.
+  - [x] Detects OEM battery savers (Xiaomi, Oppo, Samsung) and presents educational whitelist modal.
+  - [x] Alarms trigger precisely 10 minutes prior to Jamaat start with custom sound/vibration.
+  - [x] Sentry captures fatal crashes and non-fatal exceptions with sanitized breadcrumbs.
 - **Target Files**:
   - `mobile/src/services/alarmService.ts`
   - `mobile/src/services/batteryOptimization.ts`
   - `mobile/src/lib/sentry.ts`
 
 ### TK-MOB-07: Android Native Auto-Silent Engine & Prior-State DND Automation
-- **Status**: `[ ] Pending` | **Priority**: High
+- **Status**: `[x] Completed` | **Priority**: High
 - **Description**: Implement a native Kotlin TurboModule (`AndroidAutoSilentManager`) using Android `NotificationManager` DND policy access and `AudioManager` to automatically switch the phone into Silent mode during Jammat and restore it to its prior ringer state (Normal/Vibrate/Silent) after a customizable duration (default 10 minutes), with scheduled exact alarms and reboot persistence.
 - **Acceptance Criteria**:
-  - [ ] Android Config Plugin adds `ACCESS_NOTIFICATION_POLICY` and `RECEIVE_BOOT_COMPLETED` permissions.
-  - [ ] Kotlin TurboModule exposes `checkDndPermission()`, `requestDndPermission()`, `setPrayerSilentMode()`, and `restoreRingerMode()`.
-  - [ ] Enforces **State Preservation Invariant**: Records device ringer mode (`NORMAL`, `VIBRATE`, `SILENT`) before silencing; restores strictly to saved mode. If phone was already in Silent/Vibrate mode prior to prayer, it is NEVER forced to Ringing/Normal on duration expiry.
-  - [ ] Alarms scheduled via `AlarmManager.setExactAndAllowWhileIdle()` to guarantee timely execution during Android Doze mode.
-  - [ ] Boot broadcast receiver reschedules the day's 5 prayer silent/restore windows when device reboots.
-  - [ ] UI features master toggle, per-waqt switches (Fajr, Zuhr, Asr, Maghrib, Isha), duration selector (5m, 10m, 15m, 20m), and live active status countdown badge.
-  - [ ] iOS renders an informative card explaining Apple hardware switch constraints with 1-tap actionable local notifications and Apple Shortcuts setup guide.
+  - [x] Android Config Plugin adds `ACCESS_NOTIFICATION_POLICY` and `RECEIVE_BOOT_COMPLETED` permissions.
+  - [x] Kotlin TurboModule exposes `checkDndPermission()`, `requestDndPermission()`, `setPrayerSilentMode()`, and `restoreRingerMode()`.
+  - [x] Enforces **State Preservation Invariant**: Records device ringer mode (`NORMAL`, `VIBRATE`, `SILENT`) before silencing; restores strictly to saved mode. If phone was already in Silent/Vibrate mode prior to prayer, it is NEVER forced to Ringing/Normal on duration expiry.
+  - [x] Alarms scheduled via `AlarmManager.setExactAndAllowWhileIdle()` to guarantee timely execution during Android Doze mode.
+  - [x] Boot broadcast receiver reschedules the day's 5 prayer silent/restore windows when device reboots.
+  - [x] UI features master toggle, per-waqt switches (Fajr, Zuhr, Asr, Maghrib, Isha), duration selector (5m, 10m, 15m, 20m), and live active status countdown badge.
+  - [x] iOS renders an informative card explaining Apple hardware switch constraints with 1-tap actionable local notifications and Apple Shortcuts setup guide.
 - **Target Files**:
   - `mobile/plugins/withAndroidAutoSilent.js`
   - `mobile/android/app/src/main/java/org/bdmasjid/autosilent/AndroidAutoSilentModule.kt`
@@ -218,4 +218,21 @@ The mobile client interacts exclusively with existing production endpoints:
   - `mobile/src/components/AutoSilentModal.tsx`
   - `mobile/src/components/AutoSilentStatusBadge.tsx`
   - `mobile/src/hooks/usePrayerAutoSilent.ts`
+
+---
+
+## 6. Release & Production Verification Matrix
+
+| Phase | Architecture Domain | ADR Reference | Status | Verification Gate |
+|---|---|---|---|---|
+| Phase 1-5 | Core App, FlashList, Detail Sheet, Storage | ADR-029–033 | Complete | Cold Launch < 1500ms, 60 FPS |
+| Phase 6-7 | Map & DND Auto-Silent Engine | ADR-034–037 | Complete | Prior-State DND preservation |
+| Phase 8-10 | Contributor Pin-Drop, Notice Board, Reports | ADR-043–045 | Complete | Proximity duplicate & offline queue |
+| Phase 11-13 | Qibla Compass, Staff Directory, Localization | ADR-046–048 | Complete | Geodesic Kaaba bearing & Bangla i18n |
+| Phase 14-16 | Daily Hadith, Facilities, Donations | ADR-049–051 | Complete | Multi-signatory fraud governance |
+| Phase 17-20 | Bookmarks, In-App Inbox, Auth, Push Sync | ADR-052–055 | Complete | Secure Token & FCM device registration |
+| Phase 21-25 | Provenance, Outbox Sync, Mod Review, Telemetry | ADR-056–059 | Complete | FIFO outbox drain & RBAC role gate |
+| Phase 26 | Contributor Activity & Scout Reputation | ADR-060 | Complete | Synchronous cache & gold scout badge |
+| Phase 27 | Ramadan Fasting Countdown & Division Timetable | ADR-061 | Complete | 8-Division IFB offsets & live countdown |
+| Phase 28 | Division-Level Offline Map Vector Pre-Caching | ADR-062 | Complete | 150MB storage ceiling & chunked tiles |
 
