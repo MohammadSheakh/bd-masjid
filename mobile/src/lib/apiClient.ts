@@ -5,7 +5,7 @@
  * - Resilient offline fallback to structured Bangladeshi fixtures
  */
 import { Platform } from 'react-native';
-import { AttendanceStatus, AttendanceSummary, AttendedMosqueItem, Mosque, MosqueAnnouncement, MosqueDonationMethod, MosqueReportPayload, MosqueStaffMember, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
+import { AttendanceStatus, AttendanceSummary, AttendedMosqueItem, CreateCommunitySuggestionPayload, Mosque, MosqueAnnouncement, MosqueDonationMethod, MosqueReportPayload, MosqueStaffMember, MosqueSuggestionItem, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
 import { AuthResponse, LoginPayload, RegisterPayload, UserProfile } from '../types/auth';
 import { RegisterDevicePayload, UserDevice } from '../types/device';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
@@ -1049,4 +1049,42 @@ export const ApiClient = {
       fallbackResponse
     );
   },
+
+  async fetchPublicMosqueSuggestions(
+    mosqueId: string,
+    page = 1,
+    limit = 5
+  ): Promise<{ items: MosqueSuggestionItem[]; meta: any }> {
+    const fallbackResponse = { items: [], meta: { total: 0 } };
+    return fetchWithFallback<{ items: MosqueSuggestionItem[]; meta: any }>(
+      `/mosques/${mosqueId}/suggestions/public?page=${page}&limit=${limit}`,
+      { method: 'GET' },
+      fallbackResponse
+    );
+  },
+
+  async submitCommunitySuggestion(
+    mosqueId: string,
+    payload: CreateCommunitySuggestionPayload
+  ): Promise<{ success: boolean; data?: any }> {
+    const fallbackResponse = {
+      success: true,
+      data: {
+        id: `sug-${Date.now()}`,
+        mosqueId,
+        ...payload,
+        status: 'OPEN',
+        createdAt: new Date().toISOString(),
+      },
+    };
+    return fetchWithFallback<{ success: boolean; data?: any }>(
+      `/mosques/${mosqueId}/suggestions`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      fallbackResponse
+    );
+  },
 };
+

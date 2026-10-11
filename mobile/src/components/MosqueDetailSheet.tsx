@@ -8,7 +8,9 @@ import {
   Pressable,
   Linking,
 } from 'react-native';
-import { Mosque, MosqueStaffMember, PrayerSchedule } from '../types/mosque';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { Mosque, MosqueStaffMember, MosqueSuggestionItem, PrayerSchedule } from '../types/mosque';
+import { ApiClient } from '../lib/apiClient';
 import { formatTo12Hour } from '../lib/time';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 import { AttendanceAffiliationCard } from './AttendanceAffiliationCard';
@@ -18,6 +20,7 @@ import { ReportIssueModal } from './ReportIssueModal';
 import { LeadershipRosterCard } from './LeadershipRosterCard';
 import { FacilitiesCard } from './FacilitiesCard';
 import { SuggestFacilitiesModal } from './SuggestFacilitiesModal';
+import { MosqueSuggestionModal } from './MosqueSuggestionModal';
 import { DonationChannelsCard } from './DonationChannelsCard';
 import { SuggestDonationMethodModal } from './SuggestDonationMethodModal';
 import { PrayerScheduleAuditModal } from './PrayerScheduleAuditModal';
@@ -27,6 +30,7 @@ import { CommitteeVerificationModal } from './CommitteeVerificationModal';
 import { CreateAnnouncementModal } from './CreateAnnouncementModal';
 import { CollectionStorage } from '../lib/storage';
 import { CollectionService, MosqueCollectionTag } from '../services/collectionService';
+
 
 interface MosqueDetailSheetProps {
   mosque: Mosque | null;
@@ -55,6 +59,8 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [suggestDonationModalVisible, setSuggestDonationModalVisible] = useState(false);
   const [auditModalVisible, setAuditModalVisible] = useState(false);
   const [committeeVerificationModalVisible, setCommitteeVerificationModalVisible] = useState(false);
+  const [suggestionModalVisible, setSuggestionModalVisible] = useState(false);
+  const [publicSuggestions, setPublicSuggestions] = useState<MosqueSuggestionItem[]>([]);
   const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
   const [activeFacility, setActiveFacility] = useState(mosque?.facility);
@@ -65,12 +71,24 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
     setActiveFacility(mosque?.facility);
     if (mosque?.id) {
       setActiveTags(CollectionStorage.getMosqueTags(mosque.id));
+      ApiClient.fetchPublicMosqueSuggestions(mosque.id, 1, 5)
+        .then((res) => {
+          if (res?.items) setPublicSuggestions(res.items);
+        })
+        .catch(() => setPublicSuggestions([]));
     }
   }, [mosque?.id, mosque?.prayerSchedule, mosque?.facility]);
 
   if (!mosque) return null;
 
   const schedule = activeSchedule ?? mosque.prayerSchedule;
+
+  const freshness = mosque.freshness || { level: 'FRESH', daysAgo: 0 };
+  const freshnessLabel = {
+    FRESH: `Verified recently (${freshness.daysAgo}d ago)`,
+    STALE: `Updated ${freshness.daysAgo}d ago · May need seasonal check`,
+    VERY_STALE: `Updated ${freshness.daysAgo}d ago · Outdated`,
+  }[freshness.level || 'FRESH'];
 
   const prayerRows = [
     { name: 'Fajr', jammat: schedule?.fajrJamaat, start: schedule?.fajrStart },
@@ -131,6 +149,20 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
+            {/* Freshness banner (ADR-072 web parity) */}
+            <View style={styles.freshnessBanner}>
+              <View style={styles.freshnessLeft}>
+                <Feather name="clock" size={13} color="#059669" />
+                <Text style={styles.freshnessText}>{freshnessLabel}</Text>
+              </View>
+              <Pressable
+                onPress={() => setUpdateModalVisible(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Update prayer times"
+              >
+                <Text style={styles.freshnessLink}>Update Times</Text>
+              </Pressable>
+            </View>
             {/* Mosque Notice Board Strip (ADR-011, ADR-044) */}
             {mosque.announcements && mosque.announcements.length > 0 && (
               <Pressable
@@ -264,6 +296,70 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               onPressSuggest={() => setSuggestFacilitiesModalVisible(true)}
             />
 
+            {/* Card 5: Community Suggestions & Feedback matching web MosqueDetailModal */}
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.communityHeaderLeft}>
+                  <Feather name="message-square" size={14} color="#2563eb" style={{ marginRight: 6 }} />
+                  <Text style={styles.cardTitle}>Community Feedback</Text>
+                </View>
+                <Pressable
+                  onPress={() => setSuggestionModalVisible(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Add community suggestion or complaint"
+                >
+                  <Text style={styles.suggestionAddLink}>+ Suggest / Complain</Text>
+                </Pressable>
+              </View>
+
+              {publicSuggestions.length > 0 ? (
+                <View style={styles.suggestionList}>
+                  {publicSuggestions.slice(0, 3).map((item) => (
+                    <View key={item.id} style={styles.suggestionItem}>
+                      <View style={styles.suggestionItemHeader}>
+                        <View style={styles.suggestionBadgeRow}>
+                          <View style={styles.suggestionTypeBadge}>
+                            <Text style={styles.suggestionTypeBadgeText}>{item.type}</Text>
+                          </View>
+                          {item.urgency === 'HIGH' && (
+                            <View style={styles.suggestionUrgentBadge}>
+                              <Text style={styles.suggestionUrgentBadgeText}>Urgent</Text>
+                            </View>
+                          )}
+                          {item.targetRoles && item.targetRoles.length > 0 && (
+                            <Text style={styles.suggestionTargetRoles}>
+                              To: {item.targetRoles.join(', ')}
+                            </Text>
+                          )}
+                        </View>
+                        <Text
+                          style={[
+                            styles.suggestionStatus,
+                            item.status === 'RESOLVED' && styles.suggestionStatusResolved,
+                          ]}
+                        >
+                          {item.status}
+                        </Text>
+                      </View>
+                      <Text style={styles.suggestionDesc}>{item.description}</Text>
+                      {item.resolutionNotes ? (
+                        <View style={styles.resolutionBox}>
+                          <Text style={styles.resolutionText}>
+                            <Text style={styles.resolutionBold}>Committee response: </Text>
+                            {item.resolutionNotes}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.emptySuggestionText}>
+                  No public suggestions posted yet. Tap Suggest below to submit feedback for the Imam or Committee.
+                </Text>
+              )}
+            </View>
+
             {/* Quick Actions 4-Card Toolbar (Directions, Donate, Suggest, Report) */}
             <View style={styles.quickActionsGrid}>
               <Pressable
@@ -275,7 +371,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
                 accessibilityRole="button"
                 accessibilityLabel="Get directions in Maps"
               >
-                <Text style={styles.quickActionIcon}>🧭</Text>
+                <Feather name="navigation" size={16} color="#059669" style={styles.quickActionIconSvg} />
                 <Text style={styles.quickActionText}>Directions</Text>
               </Pressable>
 
@@ -285,17 +381,17 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
                 accessibilityRole="button"
                 accessibilityLabel="Open donation channels"
               >
-                <Text style={styles.quickActionIcon}>💳</Text>
+                <Feather name="credit-card" size={16} color="#059669" style={styles.quickActionIconSvg} />
                 <Text style={styles.quickActionText}>Donate</Text>
               </Pressable>
 
               <Pressable
-                onPress={() => setSuggestFacilitiesModalVisible(true)}
+                onPress={() => setSuggestionModalVisible(true)}
                 style={styles.quickActionBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Suggest facility updates"
+                accessibilityLabel="Suggest or complain"
               >
-                <Text style={styles.quickActionIcon}>✏️</Text>
+                <Feather name="edit-3" size={16} color="#2563eb" style={styles.quickActionIconSvg} />
                 <Text style={styles.quickActionText}>Suggest</Text>
               </Pressable>
 
@@ -305,7 +401,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
                 accessibilityRole="button"
                 accessibilityLabel="Report issue"
               >
-                <Text style={styles.quickActionIcon}>🚩</Text>
+                <Feather name="flag" size={16} color="#e11d48" style={styles.quickActionIconSvg} />
                 <Text style={styles.quickActionText}>Report</Text>
               </Pressable>
             </View>
@@ -367,6 +463,21 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               ...(prev ?? {}),
               ...suggested,
             }));
+          }}
+        />
+
+        <MosqueSuggestionModal
+          visible={suggestionModalVisible}
+          mosque={mosque}
+          onClose={() => setSuggestionModalVisible(false)}
+          onSuccess={() => {
+            if (mosque?.id) {
+              ApiClient.fetchPublicMosqueSuggestions(mosque.id, 1, 5)
+                .then((res) => {
+                  if (res?.items) setPublicSuggestions(res.items);
+                })
+                .catch(() => {});
+            }
           }}
         />
 
@@ -780,6 +891,131 @@ const styles = StyleSheet.create({
   },
   quickActionIcon: {
     fontSize: 16,
+    marginBottom: 4,
+  },
+  freshnessBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: '#f4f4f5',
+    borderWidth: 1,
+    borderColor: '#e4e4e7',
+    marginBottom: 4,
+  },
+  freshnessLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  freshnessText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#3f3f46',
+  },
+  freshnessLink: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#059669',
+    textDecorationLine: 'underline',
+  },
+  communityHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  suggestionAddLink: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#2563eb',
+  },
+  suggestionList: {
+    gap: 8,
+    marginTop: 6,
+  },
+  suggestionItem: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e8e8ea',
+    borderRadius: 12,
+    padding: 10,
+    gap: 4,
+  },
+  suggestionItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  suggestionBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  suggestionTypeBadge: {
+    backgroundColor: '#f4f4f5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  suggestionTypeBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#111114',
+  },
+  suggestionUrgentBadge: {
+    backgroundColor: '#fff1f2',
+    borderWidth: 1,
+    borderColor: '#fecdd3',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  suggestionUrgentBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#e11d48',
+  },
+  suggestionTargetRoles: {
+    fontSize: 9,
+    color: '#6e6e73',
+  },
+  suggestionStatus: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#6e6e73',
+  },
+  suggestionStatusResolved: {
+    color: '#059669',
+  },
+  suggestionDesc: {
+    fontSize: 11,
+    color: '#111114',
+    lineHeight: 15,
+  },
+  resolutionBox: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#d1fae5',
+    borderRadius: 8,
+    padding: 6,
+    marginTop: 4,
+  },
+  resolutionText: {
+    fontSize: 10,
+    color: '#065f46',
+  },
+  resolutionBold: {
+    fontWeight: '700',
+  },
+  emptySuggestionText: {
+    fontSize: 11,
+    color: '#6e6e73',
+    lineHeight: 15,
+  },
+  quickActionIconSvg: {
     marginBottom: 4,
   },
   quickActionText: {

@@ -34,7 +34,10 @@ Translate the exact visual hierarchy, component layout, and interactive states o
 | Popup Name | Web Component Reference | Mobile Target Component | Status |
 | :--- | :--- | :--- | :--- |
 | **Mosque Details** | `frontend/src/components/MosqueDetailModal.tsx` | `mobile/src/components/MosqueDetailSheet.tsx` | Completed |
+| **Community Feedback** | `frontend/src/components/MosqueDetailModal.tsx` | `mobile/src/components/MosqueDetailSheet.tsx` | Completed |
+| **Suggest / Complain** | `frontend/src/components/MosqueSuggestionModal.tsx` | `mobile/src/components/MosqueSuggestionModal.tsx` | Completed |
 | **Add Mosque** | `frontend/src/components/AddMosqueModal.tsx` | `mobile/src/components/AddMosqueSheet.tsx` | Completed |
 | **Claim Role** | `frontend/src/components/RoleClaimModal.tsx` | `mobile/src/components/RoleClaimModal.tsx` | Completed |
 | **Donate** | `frontend/src/components/DonationModal.tsx` | `mobile/src/components/SuggestDonationMethodModal.tsx` | Completed |
 | **Suggest Facilities** | `frontend/src/components/SuggestFacilitiesModal.tsx` | `mobile/src/components/SuggestFacilitiesModal.tsx` | Completed |
+

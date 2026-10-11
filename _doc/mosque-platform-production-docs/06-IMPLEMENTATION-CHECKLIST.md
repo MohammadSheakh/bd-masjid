@@ -313,10 +313,13 @@ Before first production release:
 ## V. Mobile Popup Design Parity with Web Platform
 
 - [x] Mosque Details Popup (`MosqueDetailSheet.tsx`) visual & functional parity
+- [x] Mosque Suggestion & Complaint Modal (`MosqueSuggestionModal.tsx`) role-targeted feedback parity
+- [x] Public Community Feedback Feed & Freshness banner parity
 - [x] Add Mosque Popup (`AddMosqueSheet.tsx`) reverse geocoding & duplicate check parity
 - [x] Claim Role Popup (`RoleClaimModal.tsx`) exact form fields & photo upload parity
 - [x] Donate Popup (`SuggestDonationMethodModal.tsx`) payment channels & copy action parity
 - [x] Suggest Facilities Popup (`SuggestFacilitiesModal.tsx`) amenities selector parity
+
 
 
 
