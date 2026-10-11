@@ -5,7 +5,7 @@
  * - Resilient offline fallback to structured Bangladeshi fixtures
  */
 import { Platform } from 'react-native';
-import { AttendanceStatus, AttendanceSummary, AttendedMosqueItem, CreateCommunitySuggestionPayload, Mosque, MosqueAnnouncement, MosqueDonationMethod, MosqueReportPayload, MosqueStaffMember, MosqueSuggestionItem, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
+import { AttendanceStatus, AttendanceSummary, AttendedMosqueItem, CreateCommunitySuggestionPayload, DuplicateCandidate, Mosque, MosqueAnnouncement, MosqueDonationMethod, MosqueReportPayload, MosqueStaffMember, MosqueSuggestionItem, PaginatedNotifications, PrayerSchedule, UserNotification } from '../types/mosque';
 import { AuthResponse, LoginPayload, RegisterPayload, UserProfile } from '../types/auth';
 import { RegisterDevicePayload, UserDevice } from '../types/device';
 import { BANGLADESH_MOSQUES_FIXTURES } from '../data/mosqueFixtures';
@@ -1086,5 +1086,21 @@ export const ApiClient = {
       fallbackResponse
     );
   },
+
+  async checkProximityDuplicate(
+    latitude: number,
+    longitude: number
+  ): Promise<DuplicateCandidate[]> {
+    const fallbackResponse: DuplicateCandidate[] = [];
+    return fetchWithFallback<DuplicateCandidate[]>(
+      '/mosques/check-duplicate',
+      {
+        method: 'POST',
+        body: JSON.stringify({ latitude, longitude }),
+      },
+      fallbackResponse
+    );
+  },
 };
+
 

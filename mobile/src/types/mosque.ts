@@ -281,3 +281,10 @@ export interface CreateCommunitySuggestionPayload {
   description: string;
 }
 
+export interface DuplicateCandidate {
+  mosqueId: string;
+  name: string;
+  distanceMeters: number;
+}
+
+

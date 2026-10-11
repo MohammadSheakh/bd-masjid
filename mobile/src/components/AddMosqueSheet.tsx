@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Mosque } from '../types/mosque';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { DuplicateCandidate, Mosque } from '../types/mosque';
 import { ApiClient } from '../lib/apiClient';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
 import { AuthService } from '../services/authService';
@@ -70,8 +71,9 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
 
   // Duplicate Bypass
   const [allowBypass, setAllowBypass] = useState(false);
+  const [serverDuplicates, setServerDuplicates] = useState<DuplicateCandidate[]>([]);
 
-  // Reverse Geocoding Address Resolution on mount
+  // Reverse Geocoding Address Resolution on mount & Server Duplicate Query
   useEffect(() => {
     if (visible && initialCoords?.lat && initialCoords?.lng) {
       setIsResolvingAddress(true);
@@ -87,18 +89,28 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
         })
         .catch(() => {})
         .finally(() => setIsResolvingAddress(false));
+
+      ApiClient.checkProximityDuplicate(initialCoords.lat, initialCoords.lng)
+        .then((candidates) => {
+          if (Array.isArray(candidates)) setServerDuplicates(candidates);
+        })
+        .catch(() => setServerDuplicates([]));
     }
   }, [visible, initialCoords]);
 
-  // Proximity Duplicate Detection (<= 50m)
-  const nearbyDuplicate = useMemo(() => {
+  // Proximity Duplicate Detection (Server PostGIS + Local <= 50m)
+  const activeDuplicate = useMemo(() => {
+    if (serverDuplicates.length > 0) {
+      const first = serverDuplicates[0];
+      return { name: first.name, distance: Math.round(first.distanceMeters) };
+    }
     if (!initialCoords) return null;
     for (const m of existingMosques) {
       const dist = calculateDistanceMeters(initialCoords.lat, initialCoords.lng, m.latitude, m.longitude);
-      if (dist <= 50) return { mosque: m, distance: Math.round(dist) };
+      if (dist <= 50) return { name: m.name, distance: Math.round(dist) };
     }
     return null;
-  }, [initialCoords, existingMosques]);
+  }, [serverDuplicates, initialCoords, existingMosques]);
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -106,10 +118,10 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
       return;
     }
 
-    if (nearbyDuplicate && !allowBypass) {
+    if (activeDuplicate && !allowBypass) {
       Alert.alert(
         'Possible Duplicate',
-        `A mosque named "${nearbyDuplicate.mosque.name}" is already registered within ${nearbyDuplicate.distance} meters. Please verify the checkbox below if this is a separate hall.`
+        `A mosque named "${activeDuplicate.name}" is already registered within ${activeDuplicate.distance} meters. Please verify the checkbox below if this is a separate hall.`
       );
       return;
     }
@@ -165,7 +177,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
           <View style={styles.header}>
             <View style={styles.headerTitleRow}>
               <View style={styles.headerIconCircle}>
-                <Text style={styles.headerIcon}>🕌</Text>
+                <Feather name="plus-circle" size={18} color="#059669" />
               </View>
               <View>
                 <Text style={styles.headerTitle}>Add Mosque</Text>
@@ -173,7 +185,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
               </View>
             </View>
             <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              <Ionicons name="close" size={18} color="#6e6e73" />
             </Pressable>
           </View>
 
@@ -183,7 +195,8 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
               <View style={styles.coordHeader}>
                 <Text style={styles.coordTitle}>GEOGRAPHIC COORDINATES</Text>
                 <View style={styles.coordBadge}>
-                  <Text style={styles.coordBadgeText}>📍 Verified Pin</Text>
+                  <Feather name="map-pin" size={11} color="#059669" style={{ marginRight: 3 }} />
+                  <Text style={styles.coordBadgeText}>Verified Pin</Text>
                 </View>
               </View>
 
@@ -198,7 +211,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
                 </View>
               ) : autoResolvedAddress ? (
                 <View style={styles.resolvedRow}>
-                  <Text style={styles.resolvedIcon}>✓</Text>
+                  <Feather name="check" size={13} color="#059669" style={{ marginRight: 5 }} />
                   <Text style={styles.resolvedText} numberOfLines={2}>
                     Auto-detected: {autoResolvedAddress}
                   </Text>
@@ -206,19 +219,22 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
               ) : null}
             </View>
 
-            {/* Proximity Duplicate Warning (ADR-004) */}
-            {nearbyDuplicate && (
+            {/* Proximity Duplicate Warning (ADR-004, ADR-072) */}
+            {activeDuplicate && (
               <View style={styles.duplicateWarning}>
-                <Text style={styles.duplicateTitle}>⚠️ Possible Duplicate Mosque</Text>
+                <View style={styles.duplicateTitleRow}>
+                  <Feather name="alert-triangle" size={15} color="#d97706" style={{ marginRight: 6 }} />
+                  <Text style={styles.duplicateTitle}>Possible Duplicate Mosque</Text>
+                </View>
                 <Text style={styles.duplicateBody}>
-                  "{nearbyDuplicate.mosque.name}" is located only {nearbyDuplicate.distance}m away.
+                  "{activeDuplicate.name}" is located only {activeDuplicate.distance}m away.
                 </Text>
                 <Pressable
                   onPress={() => setAllowBypass((prev) => !prev)}
                   style={styles.bypassCheckboxRow}
                 >
                   <View style={[styles.checkbox, allowBypass && styles.checkboxActive]}>
-                    {allowBypass && <Text style={styles.checkboxCheck}>✓</Text>}
+                    {allowBypass && <Feather name="check" size={11} color="#ffffff" />}
                   </View>
                   <Text style={styles.bypassText}>
                     Confirm: This is a separate, distinct mosque hall
@@ -345,7 +361,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
                   onPress={() => setHasAC((p) => !p)}
                   style={[styles.facilityCard, hasAC && styles.facilityCardActive]}
                 >
-                  <Text style={styles.facilityIcon}>❄️</Text>
+                  <Feather name="wind" size={16} color={hasAC ? '#059669' : '#6e6e73'} style={{ marginBottom: 4 }} />
                   <Text style={[styles.facilityText, hasAC && styles.facilityTextActive]}>
                     Air Conditioned
                   </Text>
@@ -355,7 +371,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
                   onPress={() => setHasWomenSpace((p) => !p)}
                   style={[styles.facilityCard, hasWomenSpace && styles.facilityCardActive]}
                 >
-                  <Text style={styles.facilityIcon}>🧕</Text>
+                  <Feather name="users" size={16} color={hasWomenSpace ? '#059669' : '#6e6e73'} style={{ marginBottom: 4 }} />
                   <Text style={[styles.facilityText, hasWomenSpace && styles.facilityTextActive]}>
                     Women Space
                   </Text>
@@ -365,7 +381,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
                   onPress={() => setHasParking((p) => !p)}
                   style={[styles.facilityCard, hasParking && styles.facilityCardActive]}
                 >
-                  <Text style={styles.facilityIcon}>🚗</Text>
+                  <Feather name="truck" size={16} color={hasParking ? '#059669' : '#6e6e73'} style={{ marginBottom: 4 }} />
                   <Text style={[styles.facilityText, hasParking && styles.facilityTextActive]}>
                     Parking
                   </Text>
@@ -375,7 +391,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
                   onPress={() => setHasWheelchair((p) => !p)}
                   style={[styles.facilityCard, hasWheelchair && styles.facilityCardActive]}
                 >
-                  <Text style={styles.facilityIcon}>♿</Text>
+                  <Feather name="heart" size={16} color={hasWheelchair ? '#059669' : '#6e6e73'} style={{ marginBottom: 4 }} />
                   <Text style={[styles.facilityText, hasWheelchair && styles.facilityTextActive]}>
                     Wheelchair
                   </Text>
@@ -547,11 +563,15 @@ const styles = StyleSheet.create({
     padding: ferioSpacing.md,
     marginBottom: ferioSpacing.md,
   },
+  duplicateTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   duplicateTitle: {
     fontSize: 12,
     fontWeight: '700',
     color: '#92400e',
-    marginBottom: 2,
   },
   duplicateBody: {
     fontSize: 11,
