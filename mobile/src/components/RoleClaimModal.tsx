@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { MosqueStaffRole, CreateRoleClaimPayload } from '../types/community';
 import { ApiClient } from '../lib/apiClient';
 import { ContributorService } from '../services/contributorService';
@@ -137,7 +138,7 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
           <View style={styles.header}>
             <View style={styles.headerTitleGroup}>
               <View style={styles.shieldBadge}>
-                <Text style={styles.shieldIcon}>🛡️</Text>
+                <Feather name="shield" size={16} color="#059669" />
               </View>
               <View style={styles.headerTextCol}>
                 <Text style={styles.title}>
@@ -153,7 +154,7 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
               style={styles.closeBtn}
               accessibilityLabel="Close dialog"
             >
-              <Text style={styles.closeBtnText}>✕</Text>
+              <Ionicons name="close" size={18} color="#6e6e73" />
             </TouchableOpacity>
           </View>
 
@@ -161,7 +162,7 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
           {isSuccess ? (
             <View style={styles.successContainer}>
               <View style={styles.successIconWrapper}>
-                <Text style={styles.successCheckIcon}>✓</Text>
+                <Feather name="check" size={24} color="#059669" />
               </View>
               <Text style={styles.successTitle}>
                 {isBangla ? 'দায়িত্ব দাবি জমা হয়েছে' : 'Role Claim Submitted'}
@@ -186,7 +187,7 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
             >
               {/* Guidance banner matching web */}
               <View style={styles.guidanceBanner}>
-                <Text style={styles.guidanceIcon}>✨</Text>
+                <Feather name="info" size={15} color="#059669" style={{ marginTop: 2, marginRight: 6 }} />
                 <Text style={styles.guidanceText}>
                   <Text style={styles.boldText}>
                     {isBangla ? 'অফিসিয়াল নিয়োগ যাচাইকরণ: ' : 'Official Appointment Verification: '}
@@ -199,15 +200,18 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
 
               {errorMessage && (
                 <View style={styles.errorBox}>
-                  <Text style={styles.errorIcon}>⚠️</Text>
+                  <Feather name="alert-triangle" size={14} color="#e11d48" style={{ marginTop: 1, marginRight: 6 }} />
                   <Text style={styles.errorText}>{errorMessage}</Text>
                 </View>
               )}
 
               {/* Role Selection */}
-              <Text style={styles.sectionLabel}>
-                💼 {isBangla ? 'অফিসিয়াল দায়িত্ব / পদবী *' : 'Official Role *'}
-              </Text>
+              <View style={styles.labelWithIconRow}>
+                <Feather name="briefcase" size={13} color="#111114" />
+                <Text style={styles.sectionLabel}>
+                  {isBangla ? 'অফিসিয়াল দায়িত্ব / পদবী *' : 'Official Role *'}
+                </Text>
+              </View>
               <View style={styles.roleGrid}>
                 {AVAILABLE_ROLES.map((r) => {
                   const isSelected = selectedRole === r.role;
@@ -245,9 +249,12 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
 
               {/* Serving Since (Start Date) */}
               <View style={styles.inputGroup}>
-                <Text style={styles.fieldLabel}>
-                  📅 {isBangla ? 'নিয়োগ শুরুর তারিখ' : 'Serving Since (Starting Date)'}
-                </Text>
+                <View style={styles.labelWithIconRow}>
+                  <Feather name="calendar" size={13} color="#111114" />
+                  <Text style={styles.fieldLabel}>
+                    {isBangla ? 'নিয়োগ শুরুর তারিখ' : 'Serving Since (Starting Date)'}
+                  </Text>
+                </View>
                 <TextInput
                   style={styles.input}
                   value={startDate}
@@ -260,9 +267,12 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
               {/* Applicant Name & Phone */}
               <View style={styles.rowInputs}>
                 <View style={[styles.inputGroup, styles.flex1]}>
-                  <Text style={styles.fieldLabel}>
-                    👤 {isBangla ? 'পূর্ণ নাম *' : 'Full Name *'}
-                  </Text>
+                  <View style={styles.labelWithIconRow}>
+                    <Feather name="user" size={13} color="#111114" />
+                    <Text style={styles.fieldLabel}>
+                      {isBangla ? 'পূর্ণ নাম *' : 'Full Name *'}
+                    </Text>
+                  </View>
                   <TextInput
                     style={styles.input}
                     value={name}
@@ -272,9 +282,12 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
                   />
                 </View>
                 <View style={[styles.inputGroup, styles.flex1]}>
-                  <Text style={styles.fieldLabel}>
-                    📞 {isBangla ? 'মোবাইল নম্বর *' : 'Contact Phone Number *'}
-                  </Text>
+                  <View style={styles.labelWithIconRow}>
+                    <Feather name="phone" size={13} color="#111114" />
+                    <Text style={styles.fieldLabel}>
+                      {isBangla ? 'মোবাইল নম্বর *' : 'Contact Phone Number *'}
+                    </Text>
+                  </View>
                   <TextInput
                     style={styles.input}
                     value={phoneNumber}
@@ -288,9 +301,12 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
 
               {/* Supporting Document / Appointment Deed Link */}
               <View style={styles.inputGroup}>
-                <Text style={styles.fieldLabel}>
-                  🔗 {isBangla ? 'নিয়োগপত্র বা দলিলের লিংক (ঐচ্ছিক)' : 'Supporting Document / Deed Link (Optional)'}
-                </Text>
+                <View style={styles.labelWithIconRow}>
+                  <Feather name="link" size={13} color="#111114" />
+                  <Text style={styles.fieldLabel}>
+                    {isBangla ? 'নিয়োগপত্র বা দলিলের লিংক (ঐচ্ছিক)' : 'Supporting Document / Deed Link (Optional)'}
+                  </Text>
+                </View>
                 <TextInput
                   style={styles.input}
                   value={documentUrl}
@@ -309,9 +325,12 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
 
               {/* Verification Narrative */}
               <View style={styles.inputGroup}>
-                <Text style={styles.fieldLabel}>
-                  📄 {isBangla ? 'নিয়োগের বিবরণ / প্রমাণ (ঐচ্ছিক)' : 'Appointment Evidence / Verification Details (Optional)'}
-                </Text>
+                <View style={styles.labelWithIconRow}>
+                  <Feather name="file-text" size={13} color="#111114" />
+                  <Text style={styles.fieldLabel}>
+                    {isBangla ? 'নিয়োগের বিবরণ / প্রমাণ (ঐচ্ছিক)' : 'Appointment Evidence / Verification Details (Optional)'}
+                  </Text>
+                </View>
                 <TextInput
                   style={[styles.input, styles.textArea]}
                   value={evidence}
@@ -485,11 +504,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#991b1b',
   },
+  labelWithIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
   sectionLabel: {
     fontSize: 12,
     fontWeight: '700',
     color: '#111114',
-    marginBottom: 8,
   },
   roleGrid: {
     flexDirection: 'row',
