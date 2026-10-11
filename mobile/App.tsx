@@ -226,7 +226,7 @@ export default function App() {
 
   const displayedMosques = useMemo(() => {
     if (!isSearchingOrFiltering) {
-      return followedMosques;
+      return followedMosques.length > 0 ? followedMosques : discoveredMosques;
     }
 
     let list = discoveredMosques;
@@ -254,6 +254,7 @@ export default function App() {
   }, [isSearchingOrFiltering, followedMosques, discoveredMosques, selectedTag, activeCollectionTag, followedIds]);
 
   const loadInitialMosques = useCallback(async () => {
+    setIsSearchingLoading(true);
     try {
       const results = await ApiClient.getNearbyMosques(23.75, 90.39, 25000);
       if (Array.isArray(results) && results.length > 0) {
@@ -261,6 +262,8 @@ export default function App() {
       }
     } catch {
       // fallback handled gracefully
+    } finally {
+      setIsSearchingLoading(false);
     }
   }, []);
 
@@ -496,13 +499,7 @@ export default function App() {
             </Pressable>
           </View>
 
-          {/* Routine Collection Filter Pills (ADR-052) */}
-          <CollectionFilterBar
-            activeTag={activeCollectionTag}
-            tagCounts={collectionCounts}
-            language={lang}
-            onSelectTag={setActiveCollectionTag}
-          />
+          {/* Routine Collection Filter Pills (ADR-052) - hidden for web parity */}
 
           {/* Amenity Filter Chips */}
           <View style={styles.filterChipContainer}>

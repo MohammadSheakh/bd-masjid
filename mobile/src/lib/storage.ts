@@ -6,7 +6,7 @@
 import { AttendanceStatus, PrayerAutoSilentSettings } from '../types/mosque';
 import { MosqueCollectionTag } from '../services/collectionService';
 
-// In-Memory synchronous KV cache (mimicking MMKV fast key-value map)
+// In-Memory synchronous KV cache (mimicking MMKV fast key-value map, bridged with web localStorage when available)
 const syncKvCache = new Map<string, string>();
 
 const STORAGE_KEYS = {
@@ -18,13 +18,67 @@ const STORAGE_KEYS = {
   OEM_WIZARD_DISMISSED: 'bd_masjid_oem_wizard_dismissed',
 } as const;
 
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key) {
+        const val = window.localStorage.getItem(key);
+        if (val !== null) syncKvCache.set(key, val);
+      }
+    }
+    const webToken = window.localStorage.getItem('access_token') || window.localStorage.getItem('token');
+    if (webToken) {
+      syncKvCache.set(STORAGE_KEYS.ACCESS_TOKEN, webToken);
+    }
+    const webBookmarks = window.localStorage.getItem('bd_masjid_bookmarks');
+    if (webBookmarks && !syncKvCache.has(STORAGE_KEYS.FOLLOWED_MOSQUES)) {
+      syncKvCache.set(STORAGE_KEYS.FOLLOWED_MOSQUES, webBookmarks);
+    }
+  } catch {}
+}
+
+function persistKv(key: string, value: string | null): void {
+  if (value === null) {
+    syncKvCache.delete(key);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.removeItem(key);
+        if (key === STORAGE_KEYS.ACCESS_TOKEN) {
+          window.localStorage.removeItem('access_token');
+          window.localStorage.removeItem('token');
+        }
+        if (key === STORAGE_KEYS.FOLLOWED_MOSQUES) {
+          window.localStorage.removeItem('bd_masjid_bookmarks');
+        }
+      } catch {}
+    }
+  } else {
+    syncKvCache.set(key, value);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.setItem(key, value);
+        if (key === STORAGE_KEYS.ACCESS_TOKEN) {
+          window.localStorage.setItem('access_token', value);
+        }
+        if (key === STORAGE_KEYS.FOLLOWED_MOSQUES) {
+          window.localStorage.setItem('bd_masjid_bookmarks', value);
+        }
+      } catch {}
+    }
+  }
+}
+
 /**
  * Tier 1: Hardware-backed Token Encryption Storage
  */
 export const SecureTokenStorage = {
   async getAccessToken(): Promise<string | null> {
     try {
-      // In production development client, expo-secure-store TurboModule is accessed
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const token = window.localStorage.getItem('access_token') || window.localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+        if (token) return token;
+      }
       return syncKvCache.get(STORAGE_KEYS.ACCESS_TOKEN) ?? null;
     } catch {
       return null;
@@ -32,15 +86,15 @@ export const SecureTokenStorage = {
   },
 
   async setTokens(accessToken: string, refreshToken?: string): Promise<void> {
-    syncKvCache.set(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+    persistKv(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
     if (refreshToken) {
-      syncKvCache.set(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+      persistKv(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
     }
   },
 
   async clearTokens(): Promise<void> {
-    syncKvCache.delete(STORAGE_KEYS.ACCESS_TOKEN);
-    syncKvCache.delete(STORAGE_KEYS.REFRESH_TOKEN);
+    persistKv(STORAGE_KEYS.ACCESS_TOKEN, null);
+    persistKv(STORAGE_KEYS.REFRESH_TOKEN, null);
   },
 };
 
@@ -49,7 +103,10 @@ export const SecureTokenStorage = {
  */
 export const PreferencesStorage = {
   getFollowedMosqueIds(fallback: string[] = []): string[] {
-    const raw = syncKvCache.get(STORAGE_KEYS.FOLLOWED_MOSQUES);
+    let raw = syncKvCache.get(STORAGE_KEYS.FOLLOWED_MOSQUES);
+    if (!raw && typeof window !== 'undefined' && window.localStorage) {
+      raw = (window.localStorage.getItem(STORAGE_KEYS.FOLLOWED_MOSQUES) || window.localStorage.getItem('bd_masjid_bookmarks')) ?? undefined;
+    }
     if (!raw) return fallback;
     try {
       const parsed = JSON.parse(raw);
@@ -60,7 +117,7 @@ export const PreferencesStorage = {
   },
 
   setFollowedMosqueIds(ids: string[]): void {
-    syncKvCache.set(STORAGE_KEYS.FOLLOWED_MOSQUES, JSON.stringify(ids));
+    persistKv(STORAGE_KEYS.FOLLOWED_MOSQUES, JSON.stringify(ids));
   },
 
   getAutoSilentSettings(): PrayerAutoSilentSettings | null {
@@ -74,7 +131,7 @@ export const PreferencesStorage = {
   },
 
   setAutoSilentSettings(settings: PrayerAutoSilentSettings): void {
-    syncKvCache.set(STORAGE_KEYS.AUTO_SILENT, JSON.stringify(settings));
+    persistKv(STORAGE_KEYS.AUTO_SILENT, JSON.stringify(settings));
   },
 
   getUserAttendance(mosqueId: string): AttendanceStatus {
@@ -86,10 +143,11 @@ export const PreferencesStorage = {
   },
 
   setUserAttendance(mosqueId: string, status: AttendanceStatus): void {
+    const key = `${STORAGE_KEYS.ATTENDANCE_PREFIX}${mosqueId}`;
     if (status === 'NONE') {
-      syncKvCache.delete(`${STORAGE_KEYS.ATTENDANCE_PREFIX}${mosqueId}`);
+      persistKv(key, null);
     } else {
-      syncKvCache.set(`${STORAGE_KEYS.ATTENDANCE_PREFIX}${mosqueId}`, status);
+      persistKv(key, status);
     }
   },
 

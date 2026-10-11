@@ -119,9 +119,18 @@ export const RoleClaimModal: React.FC<RoleClaimModalProps> = ({
       ContributorService.awardOptimisticPoints(50, `Role claim: ${selectedRole}`);
       setIsSuccess(true);
     } catch (err: any) {
-      setErrorMessage(
-        err?.message || (isBangla ? 'দাবি জমা ব্যর্থ হয়েছে।' : 'Failed to submit claim.')
-      );
+      const msg = err?.message || '';
+      if (msg.includes('401') || msg.toLowerCase().includes('unauthorized')) {
+        setErrorMessage(
+          isBangla
+            ? 'দাবি জমা দেওয়ার জন্য অনুগ্রহ করে লগইন করুন।'
+            : 'Please sign in first to submit an official role claim.'
+        );
+      } else {
+        setErrorMessage(
+          msg || (isBangla ? 'দাবি জমা ব্যর্থ হয়েছে।' : 'Failed to submit claim.')
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }

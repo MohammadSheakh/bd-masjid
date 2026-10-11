@@ -23,6 +23,7 @@ interface AddMosqueSheetProps {
   onClose: () => void;
   onMosqueCreated: (mosque: Mosque) => void;
   onOpenAuthModal?: () => void;
+  isBangla?: boolean;
 }
 
 function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -44,6 +45,7 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
   onClose,
   onMosqueCreated,
   onOpenAuthModal,
+  isBangla = true,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
@@ -140,30 +142,40 @@ export const AddMosqueSheet: React.FC<AddMosqueSheetProps> = ({
         hasSeparateWomenSpace: hasWomenSpace,
         hasParking: hasParking,
         hasWheelchairAccess: hasWheelchair,
-        contributorId: activeUser?.id,
-        contributorName: activeUser?.name,
-        prayerSchedule: {
-          fajrJamaat,
-          zuhrJamaat,
-          asrJamaat,
-          maghribJamaat,
-          ishaJamaat,
-          jumuahJamaat,
-        } as any,
-      } as Partial<Mosque>);
+        allowDuplicateWarningBypass: allowBypass,
+        fajrJamaat: fajrJamaat || undefined,
+        zuhrJamaat: zuhrJamaat || undefined,
+        asrJamaat: asrJamaat || undefined,
+        maghribJamaat: maghribJamaat || undefined,
+        ishaJamaat: ishaJamaat || undefined,
+        jumuahJamaat: jumuahJamaat || undefined,
+      });
 
-      if (res.success && res.mosque) {
-        onMosqueCreated(res.mosque);
-        Alert.alert('Mosque Created', 'Thank you! The mosque has been registered.');
+      if (res.success && (res.mosque || (res as any).data)) {
+        const createdMosque = (res.mosque || (res as any).data) as Mosque;
+        onMosqueCreated(createdMosque);
+        Alert.alert(
+          isBangla ? 'মসজিদ সফলভাবে যুক্ত হয়েছে' : 'Mosque Created',
+          isBangla ? 'ধন্যবাদ! মসজিদটি নিবন্ধিত হয়েছে।' : 'Thank you! The mosque has been registered.'
+        );
         onClose();
         setName('');
         setAddress('');
         setLandmark('');
       } else {
-        Alert.alert('Submission Error', 'Failed to submit mosque.');
+        if (res.candidates && res.candidates.length > 0) {
+          setServerDuplicates(res.candidates);
+        }
+        Alert.alert(
+          isBangla ? 'ত্রুটি' : 'Submission Error',
+          res.error || (isBangla ? 'মসজিদ যোগ করতে ব্যর্থ হয়েছে।' : 'Failed to submit mosque.')
+        );
       }
-    } catch {
-      Alert.alert('Submission Error', 'Failed to submit mosque. Please try again.');
+    } catch (err: any) {
+      Alert.alert(
+        isBangla ? 'ত্রুটি' : 'Submission Error',
+        err?.message || (isBangla ? 'মসজিদ যোগ করতে ব্যর্থ হয়েছে।' : 'Failed to submit mosque.')
+      );
     } finally {
       setIsSubmitting(false);
     }

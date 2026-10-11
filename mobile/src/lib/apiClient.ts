@@ -32,18 +32,25 @@ import {
 } from '../types/verification';
 
 export function getApiBaseUrl(): string {
+  // If running in browser/web, intelligently route to local backend or host
+  if (typeof window !== 'undefined' && window.location) {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:6733/api/v1';
+    }
+    if (window.location.protocol === 'https:') {
+      return process.env.EXPO_PUBLIC_API_URL || 'https://apiferio.sheakh.qzz.io/api/v1';
+    }
+    if (window.location.hostname) {
+      return `http://${window.location.hostname}:6733/api/v1`;
+    }
+  }
+
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
   // Android emulator routes host machine loopback to 10.0.2.2
   if (Platform.OS === 'android') {
     return 'http://10.0.2.2:6733/api/v1';
-  }
-  if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined' && window.location?.hostname) {
-      return `http://${window.location.hostname}:6733/api/v1`;
-    }
-    return 'http://localhost:6733/api/v1';
   }
   // Physical mobile devices on same Wi-Fi LAN
   return 'http://192.168.0.110:6733/api/v1';
@@ -346,33 +353,38 @@ export const ApiClient = {
   },
 
   async createMosque(
-    payload: Partial<Mosque>
-  ): Promise<{ success: boolean; mosque: Mosque }> {
-    const fallbackMosque: Mosque = {
-      id: `mosque-${Date.now()}`,
-      name: payload.name || 'New Community Mosque',
-      latitude: payload.latitude || 23.8103,
-      longitude: payload.longitude || 90.4125,
-      address: payload.address || '',
-      city: payload.city || 'Dhaka',
-      country: 'Bangladesh',
-      operationalStatus: 'OPEN',
-      verificationStatus: 'PENDING_VERIFICATION',
-      prayerSchedule: payload.prayerSchedule,
-      hasAirConditioning: payload.hasAirConditioning,
-      hasSeparateWomenSpace: payload.hasSeparateWomenSpace,
-      hasParking: payload.hasParking,
-      hasWheelchairAccess: payload.hasWheelchairAccess,
-    };
+    payload: any
+  ): Promise<{ success: boolean; mosque?: Mosque; error?: string; candidates?: any[] }> {
+    try {
+      const token = await SecureTokenStorage.getAccessToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
 
-    return fetchWithFallback<{ success: boolean; mosque: Mosque }>(
-      '/mosques',
-      {
+      const res = await fetch(`${getApiBaseUrl()}/mosques`, {
         method: 'POST',
+        headers,
         body: JSON.stringify(payload),
-      },
-      { success: true, mosque: fallbackMosque }
-    );
+      });
+
+      const json = await res.json();
+      if (res.status === 409) {
+        return {
+          success: false,
+          error: json.message || 'Possible duplicate mosque exists nearby.',
+          candidates: json.candidates || [],
+        };
+      }
+      if (!res.ok) {
+        return { success: false, error: json.message || 'Failed to submit mosque.' };
+      }
+      const created = (json.data || json) as Mosque;
+      return { success: true, mosque: created };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error' };
+    }
   },
 
   async getMosqueAnnouncements(
@@ -837,22 +849,25 @@ export const ApiClient = {
     mosqueId: string,
     payload: CreateRoleClaimPayload
   ): Promise<RoleClaimResponse> {
-    const fallbackResponse: RoleClaimResponse = {
-      id: `claim-${Date.now()}`,
-      mosqueId,
-      role: payload.role,
-      status: 'PENDING',
-      message: 'Role claim submitted successfully. Awaiting verification.',
+    const token = await SecureTokenStorage.getAccessToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
-    return fetchWithFallback<RoleClaimResponse>(
-      `/mosques/${mosqueId}/role-claims`,
-      {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      },
-      fallbackResponse
-    );
+    const res = await fetch(`${getApiBaseUrl()}/mosques/${mosqueId}/role-claims`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.message || 'Failed to submit role claim');
+    }
+
+    return (json.data || json) as RoleClaimResponse;
   },
 
   async submitDonationChannel(
@@ -1067,39 +1082,43 @@ export const ApiClient = {
     mosqueId: string,
     payload: CreateCommunitySuggestionPayload
   ): Promise<{ success: boolean; data?: any }> {
-    const fallbackResponse = {
-      success: true,
-      data: {
-        id: `sug-${Date.now()}`,
-        mosqueId,
-        ...payload,
-        status: 'OPEN',
-        createdAt: new Date().toISOString(),
-      },
+    const token = await SecureTokenStorage.getAccessToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
-    return fetchWithFallback<{ success: boolean; data?: any }>(
-      `/mosques/${mosqueId}/suggestions`,
-      {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      },
-      fallbackResponse
-    );
+
+    const res = await fetch(`${getApiBaseUrl()}/mosques/${mosqueId}/suggestions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.message || 'Failed to submit feedback');
+    }
+
+    return { success: true, data: json.data || json };
   },
 
   async checkProximityDuplicate(
     latitude: number,
     longitude: number
   ): Promise<DuplicateCandidate[]> {
-    const fallbackResponse: DuplicateCandidate[] = [];
-    return fetchWithFallback<DuplicateCandidate[]>(
-      '/mosques/check-duplicate',
-      {
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/mosques/check-duplicate`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ latitude, longitude }),
-      },
-      fallbackResponse
-    );
+      });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data?.candidates || json.candidates || [];
+    } catch {
+      return [];
+    }
   },
 };
 

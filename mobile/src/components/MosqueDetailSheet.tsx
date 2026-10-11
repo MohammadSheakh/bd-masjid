@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import { Mosque, MosqueStaffMember, MosqueSuggestionItem, PrayerSchedule } from '../types/mosque';
+import { Mosque, MosqueDonationMethod, MosqueStaffMember, MosqueSuggestionItem, PrayerSchedule, AttendanceSummary } from '../types/mosque';
 import { ApiClient } from '../lib/apiClient';
 import { formatTo12Hour } from '../lib/time';
 import { ferioColors, ferioRadius, ferioSpacing } from '../theme/tokens';
@@ -62,6 +62,9 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
   const [committeeVerificationModalVisible, setCommitteeVerificationModalVisible] = useState(false);
   const [suggestionModalVisible, setSuggestionModalVisible] = useState(false);
   const [publicSuggestions, setPublicSuggestions] = useState<MosqueSuggestionItem[]>([]);
+  const [staffList, setStaffList] = useState<MosqueStaffMember[]>([]);
+  const [donationMethods, setDonationMethods] = useState<MosqueDonationMethod[]>([]);
+  const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary | undefined>(mosque?.attendanceSummary);
   const [activeTags, setActiveTags] = useState<MosqueCollectionTag[]>([]);
   const [activeSchedule, setActiveSchedule] = useState<PrayerSchedule | null | undefined>(mosque?.prayerSchedule);
   const [activeFacility, setActiveFacility] = useState(mosque?.facility);
@@ -72,6 +75,29 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
     setActiveFacility(mosque?.facility);
     if (mosque?.id) {
       setActiveTags(CollectionStorage.getMosqueTags(mosque.id));
+
+      // 1. Fetch fresh verified staff roster
+      ApiClient.fetchMosqueStaff(mosque.id)
+        .then((staff) => {
+          if (Array.isArray(staff)) setStaffList(staff);
+        })
+        .catch(() => setStaffList([]));
+
+      // 2. Fetch fresh donation channels
+      ApiClient.fetchMosqueDonations(mosque.id)
+        .then((donations) => {
+          if (Array.isArray(donations)) setDonationMethods(donations);
+        })
+        .catch(() => setDonationMethods([]));
+
+      // 3. Fetch fresh attendance summary
+      ApiClient.getAttendanceSummary(mosque.id)
+        .then((summary) => {
+          if (summary) setAttendanceSummary(summary);
+        })
+        .catch(() => {});
+
+      // 4. Fetch public suggestions
       ApiClient.fetchPublicMosqueSuggestions(mosque.id, 1, 5)
         .then((res) => {
           if (res?.items) setPublicSuggestions(res.items);
@@ -121,21 +147,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
             </View>
 
             <View style={styles.headerActions}>
-              <Pressable
-                onPress={() => setTagModalVisible(true)}
-                style={styles.tagBtn}
-                accessibilityRole="button"
-                accessibilityLabel="Categorize Mosque"
-              >
-                {activeTags.length > 0 ? (
-                  <Text style={styles.tagBtnText}>
-                    {activeTags.map((t) => CollectionService.getTagMeta(t).icon).join('')}
-                  </Text>
-                ) : (
-                  <Feather name="tag" size={13} color="#71717a" />
-                )}
-              </Pressable>
-
+              {/* Categorize Mosque button hidden for web parity */}
               <Pressable
                 onPress={() => onToggleFollow?.(mosque.id)}
                 style={[styles.followBtn, isFollowed && styles.followBtnActive]}
@@ -207,7 +219,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
             {/* Community Attendance Affiliation & Dual-Count (ADR-024, ADR-035) */}
             <AttendanceAffiliationCard
               mosqueId={mosque.id}
-              summary={mosque.attendanceSummary}
+              summary={attendanceSummary || mosque.attendanceSummary}
             />
 
             {/* Card 1: Complete Timetable Breakdown */}
@@ -287,13 +299,13 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
 
             {/* Card 2: Verified Donation Channels (ADR-028, ADR-051, ADR-067) */}
             <DonationChannelsCard
-              donationMethods={mosque.donationMethods || []}
+              donationMethods={donationMethods.length > 0 ? donationMethods : (mosque.donationMethods || [])}
               onPressSuggest={() => setSuggestDonationModalVisible(true)}
             />
 
             {/* Card 3: Mosque Leadership & Staff Roster (ADR-009, ADR-047, ADR-064, ADR-069) */}
             <LeadershipRosterCard
-              staffMembers={mosque.staffMembers || []}
+              staffMembers={staffList.length > 0 ? staffList : (mosque.staffMembers || [])}
               onClaimRole={() => setRoleClaimModalVisible(true)}
               onVerifyCommittee={() => setCommitteeVerificationModalVisible(true)}
             />
