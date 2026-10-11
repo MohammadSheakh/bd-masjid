@@ -9,6 +9,7 @@ import {
   Linking,
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { Mosque, MosqueStaffMember, MosqueSuggestionItem, PrayerSchedule } from '../types/mosque';
 import { ApiClient } from '../lib/apiClient';
 import { formatTo12Hour } from '../lib/time';
@@ -126,11 +127,13 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
                 accessibilityRole="button"
                 accessibilityLabel="Categorize Mosque"
               >
-                <Text style={styles.tagBtnText}>
-                  {activeTags.length > 0
-                    ? activeTags.map((t) => CollectionService.getTagMeta(t).icon).join('')
-                    : '🏷️'}
-                </Text>
+                {activeTags.length > 0 ? (
+                  <Text style={styles.tagBtnText}>
+                    {activeTags.map((t) => CollectionService.getTagMeta(t).icon).join('')}
+                  </Text>
+                ) : (
+                  <Feather name="tag" size={13} color="#71717a" />
+                )}
               </Pressable>
 
               <Pressable
@@ -143,7 +146,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               </Pressable>
 
               <Pressable onPress={onClose} style={styles.closeBtn}>
-                <Text style={styles.closeBtnText}>✕</Text>
+                <Feather name="x" size={18} color="#71717a" />
               </Pressable>
             </View>
           </View>
@@ -175,9 +178,13 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
                 accessibilityLabel="View Mosque Notice Board"
               >
                 <View style={styles.noticeStripLeft}>
-                  <Text style={styles.noticeStripIcon}>
-                    {mosque.announcements.some((a) => a.priority === 'URGENT') ? '🚨' : '📢'}
-                  </Text>
+                  <View style={styles.noticeStripIconBox}>
+                    <Feather
+                      name={mosque.announcements.some((a) => a.priority === 'URGENT') ? 'alert-triangle' : 'volume-2'}
+                      size={15}
+                      color={mosque.announcements.some((a) => a.priority === 'URGENT') ? '#dc2626' : '#2563eb'}
+                    />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text
                       style={[
@@ -193,7 +200,7 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.noticeStripArrow}>→</Text>
+                <Feather name="chevron-right" size={16} color="#9ca3af" />
               </Pressable>
             )}
 
@@ -217,7 +224,8 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
                     accessibilityRole="button"
                     accessibilityLabel="View schedule revision history"
                   >
-                    <Text style={styles.historyBtnText}>🕒 History</Text>
+                    <Feather name="clock" size={11} color="#4b5563" style={{ marginRight: 4 }} />
+                    <Text style={styles.historyBtnText}>History</Text>
                   </Pressable>
                   <Pressable
                     onPress={() => setUpdateModalVisible(true)}
@@ -253,7 +261,10 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
               {/* Holy Month of Ramadan Timings */}
               {(schedule?.taraweehJamaat || schedule?.sahriEnd || schedule?.iftarStart) && (
                 <View style={styles.ramadanBox}>
-                  <Text style={styles.ramadanTitle}>🌙 Holy Month of Ramadan Timings</Text>
+                  <View style={styles.ramadanTitleRow}>
+                    <Feather name="moon" size={13} color="#059669" style={{ marginRight: 5 }} />
+                    <Text style={styles.ramadanTitle}>Holy Month of Ramadan Timings</Text>
+                  </View>
                   <View style={styles.ramadanGrid}>
                     <View style={styles.ramadanCell}>
                       <Text style={styles.ramadanLabel}>Sahri End</Text>
@@ -410,15 +421,31 @@ export const MosqueDetailSheet: React.FC<MosqueDetailSheetProps> = ({
             <View style={styles.footerRow}>
               <Text style={styles.footerId}>ID: {mosque.id.slice(0, 10)}...</Text>
               <Pressable
-                onPress={() => {
-                  setCopiedShare(true);
-                  setTimeout(() => setCopiedShare(false), 2000);
+                onPress={async () => {
+                  try {
+                    await Clipboard.setStringAsync(
+                      `${mosque.name} - BD Masjid\nhttps://bd-masjid.gov.bd/mosque/${mosque.id}`
+                    );
+                    setCopiedShare(true);
+                    setTimeout(() => setCopiedShare(false), 2000);
+                  } catch {
+                    setCopiedShare(true);
+                    setTimeout(() => setCopiedShare(false), 2000);
+                  }
                 }}
                 style={styles.shareBtn}
                 accessibilityRole="button"
                 accessibilityLabel="Share mosque profile"
               >
-                <Text style={styles.shareBtnText}>{copiedShare ? '✓ Copied!' : '🔗 Share'}</Text>
+                <Feather
+                  name={copiedShare ? 'check' : 'share-2'}
+                  size={12}
+                  color={copiedShare ? '#059669' : ferioColors.primary}
+                  style={{ marginRight: 4 }}
+                />
+                <Text style={[styles.shareBtnText, copiedShare && styles.shareBtnTextCopied]}>
+                  {copiedShare ? 'Copied Link!' : 'Share'}
+                </Text>
               </Pressable>
             </View>
           </ScrollView>
@@ -1038,6 +1065,8 @@ const styles = StyleSheet.create({
     color: ferioColors.muted,
   },
   shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
@@ -1045,5 +1074,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: ferioColors.primary,
+  },
+  shareBtnTextCopied: {
+    color: '#059669',
+  },
+  noticeStripIconBox: {
+    marginRight: ferioSpacing.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ramadanTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
   },
 });
